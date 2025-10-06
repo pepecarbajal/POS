@@ -253,10 +253,22 @@
                                                            FontWeight="Bold"
                                                            Margin="0,5,0,0"/>
 
+                                                <!-- Hide stock display for combos -->
                                                 <TextBlock Text="{Binding Stock, StringFormat='Stock: {0}'}"
                                                            Foreground="{StaticResource SuccessGreen}"
                                                            FontSize="11"
-                                                           Margin="0,2,0,0"/>
+                                                           Margin="0,2,0,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding EsCombo}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
                                             </StackPanel>
                                         </Grid>
                                     </Border>

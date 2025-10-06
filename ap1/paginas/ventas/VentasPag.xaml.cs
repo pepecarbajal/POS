@@ -82,19 +82,13 @@ namespace POS.paginas.ventas
             {
                 _mostrandoCombos = false;
 
-                var query = _context.Productos
+                var todosQuery = _context.Productos
                     .Where(p => p.Estado == "Activo" && p.Stock > 0);
 
-                if (categoriaId.HasValue && categoriaId.Value > 0)
-                {
-                    query = query.Where(p => p.CategoriaId == categoriaId.Value);
-                }
-
-                var productosDb = await query.AsNoTracking().ToListAsync();
+                var todosProductosDb = await todosQuery.AsNoTracking().ToListAsync();
 
                 _todosLosProductos.Clear();
-                Productos.Clear();
-                foreach (var producto in productosDb)
+                foreach (var producto in todosProductosDb)
                 {
                     string? imagenUrl = null;
                     if (!string.IsNullOrEmpty(producto.UrlImage))
@@ -121,7 +115,24 @@ namespace POS.paginas.ventas
                     };
 
                     _todosLosProductos.Add(productoVenta);
-                    Productos.Add(productoVenta);
+                }
+
+                Productos.Clear();
+                var productosAMostrar = _todosLosProductos.AsEnumerable();
+
+                if (categoriaId.HasValue && categoriaId.Value > 0)
+                {
+                    var productosEnCategoria = await _context.Productos
+                        .Where(p => p.CategoriaId == categoriaId.Value && p.Estado == "Activo" && p.Stock > 0)
+                        .Select(p => p.Id)
+                        .ToListAsync();
+
+                    productosAMostrar = _todosLosProductos.Where(p => productosEnCategoria.Contains(p.Id));
+                }
+
+                foreach (var producto in productosAMostrar)
+                {
+                    Productos.Add(producto);
                 }
             }
             catch (Exception ex)
@@ -191,9 +202,17 @@ namespace POS.paginas.ventas
 
             if (string.IsNullOrEmpty(searchText))
             {
-                foreach (var producto in _todosLosProductos)
+                var categoriaSeleccionada = CategoriasComboBox.SelectedItem as CategoriaItem;
+                if (categoriaSeleccionada != null && categoriaSeleccionada.Id > 0)
                 {
-                    Productos.Add(producto);
+                    LoadProductosAsync(categoriaSeleccionada.Id);
+                }
+                else
+                {
+                    foreach (var producto in _todosLosProductos)
+                    {
+                        Productos.Add(producto);
+                    }
                 }
             }
             else
