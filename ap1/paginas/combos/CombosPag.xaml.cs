@@ -8,6 +8,7 @@ using POS.Services;
 using POS.Data;
 using POS.Models;
 using System.Threading.Tasks;
+using POS.Helpers; // Added ImageHelper namespace
 
 namespace POS.paginas.combos
 {
@@ -103,13 +104,19 @@ namespace POS.paginas.combos
 
             try
             {
+                string imagePath = string.Empty;
+                if (!string.IsNullOrWhiteSpace(imagenSeleccionada))
+                {
+                    imagePath = ImageHelper.SaveImage(imagenSeleccionada);
+                }
+
                 if (comboEditandoId.HasValue)
                 {
                     var comboExistente = await _comboService.GetComboByIdAsync(comboEditandoId.Value);
                     if (comboExistente != null)
                     {
                         comboExistente.Nombre = NombreTextBox.Text;
-                        comboExistente.UrlImage = imagenSeleccionada;
+                        comboExistente.UrlImage = imagePath; // Use new image path
 
                         await _comboService.UpdateComboAsync(comboEditandoId.Value, comboExistente);
 
@@ -133,7 +140,7 @@ namespace POS.paginas.combos
                     var nuevoCombo = new Combo
                     {
                         Nombre = NombreTextBox.Text,
-                        UrlImage = imagenSeleccionada
+                        UrlImage = imagePath // Use new image path
                     };
 
                     var comboCreado = await _comboService.CreateComboAsync(nuevoCombo);

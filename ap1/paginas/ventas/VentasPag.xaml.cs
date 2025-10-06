@@ -338,6 +338,24 @@ namespace POS.paginas.ventas
             TotalTextBlock.Text = $"${total:N2}";
         }
 
+        private void RemoveFromCart_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is ItemCarrito item)
+            {
+                var result = MessageBox.Show(
+                    $"¿Desea eliminar '{item.Nombre}' del carrito?",
+                    "Confirmar eliminación",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    Carrito.Remove(item);
+                    ActualizarTotales();
+                }
+            }
+        }
+
         private async Task AgregarComboAlCarrito(int comboId)
         {
             try

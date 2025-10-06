@@ -9,6 +9,7 @@ using POS.Data;
 using POS.Services;
 using POS.Models;
 using POS.Interfaces;
+using POS.Helpers; // Added ImageHelper namespace
 
 namespace POS.paginas.productos
 {
@@ -158,6 +159,12 @@ namespace POS.paginas.productos
 
                 string estado = EstadoCheckBox.IsChecked == true ? "Activo" : "Inactivo";
 
+                string imagePath = string.Empty;
+                if (!string.IsNullOrWhiteSpace(selectedImagePath))
+                {
+                    imagePath = ImageHelper.SaveImage(selectedImagePath);
+                }
+
                 if (_productoEditandoId.HasValue)
                 {
                     // Actualizar producto existente
@@ -169,7 +176,7 @@ namespace POS.paginas.productos
                         Precio = precio,
                         Stock = stock,
                         Estado = estado,
-                        UrlImage = selectedImagePath ?? ""
+                        UrlImage = imagePath // Use new image path
                     };
 
                     bool actualizado = await _productoService.UpdateProductoAsync(_productoEditandoId.Value, productoActualizado);
@@ -195,7 +202,7 @@ namespace POS.paginas.productos
                         Precio = precio,
                         Stock = stock,
                         Estado = estado,
-                        UrlImage = selectedImagePath ?? ""
+                        UrlImage = imagePath // Use new image path
                     };
 
                     await _productoService.CreateProductoAsync(nuevoProducto);

@@ -317,6 +317,7 @@
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
@@ -356,7 +357,45 @@
                                                        FontSize="18"
                                                        FontWeight="Bold"
                                                        Foreground="{StaticResource PrimaryPurple}"
-                                                       VerticalAlignment="Center"/>
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,10,0"/>
+
+                                            <!-- Remove button -->
+                                            <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="3"
+                                                    Content="✕"
+                                                    FontSize="18"
+                                                    FontWeight="Bold"
+                                                    Width="35"
+                                                    Height="35"
+                                                    Background="#ef4444"
+                                                    Foreground="White"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    VerticalAlignment="Center"
+                                                    Click="RemoveFromCart_Click"
+                                                    ToolTip="Eliminar producto">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}"
+                                                                            CornerRadius="4"
+                                                                            BorderThickness="0">
+                                                                        <ContentPresenter HorizontalAlignment="Center"
+                                                                                        VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="#dc2626"/>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
