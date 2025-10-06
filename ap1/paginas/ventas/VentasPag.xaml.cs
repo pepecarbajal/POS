@@ -1,32 +1,400 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Linq;
+using POS.Data;
+using POS.Services;
+using POS.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using System.Windows;
+using System;
+using System.IO;
 
 namespace WPF_ProductTable.paginas.ventas
 {
     public partial class VentasPag : Page
     {
+        private readonly AppDbContext _context;
+        private readonly VentaService _ventaService;
+
         public ObservableCollection<ProductoVenta> Productos { get; set; }
+        public ObservableCollection<ItemCarrito> Carrito { get; set; }
+        public ObservableCollection<CategoriaItem> Categorias { get; set; }
+
+        private ObservableCollection<ProductoVenta> _todosLosProductos = new ObservableCollection<ProductoVenta>();
+        private bool _mostrandoCombos = false;
 
         public VentasPag()
         {
             InitializeComponent();
 
-            // Inicializar productos de ejemplo
-            Productos = new ObservableCollection<ProductoVenta>
-            {
-                new ProductoVenta { Id = 1, Nombre = "Hamburguesa Clásica", Precio = 89.00m, Stock = 25, ImagenUrl = "/placeholder.svg?height=140&width=180" },
-                new ProductoVenta { Id = 2, Nombre = "Pizza Pepperoni", Precio = 149.00m, Stock = 15, ImagenUrl = "/placeholder.svg?height=140&width=180" },
-                new ProductoVenta { Id = 3, Nombre = "Refresco Grande", Precio = 35.00m, Stock = 50, ImagenUrl = "/placeholder.svg?height=140&width=180" },
-                new ProductoVenta { Id = 4, Nombre = "Papas Fritas", Precio = 45.00m, Stock = 30, ImagenUrl = "/placeholder.svg?height=140&width=180" },
-                new ProductoVenta { Id = 5, Nombre = "Hot Dog Especial", Precio = 65.00m, Stock = 20, ImagenUrl = "/placeholder.svg?height=140&width=180" },
-                new ProductoVenta { Id = 6, Nombre = "Ensalada César", Precio = 95.00m, Stock = 12, ImagenUrl = "/placeholder.svg?height=140&width=180" },
-                new ProductoVenta { Id = 7, Nombre = "Tacos al Pastor", Precio = 75.00m, Stock = 40, ImagenUrl = "/placeholder.svg?height=140&width=180" },
-                new ProductoVenta { Id = 8, Nombre = "Café Americano", Precio = 30.00m, Stock = 60, ImagenUrl = "/placeholder.svg?height=140&width=180" },
-                new ProductoVenta { Id = 9, Nombre = "Sandwich Club", Precio = 85.00m, Stock = 18, ImagenUrl = "/placeholder.svg?height=140&width=180" },
-                new ProductoVenta { Id = 10, Nombre = "Helado Sundae", Precio = 55.00m, Stock = 22, ImagenUrl = "/placeholder.svg?height=140&width=180" }
-            };
+            _context = new AppDbContext();
+            _context.Database.EnsureCreated();
+
+            _ventaService = new VentaService(_context);
+
+            Productos = new ObservableCollection<ProductoVenta>();
+            Carrito = new ObservableCollection<ItemCarrito>();
+            Categorias = new ObservableCollection<CategoriaItem>();
 
             ProductosItemsControl.ItemsSource = Productos;
+            CarritoItemsControl.ItemsSource = Carrito;
+
+            LoadCategoriasAsync();
+            LoadProductosAsync();
+        }
+
+        private async void LoadCategoriasAsync()
+        {
+            try
+            {
+                var categoriasDb = await _context.Categorias
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                Categorias.Clear();
+                Categorias.Add(new CategoriaItem { Id = 0, Nombre = "Todas las categorías" });
+
+                foreach (var categoria in categoriasDb)
+                {
+                    Categorias.Add(new CategoriaItem
+                    {
+                        Id = categoria.Id,
+                        Nombre = categoria.Nombre
+                    });
+                }
+
+                CategoriasComboBox.ItemsSource = Categorias;
+                CategoriasComboBox.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar categorías: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void LoadProductosAsync(int? categoriaId = null)
+        {
+            try
+            {
+                _mostrandoCombos = false;
+
+                var query = _context.Productos
+                    .Where(p => p.Estado == "Activo" && p.Stock > 0);
+
+                if (categoriaId.HasValue && categoriaId.Value > 0)
+                {
+                    query = query.Where(p => p.CategoriaId == categoriaId.Value);
+                }
+
+                var productosDb = await query.AsNoTracking().ToListAsync();
+
+                _todosLosProductos.Clear();
+                Productos.Clear();
+                foreach (var producto in productosDb)
+                {
+                    string? imagenUrl = null;
+                    if (!string.IsNullOrEmpty(producto.UrlImage))
+                    {
+                        string imagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "images", producto.UrlImage);
+
+                        if (File.Exists(imagePath))
+                        {
+                            imagenUrl = imagePath;
+                        }
+                        else if (Uri.TryCreate(producto.UrlImage, UriKind.Absolute, out Uri? uri))
+                        {
+                            imagenUrl = producto.UrlImage;
+                        }
+                    }
+
+                    var productoVenta = new ProductoVenta
+                    {
+                        Id = producto.Id,
+                        Nombre = producto.Nombre,
+                        Precio = producto.Precio,
+                        Stock = producto.Stock,
+                        ImagenUrl = imagenUrl
+                    };
+
+                    _todosLosProductos.Add(productoVenta);
+                    Productos.Add(productoVenta);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar productos: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void LoadCombosAsync()
+        {
+            try
+            {
+                _mostrandoCombos = true;
+
+                var combosDb = await _context.Combos
+                    .Include(c => c.Productos)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                _todosLosProductos.Clear();
+                Productos.Clear();
+                foreach (var combo in combosDb)
+                {
+                    var precioTotal = combo.Productos.Sum(p => p.Precio);
+
+                    string? imagenUrl = null;
+                    if (!string.IsNullOrEmpty(combo.UrlImage))
+                    {
+                        string imagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "images", combo.UrlImage);
+
+                        if (File.Exists(imagePath))
+                        {
+                            imagenUrl = imagePath;
+                        }
+                        else if (Uri.TryCreate(combo.UrlImage, UriKind.Absolute, out Uri? uri))
+                        {
+                            imagenUrl = combo.UrlImage;
+                        }
+                    }
+
+                    var productoVenta = new ProductoVenta
+                    {
+                        Id = combo.Id,
+                        Nombre = combo.Nombre,
+                        Precio = precioTotal,
+                        Stock = combo.Productos.Any() ? combo.Productos.Min(p => p.Stock) : 0,
+                        ImagenUrl = imagenUrl,
+                        EsCombo = true,
+                        ComboId = combo.Id
+                    };
+
+                    _todosLosProductos.Add(productoVenta);
+                    Productos.Add(productoVenta);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar combos: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string searchText = SearchTextBox.Text.ToLower().Trim();
+
+            Productos.Clear();
+
+            if (string.IsNullOrEmpty(searchText))
+            {
+                foreach (var producto in _todosLosProductos)
+                {
+                    Productos.Add(producto);
+                }
+            }
+            else
+            {
+                var productosFiltrados = _todosLosProductos
+                    .Where(p => p.Nombre.ToLower().Contains(searchText))
+                    .ToList();
+
+                foreach (var producto in productosFiltrados)
+                {
+                    Productos.Add(producto);
+                }
+            }
+        }
+
+        private void CategoriasComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CategoriasComboBox.SelectedItem is CategoriaItem categoria)
+            {
+                LoadProductosAsync(categoria.Id == 0 ? null : categoria.Id);
+            }
+        }
+
+        private void CombosButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            LoadCombosAsync();
+        }
+
+        private async void ProductCard_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border border && border.DataContext is ProductoVenta producto)
+            {
+                if (producto.EsCombo)
+                {
+                    await AgregarComboAlCarrito(producto.ComboId);
+                    return;
+                }
+
+                var itemExistente = Carrito.FirstOrDefault(i => i.ProductoId == producto.Id);
+
+                if (itemExistente != null)
+                {
+                    if (itemExistente.Cantidad < producto.Stock)
+                    {
+                        itemExistente.Cantidad++;
+                        itemExistente.Total = itemExistente.Cantidad * itemExistente.PrecioUnitario;
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Stock insuficiente para {producto.Nombre}", "Advertencia", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+                else
+                {
+                    Carrito.Add(new ItemCarrito
+                    {
+                        ProductoId = producto.Id,
+                        Nombre = producto.Nombre,
+                        PrecioUnitario = producto.Precio,
+                        Cantidad = 1,
+                        Total = producto.Precio
+                    });
+                }
+
+                ActualizarTotales();
+            }
+        }
+
+        private async void FinalizarVenta_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (!Carrito.Any())
+            {
+                MessageBox.Show("El carrito está vacío", "Advertencia", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                Console.WriteLine("[v0] Iniciando proceso de venta...");
+
+                var venta = new Venta
+                {
+                    Fecha = DateTime.Now,
+                    Total = Carrito.Sum(i => i.Total),
+                    DetallesVenta = new List<DetalleVenta>()
+                };
+
+                // Add details to the collection without setting VentaId (will be set by service)
+                foreach (var item in Carrito)
+                {
+                    venta.DetallesVenta.Add(new DetalleVenta
+                    {
+                        ProductoId = item.ProductoId,
+                        Cantidad = item.Cantidad,
+                        PrecioUnitario = item.PrecioUnitario,
+                        Subtotal = item.Total
+                    });
+                }
+
+                Console.WriteLine($"[v0] Venta creada con {venta.DetallesVenta.Count} items, Total: ${venta.Total}");
+
+                await _ventaService.CreateVentaAsync(venta);
+
+                Console.WriteLine($"[v0] Venta guardada exitosamente con ID: {venta.Id}");
+
+                MessageBox.Show($"Venta realizada exitosamente\nTotal: ${venta.Total:N2}", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                Carrito.Clear();
+                ActualizarTotales();
+                LoadProductosAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[v0] Error al procesar venta: {ex.Message}");
+                Console.WriteLine($"[v0] Stack trace: {ex.StackTrace}");
+                MessageBox.Show($"Error al procesar la venta: {ex.Message}\n\nDetalles: {ex.InnerException?.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ActualizarTotales()
+        {
+            decimal subtotal = Carrito.Sum(i => i.Total);
+            SubtotalTextBlock.Text = $"${subtotal:N2}";
+            TotalTextBlock.Text = $"${subtotal:N2}";
+        }
+
+        private async Task AgregarComboAlCarrito(int comboId)
+        {
+            try
+            {
+                var combo = await _context.Combos
+                    .Include(c => c.Productos)
+                    .FirstOrDefaultAsync(c => c.Id == comboId);
+
+                if (combo == null || !combo.Productos.Any())
+                {
+                    MessageBox.Show("No se encontró el combo o no tiene productos", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var productosAgregados = new System.Text.StringBuilder();
+                var productosSinStock = new System.Text.StringBuilder();
+                int productosAgregadosCount = 0;
+
+                foreach (var producto in combo.Productos)
+                {
+                    if (producto.Stock <= 0)
+                    {
+                        productosSinStock.AppendLine($"- {producto.Nombre} (sin stock)");
+                        continue;
+                    }
+
+                    var itemExistente = Carrito.FirstOrDefault(i => i.ProductoId == producto.Id);
+
+                    if (itemExistente != null)
+                    {
+                        if (itemExistente.Cantidad < producto.Stock)
+                        {
+                            itemExistente.Cantidad++;
+                            itemExistente.Total = itemExistente.Cantidad * itemExistente.PrecioUnitario;
+                            productosAgregados.AppendLine($"- {producto.Nombre} (cantidad actualizada)");
+                            productosAgregadosCount++;
+                        }
+                        else
+                        {
+                            productosSinStock.AppendLine($"- {producto.Nombre} (stock insuficiente)");
+                        }
+                    }
+                    else
+                    {
+                        Carrito.Add(new ItemCarrito
+                        {
+                            ProductoId = producto.Id,
+                            Nombre = producto.Nombre,
+                            PrecioUnitario = producto.Precio,
+                            Cantidad = 1,
+                            Total = producto.Precio
+                        });
+                        productosAgregados.AppendLine($"- {producto.Nombre}");
+                        productosAgregadosCount++;
+                    }
+                }
+
+                ActualizarTotales();
+
+                var mensaje = $"Combo '{combo.Nombre}' procesado:\n\n";
+
+                if (productosAgregadosCount > 0)
+                {
+                    mensaje += $"Productos agregados ({productosAgregadosCount}):\n{productosAgregados}";
+                }
+
+                if (productosSinStock.Length > 0)
+                {
+                    mensaje += $"\nProductos no agregados:\n{productosSinStock}";
+                }
+
+                MessageBox.Show(mensaje, "Combo Agregado", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al agregar combo: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 
@@ -36,6 +404,51 @@ namespace WPF_ProductTable.paginas.ventas
         public required string Nombre { get; set; }
         public required decimal Precio { get; set; }
         public required int Stock { get; set; }
-        public required string ImagenUrl { get; set; }
+        public string? ImagenUrl { get; set; }
+        public bool EsCombo { get; set; } = false;
+        public int ComboId { get; set; } = 0;
+    }
+
+    public class ItemCarrito : System.ComponentModel.INotifyPropertyChanged
+    {
+        private int _cantidad;
+        private decimal _total;
+
+        public required int ProductoId { get; set; }
+        public required string Nombre { get; set; }
+        public required decimal PrecioUnitario { get; set; }
+
+        public int Cantidad
+        {
+            get => _cantidad;
+            set
+            {
+                _cantidad = value;
+                OnPropertyChanged(nameof(Cantidad));
+            }
+        }
+
+        public decimal Total
+        {
+            get => _total;
+            set
+            {
+                _total = value;
+                OnPropertyChanged(nameof(Total));
+            }
+        }
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public class CategoriaItem
+    {
+        public required int Id { get; set; }
+        public required string Nombre { get; set; }
     }
 }

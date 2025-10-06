@@ -158,7 +158,7 @@
                                    Cursor="Hand"
                                    Click="GuardarProducto_Click" Grid.ColumnSpan="3"/>
 
-                            
+
                         </Grid>
                     </StackPanel>
                 </ScrollViewer>
