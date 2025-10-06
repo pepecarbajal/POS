@@ -31,7 +31,7 @@ namespace POS
 
         private void UpdateClock()
         {
-            ClockTextBlock.Text = DateTime.Now.ToString("HH:mm");
+            ClockTextBlock.Text = DateTime.Now.ToString("hh:mm tt");
         }
 
         private void ConfiguracionButton_Click(object sender, RoutedEventArgs e)
