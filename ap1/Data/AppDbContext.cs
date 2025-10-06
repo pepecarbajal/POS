@@ -1,7 +1,7 @@
-﻿
+﻿using POS.Models;
 using Microsoft.EntityFrameworkCore;
-using POS.Models;
 using System.IO;
+using System;
 
 namespace POS.Data
 {
@@ -11,6 +11,8 @@ namespace POS.Data
         public DbSet<Producto> Productos { get; set; }
         public DbSet<Combo> Combos { get; set; }
         public DbSet<ComboProducto> ComboProductos { get; set; }
+        public DbSet<Venta> Ventas { get; set; }
+        public DbSet<DetalleVenta> DetallesVenta { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -44,6 +46,20 @@ namespace POS.Data
                 .HasMany(c => c.Productos) // Un combo tiene muchos productos
                 .WithMany(p => p.Combos)   // Un producto puede estar en muchos combos
                 .UsingEntity<ComboProducto>(); // A través de la tabla ComboProducto
+
+            // Configurar la relación uno a muchos entre Venta y DetalleVenta
+            modelBuilder.Entity<Venta>()
+                .HasMany(v => v.DetallesVenta)
+                .WithOne(dv => dv.Venta)
+                .HasForeignKey(dv => dv.VentaId);
+
+            modelBuilder.Entity<Venta>()
+                .Property(v => v.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<DetalleVenta>()
+                .Property(dv => dv.Id)
+                .ValueGeneratedOnAdd();
         }
     }
 }

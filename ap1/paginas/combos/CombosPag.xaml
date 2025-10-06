@@ -189,18 +189,9 @@
 
                     <!-- Botones -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Limpiar" 
-                              Padding="20,10"
-                              Background="White"
-                              Foreground="#6b7280"
-                              BorderBrush="#d1d5db"
-                              BorderThickness="1"
-                              Margin="0,0,10,0"
-                              Cursor="Hand"
-                              Click="LimpiarFormulario_Click"/>
                         <Button Content="Guardar Combo" 
                               Style="{StaticResource PrimaryButton}"
-                              Click="GuardarCombo_Click"/>
+                              Click="GuardarCombo_Click" Width="330"/>
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>
