@@ -151,6 +151,7 @@
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <CheckBox Grid.Column="0"
                                                         IsChecked="{Binding IsSelected, Mode=TwoWay}"
@@ -161,13 +162,56 @@
                                                          FontSize="14"
                                                          Foreground="#374151"
                                                          VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Column="2" 
+                                                          Orientation="Horizontal" 
+                                                          VerticalAlignment="Center"
+                                                          Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                    <TextBlock Text="Cant:" 
+                                                             FontSize="12" 
+                                                             Foreground="#6b7280"
+                                                             VerticalAlignment="Center"
+                                                             Margin="0,0,8,0"/>
+                                                    <Button Content="-" 
+                                                           Width="25" 
+                                                           Height="25"
+                                                           FontSize="14"
+                                                           FontWeight="Bold"
+                                                           Background="#f3f4f6"
+                                                           BorderThickness="1"
+                                                           BorderBrush="#d1d5db"
+                                                           Foreground="#374151"
+                                                           Cursor="Hand"
+                                                           Click="DecrementarCantidad_Click"
+                                                           Tag="{Binding}"/>
+                                                    <TextBox Text="{Binding Cantidad, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                           Width="40"
+                                                           Height="25"
+                                                           TextAlignment="Center"
+                                                           FontSize="14"
+                                                           BorderBrush="#d1d5db"
+                                                           BorderThickness="1"
+                                                           Margin="5,0"
+                                                           VerticalContentAlignment="Center"/>
+                                                    <Button Content="+" 
+                                                           Width="25" 
+                                                           Height="25"
+                                                           FontSize="14"
+                                                           FontWeight="Bold"
+                                                           Background="#f3f4f6"
+                                                           BorderThickness="1"
+                                                           BorderBrush="#d1d5db"
+                                                           Foreground="#374151"
+                                                           Cursor="Hand"
+                                                           Click="IncrementarCantidad_Click"
+                                                           Tag="{Binding}"/>
+                                                </StackPanel>
                                             </Grid>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
                             </ScrollViewer>
                         </Border>
-                        <TextBlock Text="Selecciona uno o más productos para el combo" 
+                        <TextBlock Text="Selecciona uno o más productos y especifica la cantidad de cada uno" 
                                  Foreground="#6b7280" 
                                  FontSize="12" 
                                  Margin="0,8,0,0"/>

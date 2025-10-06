@@ -1,4 +1,4 @@
-﻿<Page x:Class="WPF_ProductTable.paginas.ventas.VentasPag"
+﻿<Page x:Class="POS.paginas.ventas.VentasPag"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="Ventas"
@@ -309,9 +309,10 @@
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
-                                            <!-- Increased font size from 13 to 16 -->
+                                            <!-- Product name -->
                                             <TextBlock Grid.Row="0" Grid.Column="0"
                                                        Text="{Binding Nombre}"
                                                        FontSize="16"
@@ -319,17 +320,26 @@
                                                        Foreground="{StaticResource TextDark}"
                                                        TextWrapping="Wrap"/>
 
-                                            <!-- Increased font size from 12 to 15 -->
+                                            <!-- Unit price display -->
                                             <TextBlock Grid.Row="1" Grid.Column="0"
+                                                       FontSize="14"
+                                                       Foreground="#666"
+                                                       Margin="0,3,0,0">
+                                                <Run Text="Precio unitario: "/>
+                                                <Run Text="{Binding PrecioUnitario, StringFormat='${0:N2}'}" FontWeight="SemiBold"/>
+                                            </TextBlock>
+
+                                            <!-- Quantity -->
+                                            <TextBlock Grid.Row="2" Grid.Column="0"
                                                        FontSize="15"
                                                        Foreground="#666"
-                                                       Margin="0,5,0,0">
+                                                       Margin="0,3,0,0">
                                                 <Run Text="Cantidad: "/>
                                                 <Run Text="{Binding Cantidad}" FontWeight="Bold"/>
                                             </TextBlock>
 
-                                            <!-- Increased font size from 14 to 18 -->
-                                            <TextBlock Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                                            <!-- Total price -->
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Grid.RowSpan="3"
                                                        Text="{Binding Total, StringFormat='${0:N2}'}"
                                                        FontSize="18"
                                                        FontWeight="Bold"
@@ -348,20 +358,7 @@
                             BorderBrush="{StaticResource LightBorder}"
                             BorderThickness="0,1,0,0">
                         <StackPanel>
-                            <Grid Margin="0,0,0,10">
-                                <!-- Increased font size from 14 to 16 -->
-                                <TextBlock Text="Subtotal:"
-                                           Foreground="{StaticResource TextDark}"
-                                           FontSize="16"
-                                           FontWeight="SemiBold"
-                                           HorizontalAlignment="Left"/>
-                                <TextBlock x:Name="SubtotalTextBlock"
-                                           Text="$0.00"
-                                           Foreground="{StaticResource TextDark}"
-                                           FontSize="16"
-                                           FontWeight="Bold"
-                                           HorizontalAlignment="Right"/>
-                            </Grid>
+                            <!-- Total section -->
                             <Grid>
                                 <!-- Increased font size from 18 to 22 -->
                                 <TextBlock Text="Total:"
@@ -379,7 +376,7 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Added Click event handler for Finalizar Venta button -->
+                    <!-- Finalizar Venta button -->
                     <Button Grid.Row="3"
                             Content="Finalizar Venta"
                             Background="{StaticResource PrimaryPurple}"

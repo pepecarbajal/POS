@@ -11,12 +11,13 @@ using System.Windows;
 using System;
 using System.IO;
 
-namespace WPF_ProductTable.paginas.ventas
+namespace POS.paginas.ventas
 {
     public partial class VentasPag : Page
     {
         private readonly AppDbContext _context;
         private readonly VentaService _ventaService;
+        private readonly ComboService _comboService;
 
         public ObservableCollection<ProductoVenta> Productos { get; set; }
         public ObservableCollection<ItemCarrito> Carrito { get; set; }
@@ -33,6 +34,7 @@ namespace WPF_ProductTable.paginas.ventas
             _context.Database.EnsureCreated();
 
             _ventaService = new VentaService(_context);
+            _comboService = new ComboService(_context);
 
             Productos = new ObservableCollection<ProductoVenta>();
             Carrito = new ObservableCollection<ItemCarrito>();
@@ -313,34 +315,35 @@ namespace WPF_ProductTable.paginas.ventas
 
         private void ActualizarTotales()
         {
-            decimal subtotal = Carrito.Sum(i => i.Total);
-            SubtotalTextBlock.Text = $"${subtotal:N2}";
-            TotalTextBlock.Text = $"${subtotal:N2}";
+            decimal total = Carrito.Sum(i => i.Total);
+            TotalTextBlock.Text = $"${total:N2}";
         }
 
         private async Task AgregarComboAlCarrito(int comboId)
         {
             try
             {
-                var combo = await _context.Combos
-                    .Include(c => c.Productos)
-                    .FirstOrDefaultAsync(c => c.Id == comboId);
+                var comboProductos = await _comboService.GetComboProductosAsync(comboId);
 
-                if (combo == null || !combo.Productos.Any())
+                if (!comboProductos.Any())
                 {
                     MessageBox.Show("No se encontró el combo o no tiene productos", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
+                var combo = await _context.Combos.FirstOrDefaultAsync(c => c.Id == comboId);
                 var productosAgregados = new System.Text.StringBuilder();
                 var productosSinStock = new System.Text.StringBuilder();
                 int productosAgregadosCount = 0;
 
-                foreach (var producto in combo.Productos)
+                foreach (var comboProducto in comboProductos)
                 {
-                    if (producto.Stock <= 0)
+                    var producto = comboProducto.Producto;
+                    var cantidadRequerida = comboProducto.Cantidad;
+
+                    if (producto.Stock < cantidadRequerida)
                     {
-                        productosSinStock.AppendLine($"- {producto.Nombre} (sin stock)");
+                        productosSinStock.AppendLine($"- {producto.Nombre} (stock insuficiente: requiere {cantidadRequerida}, disponible {producto.Stock})");
                         continue;
                     }
 
@@ -348,11 +351,11 @@ namespace WPF_ProductTable.paginas.ventas
 
                     if (itemExistente != null)
                     {
-                        if (itemExistente.Cantidad < producto.Stock)
+                        if (itemExistente.Cantidad + cantidadRequerida <= producto.Stock)
                         {
-                            itemExistente.Cantidad++;
+                            itemExistente.Cantidad += cantidadRequerida;
                             itemExistente.Total = itemExistente.Cantidad * itemExistente.PrecioUnitario;
-                            productosAgregados.AppendLine($"- {producto.Nombre} (cantidad actualizada)");
+                            productosAgregados.AppendLine($"- {producto.Nombre} x{cantidadRequerida} (cantidad actualizada)");
                             productosAgregadosCount++;
                         }
                         else
@@ -367,17 +370,17 @@ namespace WPF_ProductTable.paginas.ventas
                             ProductoId = producto.Id,
                             Nombre = producto.Nombre,
                             PrecioUnitario = producto.Precio,
-                            Cantidad = 1,
-                            Total = producto.Precio
+                            Cantidad = cantidadRequerida,
+                            Total = producto.Precio * cantidadRequerida
                         });
-                        productosAgregados.AppendLine($"- {producto.Nombre}");
+                        productosAgregados.AppendLine($"- {producto.Nombre} x{cantidadRequerida}");
                         productosAgregadosCount++;
                     }
                 }
 
                 ActualizarTotales();
 
-                var mensaje = $"Combo '{combo.Nombre}' procesado:\n\n";
+                var mensaje = $"Combo '{combo?.Nombre}' procesado:\n\n";
 
                 if (productosAgregadosCount > 0)
                 {

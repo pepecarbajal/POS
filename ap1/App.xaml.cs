@@ -3,7 +3,6 @@ using POS.Services;
 using POS.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
-using WPF_ProductTable;
 using POS;
 
 public partial class App : Application

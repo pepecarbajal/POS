@@ -164,7 +164,8 @@
                                 <TextBlock Text="Combos" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Style="{StaticResource SubmenuButton}">
+                        <Button Style="{StaticResource SubmenuButton}"
+                                Click="AjustesButton_Click">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🔧" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="Ajustes" VerticalAlignment="Center"/>

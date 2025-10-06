@@ -13,8 +13,9 @@ namespace POS.Interfaces
         Task<bool> DeleteComboAsync(int id);
 
         // Métodos para manejar los productos dentro de un combo
-        Task<bool> AddProductoToComboAsync(int comboId, int productoId);
+        Task<bool> AddProductoToComboAsync(int comboId, int productoId, int cantidad = 1);
         Task<bool> RemoveProductoFromComboAsync(int comboId, int productoId);
         Task<IEnumerable<Producto>> GetProductosByComboIdAsync(int comboId);
+        Task<IEnumerable<ComboProducto>> GetComboProductosAsync(int comboId);
     }
 }

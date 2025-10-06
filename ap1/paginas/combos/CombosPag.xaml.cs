@@ -43,7 +43,8 @@ namespace POS.paginas.combos
                 {
                     Id = p.Id,
                     Nombre = p.Nombre,
-                    IsSelected = false
+                    IsSelected = false,
+                    Cantidad = 1
                 })
             );
             ProductosListBox.ItemsSource = productosDisponibles;
@@ -121,7 +122,7 @@ namespace POS.paginas.combos
 
                         foreach (var prod in productosSeleccionados)
                         {
-                            await _comboService.AddProductoToComboAsync(comboEditandoId.Value, prod.Id);
+                            await _comboService.AddProductoToComboAsync(comboEditandoId.Value, prod.Id, prod.Cantidad);
                         }
 
                         MessageBox.Show("Combo actualizado exitosamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -137,10 +138,9 @@ namespace POS.paginas.combos
 
                     var comboCreado = await _comboService.CreateComboAsync(nuevoCombo);
 
-                    // Add selected products to combo
                     foreach (var prod in productosSeleccionados)
                     {
-                        await _comboService.AddProductoToComboAsync(comboCreado.Id, prod.Id);
+                        await _comboService.AddProductoToComboAsync(comboCreado.Id, prod.Id, prod.Cantidad);
                     }
 
                     MessageBox.Show("Combo guardado exitosamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -174,10 +174,21 @@ namespace POS.paginas.combos
                             PlaceholderText.Visibility = Visibility.Collapsed;
                         }
 
-                        var productosEnCombo = combo.Productos.Select(p => p.Id).ToList();
+                        var comboProductos = await _comboService.GetComboProductosAsync(combo.Id);
+                        var productosConCantidad = comboProductos.ToDictionary(cp => cp.ProductoId, cp => cp.Cantidad);
+
                         foreach (var producto in productosDisponibles)
                         {
-                            producto.IsSelected = productosEnCombo.Contains(producto.Id);
+                            if (productosConCantidad.ContainsKey(producto.Id))
+                            {
+                                producto.IsSelected = true;
+                                producto.Cantidad = productosConCantidad[producto.Id];
+                            }
+                            else
+                            {
+                                producto.IsSelected = false;
+                                producto.Cantidad = 1;
+                            }
                         }
                     }
                 }
@@ -224,6 +235,7 @@ namespace POS.paginas.combos
             foreach (var producto in productosDisponibles)
             {
                 producto.IsSelected = false;
+                producto.Cantidad = 1;
             }
 
             ImagenPreview.Source = null;
@@ -236,11 +248,31 @@ namespace POS.paginas.combos
             int total = combos.Count;
             ContadorTextBlock.Text = $"Mostrando {total} de {total} combos";
         }
+
+        private void IncrementarCantidad_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is ProductoSeleccionable producto)
+            {
+                producto.Cantidad++;
+            }
+        }
+
+        private void DecrementarCantidad_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is ProductoSeleccionable producto)
+            {
+                if (producto.Cantidad > 1)
+                {
+                    producto.Cantidad--;
+                }
+            }
+        }
     }
 
     public class ProductoSeleccionable : System.ComponentModel.INotifyPropertyChanged
     {
         private bool isSelected;
+        private int cantidad = 1;
 
         public int Id { get; set; }
         public string Nombre { get; set; }
@@ -254,6 +286,19 @@ namespace POS.paginas.combos
                 {
                     isSelected = value;
                     OnPropertyChanged(nameof(IsSelected));
+                }
+            }
+        }
+
+        public int Cantidad
+        {
+            get => cantidad;
+            set
+            {
+                if (cantidad != value && value > 0)
+                {
+                    cantidad = value;
+                    OnPropertyChanged(nameof(Cantidad));
                 }
             }
         }

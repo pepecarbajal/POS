@@ -1,7 +1,7 @@
 ﻿using POS.Data;
+using POS.Interfaces;
 using POS.Models;
 using Microsoft.EntityFrameworkCore;
-using POS.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -64,24 +64,38 @@ namespace POS.Services
 
         // --- Métodos para manejar productos en un combo ---
 
-        public async Task<bool> AddProductoToComboAsync(int comboId, int productoId)
+        public async Task<bool> AddProductoToComboAsync(int comboId, int productoId, int cantidad = 1)
         {
-            var combo = await _context.Combos.Include(c => c.Productos)
-                                    .FirstOrDefaultAsync(c => c.Id == comboId);
+            var combo = await _context.Combos.FindAsync(comboId);
             var producto = await _context.Productos.FindAsync(productoId);
 
             if (combo == null || producto == null)
             {
-                return false; // Combo o producto no existen
+                return false;
             }
 
-            // Evitar duplicados
-            if (!combo.Productos.Any(p => p.Id == productoId))
+            // Check if the relationship already exists
+            var existingComboProducto = await _context.ComboProductos
+                .FirstOrDefaultAsync(cp => cp.ComboId == comboId && cp.ProductoId == productoId);
+
+            if (existingComboProducto != null)
             {
-                combo.Productos.Add(producto);
-                await _context.SaveChangesAsync();
+                // Update existing cantidad
+                existingComboProducto.Cantidad = cantidad;
+            }
+            else
+            {
+                // Create new ComboProducto with cantidad
+                var comboProducto = new ComboProducto
+                {
+                    ComboId = comboId,
+                    ProductoId = productoId,
+                    Cantidad = cantidad
+                };
+                await _context.ComboProductos.AddAsync(comboProducto);
             }
 
+            await _context.SaveChangesAsync();
             return true;
         }
 
@@ -108,6 +122,15 @@ namespace POS.Services
                                  .FirstOrDefaultAsync(c => c.Id == comboId);
 
             return combo?.Productos ?? new List<Producto>();
+        }
+
+        public async Task<IEnumerable<ComboProducto>> GetComboProductosAsync(int comboId)
+        {
+            return await _context.ComboProductos
+                .Include(cp => cp.Producto)
+                .Where(cp => cp.ComboId == comboId)
+                .AsNoTracking()
+                .ToListAsync();
         }
     }
 }
