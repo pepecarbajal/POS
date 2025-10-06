@@ -1,0 +1,184 @@
+﻿<Window x:Class="POS.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Ualala - Sistema de Gestión"
+        Height="700" 
+        Width="1200"
+        Background="#f8f9fa"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized">
+
+    <Window.Resources>
+        <!-- Actualizado a morados mucho más oscuros -->
+        <Style x:Key="SidebarMenuButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Left" 
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#3d2563"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#2d1b4e"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SubmenuButton" TargetType="Button" BasedOn="{StaticResource SidebarMenuButton}">
+            <Setter Property="Padding" Value="40,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#c4b5fd"/>
+        </Style>
+    </Window.Resources>
+
+    <Border BorderBrush="#1a0b2e" 
+            BorderThickness="0">
+        <Grid Background="#f8f9fa">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="100"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Header con morado mucho más oscuro -->
+            <Border Grid.Row="0" 
+                    Grid.Column="0"
+                    Background="#1a0b2e"
+                    BorderBrush="#2d1b4e"
+                    BorderThickness="0,0,1,1">
+                <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                    <Image Source="pack://application:,,,/logo/icono.png" 
+                           Width="167"
+                           Height="173"
+                           Stretch="Uniform"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Header principal con morado mucho más oscuro -->
+            <Border Grid.Row="0" 
+                    Grid.Column="1"
+                    Background="#1a0b2e"
+                    BorderBrush="#2d1b4e"
+                    BorderThickness="0,0,0,1">
+                <Grid>
+                    <TextBlock x:Name="ClockTextBlock"
+                               Text="00:00"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               Margin="0,0,40,0"/>
+                </Grid>
+            </Border>
+
+            <!-- Sidebar con morado mucho más oscuro -->
+            <Border Grid.Row="1"
+                    Grid.Column="0" 
+                    Background="#2d1b4e"
+                    BorderBrush="#3d2563"
+                    BorderThickness="0,0,1,0">
+                <StackPanel VerticalAlignment="Top" Margin="0,30,0,0">
+                    <TextBlock Text="Menú Principal"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="#9f7aea"
+                               Margin="20,0,0,12"/>
+
+                    <Button Style="{StaticResource SidebarMenuButton}"
+                            Click="VentasButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🛒" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Ventas" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Updated code: Removed Click event -->
+                    <Button Style="{StaticResource SidebarMenuButton}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📋" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Renta" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <TextBlock Text="Administración"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="#9f7aea"
+                               Margin="20,25,0,12"/>
+
+                    <Button x:Name="ConfiguracionButton"
+                            Style="{StaticResource SidebarMenuButton}"
+                            Click="ConfiguracionButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚙️" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Configuración" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Submenu con morado aún más oscuro -->
+                    <StackPanel x:Name="SubmenuPanel"
+                                Visibility="Collapsed"
+                                Background="#1a0b2e">
+                        <Button Style="{StaticResource SubmenuButton}"
+                                Click="ProductosButton_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📦" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Productos" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SubmenuButton}"
+                                Click="CategoriasButton_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📑" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Categorías" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <!-- Agregando botón de Combos -->
+                        <Button Style="{StaticResource SubmenuButton}"
+                                Click="CombosButton_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🎁" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Combos" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SubmenuButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔧" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Ajustes" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Frame Grid.Row="1"
+                   Grid.Column="1"
+                   x:Name="MainFrame"
+                   Source="paginas/ventas/VentasPag.xaml"
+                   NavigationUIVisibility="Hidden"/>
+        </Grid>
+    </Border>
+</Window>
