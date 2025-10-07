@@ -81,40 +81,11 @@
             <!-- Moved DataGrid to the right side -->
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="0,0,0,20">
-                    <Border BorderBrush="#e0e0e0" 
-                           BorderThickness="1" 
-                           Background="White"
-                           Padding="15,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" 
-                                      Text="🔍" 
-                                      FontSize="18" 
-                                      VerticalAlignment="Center"
-                                      Margin="0,0,10,0"
-                                      Foreground="#999"/>
-                            <TextBox Grid.Column="1" 
-                                    x:Name="SearchTextBox"
-                                    BorderThickness="0" 
-                                    FontSize="14"
-                                    VerticalAlignment="Center"
-                                    Foreground="#666"
-                                    Height="40"
-                                    Text="Buscar categorías..."/>
-                        </Grid>
-                    </Border>
-                </Grid>
-
-                <Border Grid.Row="1" 
+                <Border Grid.Row="0" 
                        BorderBrush="#e0e0e0" 
                        BorderThickness="1"
                        Background="White">
@@ -268,7 +239,7 @@
                     </DataGrid>
                 </Border>
 
-                <Grid Grid.Row="2" Margin="0,15,0,0">
+                <Grid Grid.Row="1" Margin="0,15,0,0">
                     <TextBlock x:Name="CategoriaCountText"
                               Text="Mostrando 0 de 0 categorías" 
                               FontSize="14" 

@@ -9,6 +9,7 @@ using POS.Data;
 using POS.Models;
 using System.Threading.Tasks;
 using POS.Helpers; // Added ImageHelper namespace
+using POS.ventanas;
 
 namespace POS.paginas.combos
 {
@@ -48,7 +49,6 @@ namespace POS.paginas.combos
                     Cantidad = 1
                 })
             );
-            ProductosListBox.ItemsSource = productosDisponibles;
         }
 
         private async Task CargarCombos()
@@ -197,6 +197,8 @@ namespace POS.paginas.combos
                                 producto.Cantidad = 1;
                             }
                         }
+
+                        ActualizarProductosSeleccionados();
                     }
                 }
                 catch (Exception ex)
@@ -248,6 +250,8 @@ namespace POS.paginas.combos
             ImagenPreview.Source = null;
             PlaceholderText.Visibility = Visibility.Visible;
             imagenSeleccionada = "";
+
+            ActualizarProductosSeleccionados();
         }
 
         private void ActualizarContadores()
@@ -272,6 +276,87 @@ namespace POS.paginas.combos
                 {
                     producto.Cantidad--;
                 }
+            }
+        }
+
+        private void AgregarProductos_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new SeleccionarProductosWindow(productosDisponibles)
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            if (window.ShowDialog() == true)
+            {
+                ActualizarProductosSeleccionados();
+            }
+        }
+
+        private void ActualizarProductosSeleccionados()
+        {
+            ProductosSeleccionadosStack.Children.Clear();
+            var seleccionados = productosDisponibles.Where(p => p.IsSelected).ToList();
+
+            foreach (var producto in seleccionados)
+            {
+                var border = new Border
+                {
+                    Background = System.Windows.Media.Brushes.White,
+                    BorderBrush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFrom("#e5e7eb"),
+                    BorderThickness = new Thickness(1),
+                    Padding = new Thickness(10),
+                    Margin = new Thickness(0, 0, 0, 5)
+                };
+
+                var grid = new Grid();
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                var textBlock = new TextBlock
+                {
+                    Text = $"{producto.Nombre} (x{producto.Cantidad})",
+                    FontSize = 13,
+                    Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFrom("#374151"),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+
+                var removeButton = new Button
+                {
+                    Content = "✕",
+                    Width = 24,
+                    Height = 24,
+                    Background = System.Windows.Media.Brushes.Transparent,
+                    BorderThickness = new Thickness(0),
+                    Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFrom("#ef4444"),
+                    Cursor = System.Windows.Input.Cursors.Hand,
+                    FontSize = 14,
+                    FontWeight = FontWeights.Bold,
+                    Tag = producto
+                };
+                removeButton.Click += RemoveProducto_Click;
+
+                Grid.SetColumn(textBlock, 0);
+                Grid.SetColumn(removeButton, 1);
+
+                grid.Children.Add(textBlock);
+                grid.Children.Add(removeButton);
+                border.Child = grid;
+
+                ProductosSeleccionadosStack.Children.Add(border);
+            }
+
+            ProductosCountText.Text = seleccionados.Count > 0
+                ? $"{seleccionados.Count} producto(s) seleccionado(s)"
+                : "No hay productos seleccionados";
+        }
+
+        private void RemoveProducto_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is ProductoSeleccionable producto)
+            {
+                producto.IsSelected = false;
+                producto.Cantidad = 1;
+                ActualizarProductosSeleccionados();
             }
         }
     }

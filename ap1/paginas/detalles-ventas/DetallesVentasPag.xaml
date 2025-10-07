@@ -1,0 +1,273 @@
+﻿<Page x:Class="POS.paginas.detalles_ventas.DetallesVentasPag"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Title="Detalles de Ventas"
+      Background="#f8f9fa">
+
+    <Page.Resources>
+        <Style x:Key="HeaderText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#1a0b2e"/>
+        </Style>
+
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#000000" Opacity="0.1" BlurRadius="10" ShadowDepth="2"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ExpandButton" TargetType="Button">
+            <Setter Property="Background" Value="#2d1b4e"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#3d2563"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Page.Resources>
+
+    <Grid Margin="40">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Historial de Ventas" Style="{StaticResource HeaderText}"/>
+            <TextBlock Text="Consulta todas las ventas realizadas" 
+                       FontSize="14" 
+                       Foreground="#6c757d" 
+                       Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Date Filter and Total Display -->
+        <Grid Grid.Row="1" Margin="0,0,0,30">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="2.5*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Date Filter Card -->
+            <Border Grid.Column="0" 
+                    Background="White" 
+                    CornerRadius="12" 
+                    Padding="10">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" Opacity="0.12" BlurRadius="15" ShadowDepth="3"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="📅 Seleccionar Fecha" 
+                               FontSize="18" 
+                               FontWeight="SemiBold"
+                               Foreground="#1a0b2e"
+                               Margin="0,0,0,15"/>
+
+                    <Calendar x:Name="FechaFiltro"
+                              SelectedDatesChanged="FechaFiltro_SelectedDateChanged"
+                              FontSize="16"
+                              HorizontalAlignment="Center"
+                              BorderBrush="#2d1b4e"
+                              BorderThickness="2">
+                        <Calendar.CalendarDayButtonStyle>
+                            <Style TargetType="CalendarDayButton">
+                                <Setter Property="FontSize" Value="16"/>
+                                <Setter Property="Width" Value="30"/>
+                                <Setter Property="Height" Value="30"/>
+                            </Style>
+                        </Calendar.CalendarDayButtonStyle>
+                        <Calendar.CalendarButtonStyle>
+                            <Style TargetType="CalendarButton">
+                                <Setter Property="FontSize" Value="16"/>
+                                <Setter Property="Width" Value="70"/>
+                                <Setter Property="Height" Value="50"/>
+                            </Style>
+                        </Calendar.CalendarButtonStyle>
+                    </Calendar>
+
+                    <TextBlock Text="Mostrando ventas del día seleccionado" 
+                               FontSize="12" 
+                               Foreground="#6c757d"
+                               Margin="0,15,0,0"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Total Summary Card -->
+            <Border Grid.Column="2" 
+                    CornerRadius="12" 
+                    Padding="30"
+                    Background="#342354">
+                <Border.Effect>
+                    <DropShadowEffect Color="#2d1b4e" Opacity="0.3" BlurRadius="20" ShadowDepth="5"/>
+                </Border.Effect>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="💰 TOTAL DEL DÍA" 
+                               FontSize="16" 
+                               FontWeight="Bold"
+                               Foreground="White"
+                               Opacity="0.9"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,10"/>
+
+                    <TextBlock x:Name="TotalVentasTextBlock"
+                               Text="$0.00" 
+                               FontSize="42" 
+                               FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"/>
+
+                    <TextBlock Text="Resumen de ventas" 
+                               FontSize="12" 
+                               Foreground="White"
+                               Opacity="0.8"
+                               HorizontalAlignment="Center"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Sales List -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="VentasItemsControl">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource CardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Sale Header -->
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Fecha, StringFormat='Venta del {0:dd/MM/yyyy HH:mm}'}" 
+                                                   FontSize="18" 
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#1a0b2e"/>
+                                        <TextBlock Text="{Binding Id, StringFormat='ID: {0}'}" 
+                                                   FontSize="12" 
+                                                   Foreground="#6c757d"
+                                                   Margin="0,4,0,0"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1" 
+                                               Text="{Binding Total, StringFormat='${0:N2}'}" 
+                                               FontSize="24" 
+                                               FontWeight="Bold"
+                                               Foreground="#2d1b4e"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,20,0"/>
+
+                                    <Button Grid.Column="2" 
+                                            Style="{StaticResource ExpandButton}"
+                                            Click="ToggleDetails_Click"
+                                            Tag="{Binding}">
+                                        <TextBlock x:Name="ExpandButtonText" Text="Ver Detalles"/>
+                                    </Button>
+                                </Grid>
+
+                                <!-- Sale Details (Collapsed by default) -->
+                                <Border Grid.Row="1" 
+                                        x:Name="DetailsPanel"
+                                        Visibility="Collapsed"
+                                        Background="#f8f9fa"
+                                        CornerRadius="6"
+                                        Padding="15"
+                                        Margin="0,15,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Productos vendidos:" 
+                                                   FontSize="14" 
+                                                   FontWeight="SemiBold"
+                                                   Foreground="#1a0b2e"
+                                                   Margin="0,0,0,10"/>
+
+                                        <ItemsControl ItemsSource="{Binding DetallesVenta}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="White" 
+                                                            CornerRadius="4" 
+                                                            Padding="12" 
+                                                            Margin="0,0,0,8">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <TextBlock Grid.Column="0" 
+                                                                       Text="{Binding Producto.Nombre}" 
+                                                                       FontSize="14"
+                                                                       VerticalAlignment="Center"/>
+
+                                                            <TextBlock Grid.Column="1" 
+                                                                       Text="{Binding Cantidad, StringFormat='x{0}'}" 
+                                                                       FontSize="14"
+                                                                       Foreground="#6c757d"
+                                                                       Margin="15,0"
+                                                                       VerticalAlignment="Center"/>
+
+                                                            <TextBlock Grid.Column="2" 
+                                                                       Text="{Binding PrecioUnitario, StringFormat='${0:N2} c/u'}" 
+                                                                       FontSize="14"
+                                                                       Foreground="#6c757d"
+                                                                       Margin="0,0,15,0"
+                                                                       VerticalAlignment="Center"/>
+
+                                                            <TextBlock Grid.Column="3" 
+                                                                       Text="{Binding Subtotal, StringFormat='${0:N2}'}" 
+                                                                       FontSize="14"
+                                                                       FontWeight="SemiBold"
+                                                                       Foreground="#2d1b4e"
+                                                                       VerticalAlignment="Center"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</Page>

@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System;
 using System.IO;
+using System.Collections.Generic;
+using POS.ventanas;
 
 namespace POS.paginas.ventas
 {
@@ -318,7 +320,17 @@ namespace POS.paginas.ventas
 
                 Console.WriteLine($"[v0] Venta guardada exitosamente con ID: {venta.Id}");
 
-                MessageBox.Show($"Venta realizada exitosamente\nTotal: ${venta.Total:N2}", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+                var itemsParaTicket = Carrito.Select(item => new ItemCarrito
+                {
+                    ProductoId = item.ProductoId,
+                    Nombre = item.Nombre,
+                    PrecioUnitario = item.PrecioUnitario,
+                    Cantidad = item.Cantidad,
+                    Total = item.Total
+                }).ToList();
+
+                var ticketWindow = new VentaTicketWindow(venta, itemsParaTicket);
+                ticketWindow.ShowDialog();
 
                 Carrito.Clear();
                 ActualizarTotales();
@@ -353,6 +365,28 @@ namespace POS.paginas.ventas
                     Carrito.Remove(item);
                     ActualizarTotales();
                 }
+            }
+        }
+
+        private void CancelarVenta_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Carrito.Any())
+            {
+                MessageBox.Show("El carrito ya está vacío", "Información", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var result = MessageBox.Show(
+                "¿Está seguro que desea cancelar la venta y vaciar el carrito?",
+                "Confirmar cancelación",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                Carrito.Clear();
+                ActualizarTotales();
+                MessageBox.Show("Venta cancelada. El carrito ha sido vaciado.", "Cancelado", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
@@ -477,6 +511,9 @@ namespace POS.paginas.ventas
                 OnPropertyChanged(nameof(Total));
             }
         }
+
+        public string NombreProducto => Nombre;
+        public decimal Subtotal => Total;
 
         public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
 

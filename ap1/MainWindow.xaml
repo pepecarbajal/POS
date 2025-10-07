@@ -115,7 +115,6 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- Updated code: Removed Click event -->
                     <Button Style="{StaticResource SidebarMenuButton}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📋" FontSize="18" Margin="0,0,12,0" VerticalAlignment="Center"/>
@@ -156,7 +155,6 @@
                                 <TextBlock Text="Categorías" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <!-- Agregando botón de Combos -->
                         <Button Style="{StaticResource SubmenuButton}"
                                 Click="CombosButton_Click">
                             <StackPanel Orientation="Horizontal">
@@ -165,10 +163,10 @@
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource SubmenuButton}"
-                                Click="AjustesButton_Click">
+                                Click="DetallesVentasButton_Click">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🔧" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Ajustes" VerticalAlignment="Center"/>
+                                <TextBlock Text="📊" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Detalles de Ventas" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>

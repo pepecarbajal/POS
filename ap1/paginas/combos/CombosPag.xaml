@@ -3,6 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:helpers="clr-namespace:POS.Helpers"
       mc:Ignorable="d" 
       d:DesignHeight="800" d:DesignWidth="1400"
       Background="#f8f9fa">
@@ -50,16 +51,19 @@
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Background" Value="White"/>
         </Style>
+
+        <!-- Added CountToVisibilityConverter -->
+        <helpers:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
     </Page.Resources>
 
     <Grid Margin="30">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="400"/>
+            <ColumnDefinition Width="350"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- Formulario de Combos (Izquierda) -->
-        <Border Grid.Column="0" Background="White" Padding="25" Margin="0,0,20,0">
+        <Border Grid.Column="0" Background="White" Padding="25" Margin="0,0,10,0">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <TextBlock Text="Agregar Combo" FontSize="24" FontWeight="Bold" 
@@ -111,112 +115,6 @@
                                Style="{StaticResource FormInput}"/>
                     </StackPanel>
 
-                    <!-- Productos Incluidos -->
-                    <StackPanel Margin="0,0,0,20">
-                        <TextBlock Text="Productos Incluidos *" Style="{StaticResource FormLabel}"/>
-                        <Border BorderBrush="#d1d5db" BorderThickness="1" Background="White">
-                            <ScrollViewer MaxHeight="250" VerticalScrollBarVisibility="Auto">
-                                <ListBox x:Name="ProductosListBox"
-                                       BorderThickness="0"
-                                       Background="Transparent"
-                                       SelectionMode="Multiple">
-                                    <ListBox.ItemContainerStyle>
-                                        <Style TargetType="ListBoxItem">
-                                            <Setter Property="Padding" Value="0"/>
-                                            <Setter Property="Margin" Value="0"/>
-                                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                                            <Setter Property="BorderBrush" Value="#f3f4f6"/>
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="ListBoxItem">
-                                                        <Border Background="{TemplateBinding Background}"
-                                                               BorderBrush="{TemplateBinding BorderBrush}"
-                                                               BorderThickness="{TemplateBinding BorderThickness}"
-                                                               Padding="12,10">
-                                                            <ContentPresenter/>
-                                                        </Border>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                            <Style.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="#f9fafb"/>
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </ListBox.ItemContainerStyle>
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <CheckBox Grid.Column="0"
-                                                        IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                        VerticalAlignment="Center"
-                                                        Margin="0,0,12,0"/>
-                                                <TextBlock Grid.Column="1"
-                                                         Text="{Binding Nombre}"
-                                                         FontSize="14"
-                                                         Foreground="#374151"
-                                                         VerticalAlignment="Center"/>
-                                                <StackPanel Grid.Column="2" 
-                                                          Orientation="Horizontal" 
-                                                          VerticalAlignment="Center"
-                                                          Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
-                                                    <TextBlock Text="Cant:" 
-                                                             FontSize="12" 
-                                                             Foreground="#6b7280"
-                                                             VerticalAlignment="Center"
-                                                             Margin="0,0,8,0"/>
-                                                    <Button Content="-" 
-                                                           Width="25" 
-                                                           Height="25"
-                                                           FontSize="14"
-                                                           FontWeight="Bold"
-                                                           Background="#f3f4f6"
-                                                           BorderThickness="1"
-                                                           BorderBrush="#d1d5db"
-                                                           Foreground="#374151"
-                                                           Cursor="Hand"
-                                                           Click="DecrementarCantidad_Click"
-                                                           Tag="{Binding}"/>
-                                                    <TextBox Text="{Binding Cantidad, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                           Width="40"
-                                                           Height="25"
-                                                           TextAlignment="Center"
-                                                           FontSize="14"
-                                                           BorderBrush="#d1d5db"
-                                                           BorderThickness="1"
-                                                           Margin="5,0"
-                                                           VerticalContentAlignment="Center"/>
-                                                    <Button Content="+" 
-                                                           Width="25" 
-                                                           Height="25"
-                                                           FontSize="14"
-                                                           FontWeight="Bold"
-                                                           Background="#f3f4f6"
-                                                           BorderThickness="1"
-                                                           BorderBrush="#d1d5db"
-                                                           Foreground="#374151"
-                                                           Cursor="Hand"
-                                                           Click="IncrementarCantidad_Click"
-                                                           Tag="{Binding}"/>
-                                                </StackPanel>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </ScrollViewer>
-                        </Border>
-                        <TextBlock Text="Selecciona uno o más productos y especifica la cantidad de cada uno" 
-                                 Foreground="#6b7280" 
-                                 FontSize="12" 
-                                 Margin="0,8,0,0"/>
-                    </StackPanel>
-
                     <!-- Estado -->
                     <StackPanel Margin="0,0,0,25">
                         <TextBlock Text="Estado" Style="{StaticResource FormLabel}"/>
@@ -231,72 +129,58 @@
                         </ComboBox>
                     </StackPanel>
 
+                    <!-- Productos Incluidos -->
+                    <StackPanel Margin="0,0,0,20">
+                        <TextBlock Text="Productos Incluidos *" Style="{StaticResource FormLabel}"/>
+                        <Button Content="+ Agregar Productos" 
+                               Background="#10b981" 
+                               Foreground="White"
+                               FontWeight="SemiBold"
+                               Padding="15,10"
+                               BorderThickness="0"
+                               Cursor="Hand"
+                               Click="AgregarProductos_Click"
+                               Margin="0,0,0,10"/>
+
+                        <!-- Selected products list -->
+                        <Border BorderBrush="#d1d5db" 
+                               BorderThickness="1" 
+                               Background="#f9fafb"
+                               MinHeight="100"
+                               MaxHeight="200"
+                               Visibility="{Binding ElementName=ProductosSeleccionadosStack, Path=Children.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="ProductosSeleccionadosStack" Margin="10"/>
+                            </ScrollViewer>
+                        </Border>
+
+                        <TextBlock x:Name="ProductosCountText"
+                                 Text="No hay productos seleccionados" 
+                                 Foreground="#6b7280" 
+                                 FontSize="12" 
+                                 Margin="0,8,0,0"/>
+                    </StackPanel>
+
                     <!-- Botones -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="Guardar Combo" 
                               Style="{StaticResource PrimaryButton}"
-                              Click="GuardarCombo_Click" Width="330"/>
+                              Click="GuardarCombo_Click" Width="289"/>
                     </StackPanel>
                 </StackPanel>
             </ScrollViewer>
         </Border>
 
         <!-- Tabla de Combos (Derecha) -->
-        <Border Grid.Column="1" Background="White" Padding="25">
+        <Border Grid.Column="1" Background="White" Padding="25" Margin="10,0,0,0">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Barra de búsqueda y filtros -->
-                <Grid Grid.Row="0" Margin="0,0,0,20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="150"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Búsqueda -->
-                    <Border Grid.Column="0" BorderBrush="#e5e7eb" BorderThickness="1" 
-                          Background="White" Padding="15,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="🔍" FontSize="18" 
-                                     Margin="0,0,10,0" VerticalAlignment="Center"
-                                     Foreground="#9ca3af"/>
-                            <TextBox Grid.Column="1" x:Name="BusquedaTextBox"
-                                   BorderThickness="0" 
-                                   Background="Transparent"
-                                   VerticalAlignment="Center"
-                                   FontSize="14"
-                                   Foreground="#6b7280"
-                                   Height="40"
-                                   Text="Buscar combos..."/>
-                        </Grid>
-                    </Border>
-
-                    <!-- Filtro de Estado -->
-                    <ComboBox Grid.Column="2" x:Name="FiltroEstadoComboBox"
-                            Padding="12"
-                            BorderBrush="#e5e7eb"
-                            BorderThickness="1"
-                            FontSize="14"
-                            Background="White"
-                            Height="40"
-                            VerticalContentAlignment="Center">
-                        <ComboBoxItem Content="Todos" IsSelected="True"/>
-                        <ComboBoxItem Content="Activo"/>
-                        <ComboBoxItem Content="Inactivo"/>
-                    </ComboBox>
-                </Grid>
-
                 <!-- DataGrid con estilo mejorado -->
-                <Border Grid.Row="1" 
+                <Border Grid.Row="0" 
                        BorderBrush="#e5e7eb" 
                        BorderThickness="1"
                        Background="White">
@@ -457,7 +341,7 @@
                 </Border>
 
                 <!-- Footer con contador -->
-                <Grid Grid.Row="2" Margin="0,20,0,0">
+                <Grid Grid.Row="1" Margin="0,20,0,0">
                     <TextBlock x:Name="ContadorTextBlock" 
                              Text="Mostrando 0 de 0 combos"
                              Foreground="#6b7280"

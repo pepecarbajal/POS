@@ -16,6 +16,7 @@ namespace POS.paginas.productos
     public partial class ProductosPag : Page
     {
         public ObservableCollection<ProductoViewModel> Productos { get; set; }
+        private ObservableCollection<ProductoViewModel> _todosLosProductos;
         private string? selectedImagePath;
         private readonly AppDbContext _context;
         private readonly IProductoService _productoService;
@@ -31,6 +32,7 @@ namespace POS.paginas.productos
             _categoriaService = new CategoriaService(_context);
 
             Productos = new ObservableCollection<ProductoViewModel>();
+            _todosLosProductos = new ObservableCollection<ProductoViewModel>();
 
             ProductsDataGrid.ItemsSource = Productos;
 
@@ -75,6 +77,7 @@ namespace POS.paginas.productos
             var categorias = await _categoriaService.GetAllCategoriasAsync();
 
             Productos.Clear();
+            _todosLosProductos.Clear();
 
             foreach (var producto in productos)
             {
@@ -88,7 +91,7 @@ namespace POS.paginas.productos
                 else
                     estado = producto.Estado;
 
-                Productos.Add(new ProductoViewModel
+                var productoViewModel = new ProductoViewModel
                 {
                     Id = producto.Id,
                     Nombre = producto.Nombre,
@@ -99,7 +102,10 @@ namespace POS.paginas.productos
                     Stock = producto.Stock,
                     Estado = estado,
                     ImagePath = producto.UrlImage
-                });
+                };
+
+                Productos.Add(productoViewModel);
+                _todosLosProductos.Add(productoViewModel);
             }
         }
 
@@ -322,6 +328,98 @@ namespace POS.paginas.productos
                     }
                 }
             }
+        }
+
+        private void SearchTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (SearchTextBox.Text == "Buscar productos...")
+            {
+                SearchTextBox.Text = "";
+                SearchTextBox.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Black);
+            }
+        }
+
+        private void SearchTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(SearchTextBox.Text))
+            {
+                SearchTextBox.Text = "Buscar productos...";
+                SearchTextBox.Foreground = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#666666"));
+            }
+        }
+
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            AplicarFiltros();
+        }
+
+        private void CategoriaFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            AplicarFiltros();
+        }
+
+        private void EstadoFilterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            AplicarFiltros();
+        }
+
+        private void AplicarFiltros()
+        {
+            if (_todosLosProductos == null || _todosLosProductos.Count == 0)
+                return;
+
+            var productosFiltrados = _todosLosProductos.AsEnumerable();
+
+            string searchText = SearchTextBox.Text;
+            bool hayBusqueda = !string.IsNullOrWhiteSpace(searchText) && searchText != "Buscar productos...";
+
+            if (hayBusqueda)
+            {
+                // Only apply search filter, ignore category and status filters
+                productosFiltrados = productosFiltrados.Where(p =>
+                    p.Nombre.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    p.Categoria.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                // No search active, apply category and status filters
+
+                // Apply category filter
+                if (CategoriaFilterComboBox.SelectedItem is ComboBoxItem categoriaItem)
+                {
+                    string categoriaSeleccionada = categoriaItem.Content.ToString() ?? "";
+                    if (categoriaSeleccionada != "Todas las categorías")
+                    {
+                        productosFiltrados = productosFiltrados.Where(p =>
+                            p.Categoria.Equals(categoriaSeleccionada, StringComparison.OrdinalIgnoreCase));
+                    }
+                }
+
+                // Apply status filter
+                if (EstadoFilterComboBox.SelectedItem is ComboBoxItem estadoItem)
+                {
+                    string estadoSeleccionado = estadoItem.Content.ToString() ?? "";
+                    if (estadoSeleccionado == "Activos")
+                    {
+                        productosFiltrados = productosFiltrados.Where(p =>
+                            p.Estado == "Activo" || p.Estado == "Stock Bajo");
+                    }
+                    else if (estadoSeleccionado == "Inactivos")
+                    {
+                        productosFiltrados = productosFiltrados.Where(p =>
+                            p.Estado == "Inactivo");
+                    }
+                }
+            }
+
+            // Update the displayed collection
+            Productos.Clear();
+            foreach (var producto in productosFiltrados)
+            {
+                Productos.Add(producto);
+            }
+
+            ActualizarContadores();
         }
     }
 

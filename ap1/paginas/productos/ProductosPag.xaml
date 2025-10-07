@@ -203,7 +203,10 @@
                                     VerticalAlignment="Center"
                                     Foreground="#666"
                                     Height="40"
-                                    Text="Buscar productos..."/>
+                                    Text="Buscar productos..."
+                                    GotFocus="SearchTextBox_GotFocus"
+                                    LostFocus="SearchTextBox_LostFocus"
+                                    TextChanged="SearchTextBox_TextChanged"/>
                         </Grid>
                     </Border>
 
@@ -213,7 +216,8 @@
                              FontSize="14"
                              BorderBrush="#e0e0e0"
                              Background="White"
-                             VerticalContentAlignment="Center">
+                             VerticalContentAlignment="Center"
+                             SelectionChanged="CategoriaFilterComboBox_SelectionChanged">
                         <ComboBoxItem Content="Todas las categorías" IsSelected="True"/>
                         <ComboBoxItem Content="Alimentos"/>
                         <ComboBoxItem Content="Bebidas"/>
@@ -226,7 +230,8 @@
                              FontSize="14"
                              BorderBrush="#e0e0e0"
                              Background="White"
-                             VerticalContentAlignment="Center">
+                             VerticalContentAlignment="Center"
+                             SelectionChanged="EstadoFilterComboBox_SelectionChanged">
                         <ComboBoxItem Content="Todos" IsSelected="True"/>
                         <ComboBoxItem Content="Activos"/>
                         <ComboBoxItem Content="Inactivos"/>

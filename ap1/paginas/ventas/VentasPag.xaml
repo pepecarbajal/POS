@@ -427,18 +427,61 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Finalizar Venta button -->
-                    <Button Grid.Row="3"
-                            Content="Finalizar Venta"
-                            Background="{StaticResource PrimaryPurple}"
-                            Foreground="White"
-                            FontSize="18"
-                            FontWeight="Bold"
-                            Padding="15"
-                            BorderThickness="0"
-                            Cursor="Hand"
-                            Margin="10"
-                            Click="FinalizarVenta_Click"/>
+                    <!-- Buttons container with Cancelar and Finalizar Venta buttons -->
+                    <Grid Grid.Row="3" Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Cancelar button -->
+                        <Button Grid.Column="0"
+                                Content="Cancelar"
+                                Background="#ef4444"
+                                Foreground="White"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Padding="15"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Margin="0,0,5,0"
+                                Click="CancelarVenta_Click">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        CornerRadius="4"
+                                                        BorderThickness="0">
+                                                    <ContentPresenter HorizontalAlignment="Center"
+                                                                    VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#dc2626"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+
+                        <!-- Finalizar Venta button -->
+                        <Button Grid.Column="1"
+                                Content="Finalizar Venta"
+                                Background="{StaticResource PrimaryPurple}"
+                                Foreground="White"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Padding="15"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Margin="5,0,0,0"
+                                Click="FinalizarVenta_Click"/>
+                    </Grid>
                 </Grid>
             </Border>
         </Grid>

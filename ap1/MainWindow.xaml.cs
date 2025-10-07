@@ -60,10 +60,9 @@ namespace POS
             MainFrame.Navigate(new Uri("paginas/combos/CombosPag.xaml", UriKind.Relative));
         }
 
-        private void AjustesButton_Click(object sender, RoutedEventArgs e)
+        private void DetallesVentasButton_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.Navigate(new Uri("paginas/ajustes/AjustesPag.xaml", UriKind.Relative));
+            MainFrame.Navigate(new Uri("paginas/detalles-ventas/DetallesVentasPag.xaml", UriKind.Relative));
         }
-
     }
 }
