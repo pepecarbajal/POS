@@ -8,7 +8,7 @@ using POS.Services;
 using POS.Data;
 using POS.Models;
 using System.Threading.Tasks;
-using POS.Helpers; // Added ImageHelper namespace
+using POS.Helpers;
 using POS.ventanas;
 
 namespace POS.paginas.combos
@@ -18,9 +18,11 @@ namespace POS.paginas.combos
         private readonly ComboService _comboService;
         private readonly ProductoService _productoService;
         private ObservableCollection<ComboViewModel> combos;
+        private ObservableCollection<ComboViewModel> combosFiltrados;
         private ObservableCollection<ProductoSeleccionable> productosDisponibles;
         private string imagenSeleccionada = "";
         private int? comboEditandoId = null;
+        private bool _isSearchPlaceholder = true;
 
         public CombosPag()
         {
@@ -28,6 +30,10 @@ namespace POS.paginas.combos
             var context = new AppDbContext();
             _comboService = new ComboService(context);
             _productoService = new ProductoService(context);
+
+            combos = new ObservableCollection<ComboViewModel>();
+            combosFiltrados = new ObservableCollection<ComboViewModel>();
+
             InicializarDatos();
         }
 
@@ -54,24 +60,28 @@ namespace POS.paginas.combos
         private async Task CargarCombos()
         {
             var combosDb = await _comboService.GetAllCombosAsync();
-            combos = new ObservableCollection<ComboViewModel>();
+            combos.Clear();
+            combosFiltrados.Clear();
 
             foreach (var combo in combosDb)
             {
                 var comboConProductos = await _comboService.GetComboByIdAsync(combo.Id);
                 var productosNombres = comboConProductos?.Productos?.Select(p => p.Nombre) ?? Enumerable.Empty<string>();
 
-                combos.Add(new ComboViewModel
+                var comboViewModel = new ComboViewModel
                 {
                     Id = combo.Id,
                     Nombre = combo.Nombre,
                     UrlImage = combo.UrlImage,
                     Productos = string.Join(", ", productosNombres),
                     ProductosCount = productosNombres.Count()
-                });
+                };
+
+                combos.Add(comboViewModel);
+                combosFiltrados.Add(comboViewModel);
             }
 
-            CombosDataGrid.ItemsSource = combos;
+            CombosDataGrid.ItemsSource = combosFiltrados;
             ActualizarContadores();
         }
 
@@ -116,11 +126,10 @@ namespace POS.paginas.combos
                     if (comboExistente != null)
                     {
                         comboExistente.Nombre = NombreTextBox.Text;
-                        comboExistente.UrlImage = imagePath; // Use new image path
+                        comboExistente.UrlImage = imagePath;
 
                         await _comboService.UpdateComboAsync(comboEditandoId.Value, comboExistente);
 
-                        // Remove old products and add new ones
                         var productosActuales = await _comboService.GetProductosByComboIdAsync(comboEditandoId.Value);
                         foreach (var prod in productosActuales)
                         {
@@ -140,7 +149,7 @@ namespace POS.paginas.combos
                     var nuevoCombo = new Combo
                     {
                         Nombre = NombreTextBox.Text,
-                        UrlImage = imagePath // Use new image path
+                        UrlImage = imagePath
                     };
 
                     var comboCreado = await _comboService.CreateComboAsync(nuevoCombo);
@@ -199,6 +208,8 @@ namespace POS.paginas.combos
                         }
 
                         ActualizarProductosSeleccionados();
+                        GuardarButton.Content = "Actualizar Combo";
+                        CancelarButton.Visibility = Visibility.Visible;
                     }
                 }
                 catch (Exception ex)
@@ -252,30 +263,22 @@ namespace POS.paginas.combos
             imagenSeleccionada = "";
 
             ActualizarProductosSeleccionados();
+            GuardarButton.Content = "Guardar Combo";
+            CancelarButton.Visibility = Visibility.Collapsed;
         }
 
         private void ActualizarContadores()
         {
             int total = combos.Count;
-            ContadorTextBlock.Text = $"Mostrando {total} de {total} combos";
-        }
+            int filtrados = combosFiltrados.Count;
 
-        private void IncrementarCantidad_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button && button.Tag is ProductoSeleccionable producto)
+            if (filtrados == total)
             {
-                producto.Cantidad++;
+                ContadorTextBlock.Text = $"Mostrando {total} de {total} combos";
             }
-        }
-
-        private void DecrementarCantidad_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button button && button.Tag is ProductoSeleccionable producto)
+            else
             {
-                if (producto.Cantidad > 1)
-                {
-                    producto.Cantidad--;
-                }
+                ContadorTextBlock.Text = $"Mostrando {filtrados} de {total} combos";
             }
         }
 
@@ -304,8 +307,9 @@ namespace POS.paginas.combos
                     Background = System.Windows.Media.Brushes.White,
                     BorderBrush = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFrom("#e5e7eb"),
                     BorderThickness = new Thickness(1),
-                    Padding = new Thickness(10),
-                    Margin = new Thickness(0, 0, 0, 5)
+                    Padding = new Thickness(12),
+                    Margin = new Thickness(0, 0, 0, 8),
+                    CornerRadius = new CornerRadius(6)
                 };
 
                 var grid = new Grid();
@@ -316,6 +320,7 @@ namespace POS.paginas.combos
                 {
                     Text = $"{producto.Nombre} (x{producto.Cantidad})",
                     FontSize = 13,
+                    FontWeight = FontWeights.SemiBold,
                     Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFrom("#374151"),
                     VerticalAlignment = VerticalAlignment.Center
                 };
@@ -323,16 +328,35 @@ namespace POS.paginas.combos
                 var removeButton = new Button
                 {
                     Content = "✕",
-                    Width = 24,
-                    Height = 24,
-                    Background = System.Windows.Media.Brushes.Transparent,
+                    Width = 28,
+                    Height = 28,
+                    Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFrom("#fee2e2"),
                     BorderThickness = new Thickness(0),
-                    Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFrom("#ef4444"),
+                    Foreground = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFrom("#dc2626"),
                     Cursor = System.Windows.Input.Cursors.Hand,
                     FontSize = 14,
                     FontWeight = FontWeights.Bold,
                     Tag = producto
                 };
+
+                var removeButtonTemplate = new ControlTemplate(typeof(Button));
+                var borderFactory = new FrameworkElementFactory(typeof(Border));
+                borderFactory.SetValue(Border.BackgroundProperty, new System.Windows.TemplateBindingExtension(Button.BackgroundProperty));
+                borderFactory.SetValue(Border.CornerRadiusProperty, new CornerRadius(6));
+                var presenterFactory = new FrameworkElementFactory(typeof(ContentPresenter));
+                presenterFactory.SetValue(ContentPresenter.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+                presenterFactory.SetValue(ContentPresenter.VerticalAlignmentProperty, VerticalAlignment.Center);
+                borderFactory.AppendChild(presenterFactory);
+                removeButtonTemplate.VisualTree = borderFactory;
+                removeButton.Template = removeButtonTemplate;
+
+                var removeButtonStyle = new Style(typeof(Button));
+                var trigger = new Trigger { Property = Button.IsMouseOverProperty, Value = true };
+                trigger.Setters.Add(new Setter(Button.BackgroundProperty,
+                    new System.Windows.Media.BrushConverter().ConvertFrom("#fecaca")));
+                removeButtonStyle.Triggers.Add(trigger);
+                removeButton.Style = removeButtonStyle;
+
                 removeButton.Click += RemoveProducto_Click;
 
                 Grid.SetColumn(textBlock, 0);
@@ -358,6 +382,54 @@ namespace POS.paginas.combos
                 producto.Cantidad = 1;
                 ActualizarProductosSeleccionados();
             }
+        }
+
+        private void SearchTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isSearchPlaceholder)
+            {
+                SearchTextBox.Text = "";
+                SearchTextBox.Foreground = new System.Windows.Media.SolidColorBrush(
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#1f2937"));
+                _isSearchPlaceholder = false;
+            }
+        }
+
+        private void SearchTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(SearchTextBox.Text))
+            {
+                SearchTextBox.Text = "Buscar combos...";
+                SearchTextBox.Foreground = new System.Windows.Media.SolidColorBrush(
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#6b7280"));
+                _isSearchPlaceholder = true;
+            }
+        }
+
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isSearchPlaceholder) return;
+
+            FiltrarCombos();
+        }
+
+        private void FiltrarCombos()
+        {
+            var searchText = SearchTextBox.Text?.ToLower() ?? "";
+
+            combosFiltrados.Clear();
+
+            var combosFiltradosTemp = combos.Where(c =>
+                c.Nombre.ToLower().Contains(searchText) ||
+                c.Productos.ToLower().Contains(searchText)
+            );
+
+            foreach (var combo in combosFiltradosTemp)
+            {
+                combosFiltrados.Add(combo);
+            }
+
+            ActualizarContadores();
         }
     }
 
