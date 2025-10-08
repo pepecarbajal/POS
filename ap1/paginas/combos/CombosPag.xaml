@@ -9,18 +9,20 @@
       Background="#f8f9fa">
 
     <Page.Resources>
-        <!-- Estilo para botones principales -->
-        <Style x:Key="PrimaryButton" TargetType="Button">
+        <!-- Estilo para botones primarios -->
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#8b5cf6"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="20,12"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" 
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" 
                                             VerticalAlignment="Center"/>
@@ -32,323 +34,672 @@
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#7c3aed"/>
                 </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#6d28d9"/>
+                </Trigger>
             </Style.Triggers>
         </Style>
 
-        <!-- Estilo para labels -->
-        <Style x:Key="FormLabel" TargetType="TextBlock">
+        <!-- Estilo para botón verde -->
+        <Style x:Key="SuccessButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#10b981"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#374151"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
             <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#059669"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
-        <!-- Estilo para inputs -->
-        <Style x:Key="FormInput" TargetType="TextBox">
-            <Setter Property="Padding" Value="12"/>
-            <Setter Property="BorderBrush" Value="#d1d5db"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="14"/>
+        <!-- Estilo para botones secundarios -->
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#8b5cf6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#8b5cf6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#f3e8ff"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
-        <!-- Added CountToVisibilityConverter -->
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#2c3e50"/>
+            <Setter Property="BorderBrush" Value="#e0e0e0"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="CaretBrush" Value="#8b5cf6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Grid>
+                            <Border x:Name="border"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="12"
+                    SnapsToDevicePixels="True"
+                    Panel.ZIndex="0"/>
+                            <ScrollViewer x:Name="PART_ContentHost" 
+                          Focusable="false"
+                          HorizontalScrollBarVisibility="Hidden"
+                          VerticalScrollBarVisibility="Hidden"
+                          VerticalAlignment="Center"
+                          Margin="5,0"
+                          Panel.ZIndex="1"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#c4b5fd"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#8b5cf6"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="2.5"/>
+                                <Setter TargetName="border" Property="Background" Value="#fafafa"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#f5f5f5"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#e0e0e0"/>
+                                <Setter Property="Foreground" Value="#9e9e9e"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilo para ComboBox -->
+        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <!-- Changed text color to black for better visibility -->
+            <Setter Property="BorderBrush" Value="#e0e0e0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                        ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Grid.Column="0" 
+                                                                Content="{TemplateBinding Content}"
+                                                                Margin="12,0,0,0"
+                                                                VerticalAlignment="Center"/>
+                                                <Path Grid.Column="1" 
+                                                      Data="M 0 0 L 4 4 L 8 0 Z"
+                                                      Fill="#666"
+                                                      Margin="0,0,12,0"
+                                                      VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="ContentSite"
+                                            Content="{TemplateBinding SelectionBoxItem}"
+                                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                            Margin="12,0,30,0"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Left"
+                                            IsHitTestVisible="False"
+                                            TextElement.Foreground="{TemplateBinding Foreground}"/>
+                            <Popup x:Name="Popup"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   Placement="Bottom"
+                                   AllowsTransparency="True">
+                                <Border Background="White"
+                                        BorderBrush="#e5e7eb"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Margin="0,4,0,0">
+                                    <ScrollViewer>
+                                        <StackPanel IsItemsHost="True"/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <helpers:CountToVisibilityConverter x:Key="CountToVisibilityConverter"/>
     </Page.Resources>
 
-    <Grid Margin="30">
+    <Grid Margin="40">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="350"/>
+            <ColumnDefinition Width="420"/>
+            <ColumnDefinition Width="30"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Formulario de Combos (Izquierda) -->
-        <Border Grid.Column="0" Background="White" Padding="25" Margin="0,0,10,0">
+        <!-- Panel de formulario con sombra -->
+        <Border Grid.Column="0" 
+               Background="White" 
+               CornerRadius="16"
+               Padding="30">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" 
+                                Opacity="0.08" 
+                                BlurRadius="20" 
+                                ShadowDepth="0"/>
+            </Border.Effect>
+
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <TextBlock Text="Agregar Combo" FontSize="24" FontWeight="Bold" 
-                             Foreground="#1f2937" Margin="0,0,0,25"/>
+                    <TextBlock Text="Nuevo Combo" 
+                              FontSize="24" 
+                              FontWeight="Bold" 
+                              Foreground="#1f2937"
+                              Margin="0,0,0,25"/>
 
-                    <!-- Selector de Imagen -->
+                    <!-- Imagen del combo mejorada -->
                     <TextBlock Text="Imagen del Combo" 
-                              FontSize="14" 
+                              FontSize="13" 
                               FontWeight="SemiBold"
-                              Margin="0,0,0,8"/>
-                    <Border BorderBrush="#e0e0e0" 
+                              Foreground="#4b5563"
+                              Margin="0,0,0,10"/>
+                    <Border BorderBrush="#e5e7eb" 
                            BorderThickness="2" 
                            Height="200"
-                           Margin="0,0,0,15"
-                           Background="#f5f5f5">
+                           Margin="0,0,0,12"
+                           Background="#f9fafb"
+                           CornerRadius="12">
                         <Grid>
                             <Image x:Name="ImagenPreview" 
                                   Stretch="Uniform"
-                                  Margin="10"/>
+                                  Margin="15"/>
                             <StackPanel VerticalAlignment="Center" 
                                        HorizontalAlignment="Center"
                                        x:Name="PlaceholderText">
+                                <Ellipse Width="60" 
+                                        Height="60" 
+                                        Fill="#e9d5ff"
+                                        HorizontalAlignment="Center"/>
                                 <TextBlock Text="📷" 
-                                         FontSize="48" 
+                                         FontSize="32" 
                                          HorizontalAlignment="Center"
-                                         Foreground="#999"/>
-                                <TextBlock Text="Seleccionar imagen" 
-                                         FontSize="14" 
+                                         Foreground="#8b5cf6"
+                                         Margin="0,-46,0,0"/>
+                                <TextBlock Text="Agregar imagen del combo" 
+                                         FontSize="13" 
                                          HorizontalAlignment="Center"
-                                         Foreground="#666"
-                                         Margin="0,10,0,0"/>
+                                         Foreground="#6b7280"
+                                         Margin="0,55,0,0"
+                                         FontWeight="SemiBold"/>
+                                <TextBlock Text="PNG, JPG hasta 5MB" 
+                                         FontSize="11" 
+                                         HorizontalAlignment="Center"
+                                         Foreground="#9ca3af"
+                                         Margin="0,4,0,0"/>
                             </StackPanel>
                         </Grid>
                     </Border>
                     <Button Content="Seleccionar Imagen" 
-                           Background="#8b5cf6" 
-                           Foreground="White"
-                           FontWeight="SemiBold"
-                           Padding="15,8"
-                           Margin="0,0,0,20"
-                           BorderThickness="0"
-                           Cursor="Hand"
+                           Style="{StaticResource SecondaryButtonStyle}"
+                           Margin="0,0,0,25"
                            Click="SeleccionarImagen_Click"/>
 
                     <!-- Nombre del Combo -->
-                    <StackPanel Margin="0,0,0,20">
-                        <TextBlock Text="Nombre del Combo *" Style="{StaticResource FormLabel}"/>
-                        <TextBox x:Name="NombreTextBox" 
-                               Style="{StaticResource FormInput}"/>
-                    </StackPanel>
+                    <TextBlock Text="Nombre del Combo" 
+                              FontSize="13" 
+                              FontWeight="SemiBold"
+                              Foreground="#4b5563"
+                              Margin="0,0,0,8"/>
+                    <TextBox x:Name="NombreTextBox"
+                            Style="{StaticResource ModernTextBoxStyle}"
+                            Margin="0,0,0,20"/>
 
                     <!-- Estado -->
-                    <StackPanel Margin="0,0,0,25">
-                        <TextBlock Text="Estado" Style="{StaticResource FormLabel}"/>
-                        <ComboBox x:Name="EstadoComboBox" 
-                                Padding="12"
-                                BorderBrush="#d1d5db"
-                                BorderThickness="1"
-                                FontSize="14"
-                                Background="White">
-                            <ComboBoxItem Content="Activo" IsSelected="True"/>
-                            <ComboBoxItem Content="Inactivo"/>
-                        </ComboBox>
-                    </StackPanel>
+                    <TextBlock Text="Estado" 
+                              FontSize="13" 
+                              FontWeight="SemiBold"
+                              Foreground="#4b5563"
+                              Margin="0,0,0,8"/>
+                    <ComboBox x:Name="EstadoComboBox"
+                             Style="{StaticResource ModernComboBoxStyle}"
+                             Margin="0,0,0,25">
+                        <ComboBoxItem Content="Activo" IsSelected="True"/>
+                        <ComboBoxItem Content="Inactivo"/>
+                    </ComboBox>
 
                     <!-- Productos Incluidos -->
-                    <StackPanel Margin="0,0,0,20">
-                        <TextBlock Text="Productos Incluidos *" Style="{StaticResource FormLabel}"/>
-                        <Button Content="+ Agregar Productos" 
-                               Background="#10b981" 
-                               Foreground="White"
-                               FontWeight="SemiBold"
-                               Padding="15,10"
-                               BorderThickness="0"
-                               Cursor="Hand"
-                               Click="AgregarProductos_Click"
-                               Margin="0,0,0,10"/>
+                    <TextBlock Text="Productos Incluidos" 
+                              FontSize="13" 
+                              FontWeight="SemiBold"
+                              Foreground="#4b5563"
+                              Margin="0,0,0,8"/>
 
-                        <!-- Selected products list -->
-                        <Border BorderBrush="#d1d5db" 
-                               BorderThickness="1" 
-                               Background="#f9fafb"
-                               MinHeight="100"
-                               MaxHeight="200"
-                               Visibility="{Binding ElementName=ProductosSeleccionadosStack, Path=Children.Count, Converter={StaticResource CountToVisibilityConverter}}">
-                            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <StackPanel x:Name="ProductosSeleccionadosStack" Margin="10"/>
-                            </ScrollViewer>
-                        </Border>
+                    <Button Content="+ Agregar Productos" 
+                           Style="{StaticResource SuccessButtonStyle}"
+                           Click="AgregarProductos_Click"
+                           Margin="0,0,0,12"/>
 
-                        <TextBlock x:Name="ProductosCountText"
-                                 Text="No hay productos seleccionados" 
-                                 Foreground="#6b7280" 
-                                 FontSize="12" 
-                                 Margin="0,8,0,0"/>
-                    </StackPanel>
+                    <!-- Lista de productos seleccionados -->
+                    <Border BorderBrush="#e5e7eb" 
+                           BorderThickness="1" 
+                           Background="#f9fafb"
+                           CornerRadius="8"
+                           MinHeight="100"
+                           MaxHeight="200"
+                           Margin="0,0,0,8"
+                           Visibility="{Binding ElementName=ProductosSeleccionadosStack, Path=Children.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel x:Name="ProductosSeleccionadosStack" Margin="10"/>
+                        </ScrollViewer>
+                    </Border>
+
+                    <TextBlock x:Name="ProductosCountText"
+                             Text="No hay productos seleccionados" 
+                             Foreground="#6b7280" 
+                             FontSize="12" 
+                             FontWeight="SemiBold"
+                             Margin="0,0,0,25"/>
 
                     <!-- Botones -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="Guardar Combo" 
-                              Style="{StaticResource PrimaryButton}"
-                              Click="GuardarCombo_Click" Width="289"/>
-                    </StackPanel>
-                </StackPanel>
-            </ScrollViewer>
-        </Border>
+                    <Button x:Name="GuardarButton"
+                           Content="Guardar Combo" 
+                           Style="{StaticResource PrimaryButtonStyle}"
+                           Click="GuardarCombo_Click"/>
 
-        <!-- Tabla de Combos (Derecha) -->
-        <Border Grid.Column="1" Background="White" Padding="25" Margin="10,0,0,0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- DataGrid con estilo mejorado -->
-                <Border Grid.Row="0" 
-                       BorderBrush="#e5e7eb" 
-                       BorderThickness="1"
-                       Background="White">
-                    <DataGrid x:Name="CombosDataGrid"
-                            AutoGenerateColumns="False"
-                            IsReadOnly="True"
-                            CanUserAddRows="False"
-                            CanUserDeleteRows="False"
-                            CanUserResizeRows="False"
-                            HeadersVisibility="Column"
-                            GridLinesVisibility="None"
-                            Background="White"
-                            BorderThickness="0"
-                            RowHeight="60"
-                            SelectionMode="Single"
-                            SelectionUnit="FullRow">
-
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
+                    <Button x:Name="CancelarButton"
+                           Content="Cancelar Edición" 
+                           Background="White"
+                           Foreground="#6b7280"
+                           FontWeight="SemiBold"
+                           FontSize="14"
+                           Padding="20,12"
+                           BorderThickness="2"
+                           BorderBrush="#e5e7eb"
+                           Cursor="Hand"
+                           Margin="0,12,0,0"
+                           Visibility="Collapsed"
+                           Click="LimpiarFormulario_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="8"
+                                        Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" 
+                                                    VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Style>
+                            <Style TargetType="Button">
                                 <Setter Property="Background" Value="White"/>
-                                <Setter Property="Foreground" Value="#374151"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                                <Setter Property="FontSize" Value="14"/>
-                                <Setter Property="Padding" Value="15,12"/>
-                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                                <Setter Property="BorderBrush" Value="#e5e7eb"/>
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
-
-                        <DataGrid.CellStyle>
-                            <Style TargetType="DataGridCell">
-                                <Setter Property="BorderThickness" Value="0"/>
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Foreground" Value="#374151"/>
-                                <Setter Property="FontSize" Value="14"/>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="DataGridCell">
-                                            <Border Background="{TemplateBinding Background}" 
-                                                   BorderThickness="0"
-                                                   Padding="15,0">
-                                                <ContentPresenter VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </DataGrid.CellStyle>
-
-                        <DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow">
-                                <Setter Property="Background" Value="White"/>
-                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                                <Setter Property="BorderBrush" Value="#f3f4f6"/>
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Background" Value="#f9fafb"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
-                        </DataGrid.RowStyle>
-
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Width="60" Binding="{Binding Id}"/>
-                            <DataGridTextColumn Header="Nombre" Width="*" Binding="{Binding Nombre}">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                        <Setter Property="Foreground" Value="#111827"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTextColumn Header="Productos" Width="*" Binding="{Binding Productos}">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="#6b7280"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-
-                            <DataGridTemplateColumn Header="Acciones" Width="100">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <ToggleButton x:Name="ActionsToggleButton"
-                                                         Content="⋯" 
-                                                         FontSize="20"
-                                                         FontWeight="Bold"
-                                                         Width="30" 
-                                                         Height="30" 
-                                                         Background="Transparent"
-                                                         BorderThickness="0"
-                                                         Foreground="#6b7280"
-                                                         Cursor="Hand"
-                                                         HorizontalAlignment="Center"/>
-
-                                            <Popup IsOpen="{Binding IsChecked, ElementName=ActionsToggleButton}"
-                                                   StaysOpen="False"
-                                                   PlacementTarget="{Binding ElementName=ActionsToggleButton}"
-                                                   Placement="Bottom"
-                                                   AllowsTransparency="True">
-                                                <Border Background="White"
-                                                       BorderBrush="#e5e7eb"
-                                                       BorderThickness="1"
-                                                       Padding="5">
-                                                    <StackPanel>
-                                                        <Button Content="✏️ Editar"
-                                                               Background="Transparent"
-                                                               BorderThickness="0"
-                                                               Padding="15,10"
-                                                               FontSize="14"
-                                                               HorizontalContentAlignment="Left"
-                                                               Cursor="Hand"
-                                                               Click="EditarCombo_Click"
-                                                               Tag="{Binding}">
-                                                            <Button.Style>
-                                                                <Style TargetType="Button">
-                                                                    <Setter Property="Background" Value="Transparent"/>
-                                                                    <Style.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter Property="Background" Value="#f3f4f6"/>
-                                                                        </Trigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Button.Style>
-                                                        </Button>
-                                                        <Button Content="🗑️ Borrar"
-                                                               Background="Transparent"
-                                                               BorderThickness="0"
-                                                               Padding="15,10"
-                                                               FontSize="14"
-                                                               HorizontalContentAlignment="Left"
-                                                               Cursor="Hand"
-                                                               Foreground="#ef4444"
-                                                               Click="BorrarCombo_Click"
-                                                               Tag="{Binding}">
-                                                            <Button.Style>
-                                                                <Style TargetType="Button">
-                                                                    <Setter Property="Background" Value="Transparent"/>
-                                                                    <Style.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter Property="Background" Value="#fee2e2"/>
-                                                                        </Trigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Button.Style>
-                                                        </Button>
-                                                    </StackPanel>
-                                                </Border>
-                                            </Popup>
-                                        </Grid>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Border>
-
-                <!-- Footer con contador -->
-                <Grid Grid.Row="1" Margin="0,20,0,0">
-                    <TextBlock x:Name="ContadorTextBlock" 
-                             Text="Mostrando 0 de 0 combos"
-                             Foreground="#6b7280"
-                             FontSize="14"
-                             VerticalAlignment="Center"/>
-                </Grid>
-            </Grid>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+            </ScrollViewer>
         </Border>
+
+        <!-- Panel de lista con diseño mejorado -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Barra de búsqueda -->
+            <Border Grid.Row="0" 
+                   Background="White"
+                   CornerRadius="10"
+                   Padding="15,0"
+                   Margin="0,0,0,20">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" 
+                                    Opacity="0.05" 
+                                    BlurRadius="10" 
+                                    ShadowDepth="0"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" 
+                              Text="🔍" 
+                              FontSize="18" 
+                              VerticalAlignment="Center"
+                              Margin="0,0,12,0"
+                              Foreground="#9ca3af"/>
+                    <TextBox Grid.Column="1" 
+                            x:Name="SearchTextBox"
+                            BorderThickness="0" 
+                            FontSize="14"
+                            VerticalAlignment="Center"
+                            Foreground="#1f2937"
+                            Background="Transparent"
+                            Height="42"
+                            Text="Buscar combos..."
+                            GotFocus="SearchTextBox_GotFocus"
+                            LostFocus="SearchTextBox_LostFocus"
+                            TextChanged="SearchTextBox_TextChanged"/>
+                </Grid>
+            </Border>
+
+            <!-- DataGrid con diseño mejorado -->
+            <Border Grid.Row="1" 
+                   Background="White"
+                   CornerRadius="16">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" 
+                                    Opacity="0.08" 
+                                    BlurRadius="20" 
+                                    ShadowDepth="0"/>
+                </Border.Effect>
+
+                <DataGrid x:Name="CombosDataGrid"
+                         AutoGenerateColumns="False"
+                         CanUserAddRows="False"
+                         CanUserDeleteRows="False"
+                         CanUserResizeRows="False"
+                         IsReadOnly="True"
+                         HeadersVisibility="Column"
+                         GridLinesVisibility="None"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         RowBackground="White"
+                         AlternatingRowBackground="White"
+                         SelectionMode="Single"
+                         SelectionUnit="FullRow"
+                         RowHeight="60">
+
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#f9fafb"/>
+                            <Setter Property="Foreground" Value="#374151"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="FontSize" Value="13"/>
+                            <Setter Property="Padding" Value="20,15"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+                            <Setter Property="BorderBrush" Value="#e5e7eb"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="#1f2937"/>
+                            <Setter Property="FontSize" Value="14"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridCell">
+                                        <Border Background="{TemplateBinding Background}" 
+                                               BorderThickness="0"
+                                               Padding="20,0">
+                                            <ContentPresenter VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGrid.CellStyle>
+
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="White"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                            <Setter Property="BorderBrush" Value="#f3f4f6"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#faf5ff"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#f3e8ff"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Width="70" Binding="{Binding Id}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#9ca3af"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Nombre del Combo" Width="*" Binding="{Binding Nombre}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="Foreground" Value="#1f2937"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Productos" Width="*" Binding="{Binding Productos}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#6b7280"/>
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTemplateColumn Header="Acciones" Width="110">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <ToggleButton x:Name="ActionsToggleButton"
+                                                     Content="⋯" 
+                                                     FontSize="24"
+                                                     FontWeight="Bold"
+                                                     Width="36" 
+                                                     Height="36" 
+                                                     Background="#f9fafb"
+                                                     BorderThickness="0"
+                                                     Foreground="#6b7280"
+                                                     Cursor="Hand"
+                                                     HorizontalAlignment="Center">
+                                            <ToggleButton.Template>
+                                                <ControlTemplate TargetType="ToggleButton">
+                                                    <Border Background="{TemplateBinding Background}"
+                                                           CornerRadius="8">
+                                                        <ContentPresenter HorizontalAlignment="Center" 
+                                                                        VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </ToggleButton.Template>
+                                            <ToggleButton.Style>
+                                                <Style TargetType="ToggleButton">
+                                                    <Setter Property="Background" Value="#f9fafb"/>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="#f3f4f6"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsChecked" Value="True">
+                                                            <Setter Property="Background" Value="#e5e7eb"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ToggleButton.Style>
+                                        </ToggleButton>
+
+                                        <Popup IsOpen="{Binding IsChecked, ElementName=ActionsToggleButton}"
+                                               StaysOpen="False"
+                                               PlacementTarget="{Binding ElementName=ActionsToggleButton}"
+                                               Placement="Bottom"
+                                               AllowsTransparency="True">
+                                            <Border Background="White"
+                                                   BorderBrush="#e5e7eb"
+                                                   BorderThickness="1"
+                                                   CornerRadius="12"
+                                                   Padding="8"
+                                                   Margin="0,8,0,0">
+                                                <Border.Effect>
+                                                    <DropShadowEffect Color="#000000" 
+                                                                    Opacity="0.15" 
+                                                                    BlurRadius="15" 
+                                                                    ShadowDepth="0"/>
+                                                </Border.Effect>
+                                                <StackPanel>
+                                                    <Button Content="✏️ Editar"
+                                                           Background="Transparent"
+                                                           BorderThickness="0"
+                                                           Padding="20,10"
+                                                           FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           HorizontalContentAlignment="Left"
+                                                           Cursor="Hand"
+                                                           Click="EditarCombo_Click"
+                                                           Tag="{Binding}">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                       CornerRadius="6"
+                                                                       Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Background" Value="Transparent"/>
+                                                                <Setter Property="Foreground" Value="#374151"/>
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#f3f4f6"/>
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+                                                    <Button Content="🗑️ Eliminar"
+                                                           Background="Transparent"
+                                                           BorderThickness="0"
+                                                           Padding="20,10"
+                                                           FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           HorizontalContentAlignment="Left"
+                                                           Cursor="Hand"
+                                                           Foreground="#dc2626"
+                                                           Click="BorrarCombo_Click"
+                                                           Tag="{Binding}">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                       CornerRadius="6"
+                                                                       Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Background" Value="Transparent"/>
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#fee2e2"/>
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+                                        </Popup>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Footer con contador mejorado -->
+            <Border Grid.Row="2" 
+                   Background="White"
+                   CornerRadius="12"
+                   Padding="25,20"
+                   Margin="0,20,0,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" 
+                                    Opacity="0.05" 
+                                    BlurRadius="10" 
+                                    ShadowDepth="0"/>
+                </Border.Effect>
+                <TextBlock x:Name="ContadorTextBlock"
+                          Text="Mostrando 0 de 0 combos" 
+                          FontSize="14"
+                          Foreground="#6b7280"
+                          FontWeight="SemiBold"
+                          VerticalAlignment="Center"/>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

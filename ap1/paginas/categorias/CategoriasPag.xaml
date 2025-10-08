@@ -5,248 +5,465 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       mc:Ignorable="d" 
       d:DesignHeight="800" d:DesignWidth="1200"
-      Background="White">
+      Background="#f8f9fa">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="80"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Page.Resources>
+        <!-- Estilo para botones primarios -->
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#8b5cf6"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#7c3aed"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#6d28d9"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
-        <!-- Updated header to match productos style -->
-        <Border Grid.Row="0" Background="#8b5cf6" Padding="30,0">
-            <Grid>
-                <TextBlock Text="Gestión de Categorías" 
-                          FontSize="28" 
-                          FontWeight="Bold" 
-                          Foreground="White"
-                          VerticalAlignment="Center"/>
-            </Grid>
-        </Border>
-
-        <!-- Changed layout to have form on left and DataGrid on right -->
-        <Grid Grid.Row="1" Margin="30">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="400"/>
-                <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- Added form container on the left -->
-            <Border Grid.Column="0" 
-                   BorderBrush="Transparent" 
-                   BorderThickness="0" 
-                   Padding="20">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <TextBlock Text="Nueva Categoría" 
-                                  FontSize="22" 
-                                  FontWeight="Bold" 
-                                  Foreground="#8b5cf6"
-                                  Margin="0,0,0,20"/>
-
-                        <TextBlock Text="Nombre de la Categoría *" 
-                                  FontSize="14" 
-                                  FontWeight="SemiBold"
-                                  Margin="0,0,0,8"/>
-                        <TextBox x:Name="NombreCategoriaTextBox"
-                                BorderBrush="#e0e0e0" 
-                                BorderThickness="1" 
-                                Padding="10"
-                                FontSize="14"
-                                Margin="0,0,0,15"
-                                Height="40"/>
-
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#2c3e50"/>
+            <Setter Property="BorderBrush" Value="#e0e0e0"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="CaretBrush" Value="#8b5cf6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
                         <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Button Grid.Column="0"
-                                   Content="Guardar" 
-                                   Background="#8B5CF6" 
-                                   Foreground="White"
-                                   FontWeight="Bold"
-                                   Padding="15,10"
-                                   BorderThickness="0"
-                                   Cursor="Hand"
-                                   Click="GuardarCategoria_Click" Grid.ColumnSpan="3"/>
+                            <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="12"
+                            SnapsToDevicePixels="True"
+                            Panel.ZIndex="0"/>
+                            <ScrollViewer x:Name="PART_ContentHost" 
+                                  Focusable="false"
+                                  HorizontalScrollBarVisibility="Hidden"
+                                  VerticalScrollBarVisibility="Hidden"
+                                  VerticalAlignment="Center"
+                                  Margin="5,0"
+                                  Panel.ZIndex="1"/>
                         </Grid>
-                    </StackPanel>
-                </ScrollViewer>
-            </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#c4b5fd"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="#8b5cf6"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="2.5"/>
+                                <Setter TargetName="border" Property="Background" Value="#fafafa"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#f5f5f5"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#e0e0e0"/>
+                                <Setter Property="Foreground" Value="#9e9e9e"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
 
-            <!-- Moved DataGrid to the right side -->
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+    <Grid Margin="40">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="420"/>
+            <ColumnDefinition Width="30"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-                <Border Grid.Row="0" 
-                       BorderBrush="#e0e0e0" 
-                       BorderThickness="1"
-                       Background="White">
-                    <DataGrid x:Name="CategoriasDataGrid"
-                             AutoGenerateColumns="False"
-                             CanUserAddRows="False"
-                             CanUserDeleteRows="False"
-                             CanUserResizeRows="False"
-                             IsReadOnly="True"
-                             HeadersVisibility="Column"
-                             GridLinesVisibility="None"
-                             BorderThickness="0"
-                             Background="White"
-                             RowBackground="White"
-                             AlternatingRowBackground="White"
-                             SelectionMode="Single"
-                             SelectionUnit="FullRow"
-                             RowHeight="50">
+        <!-- Panel de formulario con sombra -->
+        <Border Grid.Column="0" 
+               Background="White" 
+               CornerRadius="16"
+               Padding="30">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" 
+                                Opacity="0.08" 
+                                BlurRadius="20" 
+                                ShadowDepth="0"/>
+            </Border.Effect>
 
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="Nueva Categoría" 
+                              FontSize="24" 
+                              FontWeight="Bold" 
+                              Foreground="#1f2937"
+                              Margin="0,0,0,25"/>
+
+                    <!-- Campo del formulario -->
+                    <TextBlock Text="Nombre de la Categoría" 
+                              FontSize="13" 
+                              FontWeight="SemiBold"
+                              Foreground="#4b5563"
+                              Margin="0,0,0,8"/>
+                    <TextBox x:Name="NombreCategoriaTextBox"
+                            Style="{StaticResource ModernTextBoxStyle}"
+                            Margin="0,0,0,25"/>
+
+                    <!-- Botón de acción -->
+                    <Button x:Name="GuardarButton"
+                           Content="Guardar Categoría" 
+                           Style="{StaticResource PrimaryButtonStyle}"
+                           Click="GuardarCategoria_Click"/>
+
+                    <!-- Botón de cancelar (visible solo en modo edición) -->
+                    <Button x:Name="CancelarButton"
+                           Content="Cancelar Edición" 
+                           Background="White"
+                           Foreground="#6b7280"
+                           FontWeight="SemiBold"
+                           FontSize="14"
+                           Padding="20,12"
+                           BorderThickness="2"
+                           BorderBrush="#e5e7eb"
+                           Cursor="Hand"
+                           Margin="0,12,0,0"
+                           Visibility="Collapsed"
+                           Click="CancelarEdicion_Click">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="8"
+                                        Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" 
+                                                    VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Button.Style>
+                            <Style TargetType="Button">
                                 <Setter Property="Background" Value="White"/>
-                                <Setter Property="Foreground" Value="#333"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
-                                <Setter Property="FontSize" Value="14"/>
-                                <Setter Property="Padding" Value="15,10"/>
-                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                                <Setter Property="BorderBrush" Value="#e0e0e0"/>
-                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
-
-                        <DataGrid.CellStyle>
-                            <Style TargetType="DataGridCell">
-                                <Setter Property="BorderThickness" Value="0"/>
-                                <Setter Property="Padding" Value="15,0"/>
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Foreground" Value="#333"/>
-                                <Setter Property="FontSize" Value="14"/>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="DataGridCell">
-                                            <Border Background="{TemplateBinding Background}" 
-                                                   BorderThickness="0"
-                                                   Padding="15,0">
-                                                <ContentPresenter VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </DataGrid.CellStyle>
-
-                        <DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow">
-                                <Setter Property="Background" Value="White"/>
-                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                                <Setter Property="BorderBrush" Value="#f0f0f0"/>
                                 <Style.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#f9f9f9"/>
+                                        <Setter Property="Background" Value="#f9fafb"/>
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
-                        </DataGrid.RowStyle>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
 
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Width="80" Binding="{Binding Id}"/>
-                            <DataGridTextColumn Header="Nombre" Width="*" Binding="{Binding Nombre}">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTemplateColumn Header="Acciones" Width="100">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <ToggleButton x:Name="ActionsToggleButton"
-                                                         Content="⋯" 
-                                                         FontSize="20"
-                                                         FontWeight="Bold"
-                                                         Width="30" 
-                                                         Height="30" 
-                                                         Background="Transparent"
-                                                         BorderThickness="0"
-                                                         Foreground="#666"
-                                                         Cursor="Hand"
-                                                         HorizontalAlignment="Center"/>
+        <!-- Panel de lista con diseño mejorado -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-                                            <Popup IsOpen="{Binding IsChecked, ElementName=ActionsToggleButton}"
-                                                   StaysOpen="False"
-                                                   PlacementTarget="{Binding ElementName=ActionsToggleButton}"
-                                                   Placement="Bottom"
-                                                   AllowsTransparency="True">
-                                                <Border Background="White"
-                                                       BorderBrush="#e0e0e0"
-                                                       BorderThickness="1"
-                                                       Padding="5">
-                                                    <StackPanel>
-                                                        <Button Content="✏️ Editar"
-                                                               Background="Transparent"
-                                                               BorderThickness="0"
-                                                               Padding="15,8"
-                                                               FontSize="14"
-                                                               HorizontalContentAlignment="Left"
-                                                               Cursor="Hand"
-                                                               Click="EditarCategoria_Click"
-                                                               Tag="{Binding}">
-                                                            <Button.Style>
-                                                                <Style TargetType="Button">
-                                                                    <Setter Property="Background" Value="Transparent"/>
-                                                                    <Style.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter Property="Background" Value="#f0f0f0"/>
-                                                                        </Trigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Button.Style>
-                                                        </Button>
-                                                        <Button Content="🗑️ Borrar"
-                                                               Background="Transparent"
-                                                               BorderThickness="0"
-                                                               Padding="15,8"
-                                                               FontSize="14"
-                                                               HorizontalContentAlignment="Left"
-                                                               Cursor="Hand"
-                                                               Foreground="#ef4444"
-                                                               Click="EliminarCategoria_Click"
-                                                               Tag="{Binding}">
-                                                            <Button.Style>
-                                                                <Style TargetType="Button">
-                                                                    <Setter Property="Background" Value="Transparent"/>
-                                                                    <Style.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter Property="Background" Value="#fee"/>
-                                                                        </Trigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Button.Style>
-                                                        </Button>
-                                                    </StackPanel>
-                                                </Border>
-                                            </Popup>
-                                        </Grid>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Border>
-
-                <Grid Grid.Row="1" Margin="0,15,0,0">
-                    <TextBlock x:Name="CategoriaCountText"
-                              Text="Mostrando 0 de 0 categorías" 
-                              FontSize="14" 
-                              Foreground="#666"
-                              VerticalAlignment="Center"/>
+            <!-- Barra de búsqueda mejorada -->
+            <Border Grid.Row="0" 
+                   Background="White"
+                   CornerRadius="10"
+                   Padding="15,0"
+                   Margin="0,0,0,20">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" 
+                                    Opacity="0.05" 
+                                    BlurRadius="10" 
+                                    ShadowDepth="0"/>
+                </Border.Effect>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" 
+                              Text="🔍" 
+                              FontSize="18" 
+                              VerticalAlignment="Center"
+                              Margin="0,0,12,0"
+                              Foreground="#9ca3af"/>
+                    <TextBox Grid.Column="1" 
+                            x:Name="SearchTextBox"
+                            BorderThickness="0" 
+                            FontSize="14"
+                            VerticalAlignment="Center"
+                            Foreground="#1f2937"
+                            Background="Transparent"
+                            Height="42"
+                            Text="Buscar categorías..."
+                            GotFocus="SearchTextBox_GotFocus"
+                            LostFocus="SearchTextBox_LostFocus"
+                            TextChanged="SearchTextBox_TextChanged"/>
                 </Grid>
-            </Grid>
+            </Border>
+
+            <!-- DataGrid con diseño mejorado -->
+            <Border Grid.Row="1" 
+                   Background="White"
+                   CornerRadius="16">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" 
+                                    Opacity="0.08" 
+                                    BlurRadius="20" 
+                                    ShadowDepth="0"/>
+                </Border.Effect>
+
+                <DataGrid x:Name="CategoriasDataGrid"
+                         AutoGenerateColumns="False"
+                         CanUserAddRows="False"
+                         CanUserDeleteRows="False"
+                         CanUserResizeRows="False"
+                         IsReadOnly="True"
+                         HeadersVisibility="Column"
+                         GridLinesVisibility="None"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         RowBackground="White"
+                         AlternatingRowBackground="White"
+                         SelectionMode="Single"
+                         SelectionUnit="FullRow"
+                         RowHeight="60">
+
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#f9fafb"/>
+                            <Setter Property="Foreground" Value="#374151"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="FontSize" Value="13"/>
+                            <Setter Property="Padding" Value="20,15"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+                            <Setter Property="BorderBrush" Value="#e5e7eb"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="#1f2937"/>
+                            <Setter Property="FontSize" Value="14"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridCell">
+                                        <Border Background="{TemplateBinding Background}" 
+                                               BorderThickness="0"
+                                               Padding="20,0">
+                                            <ContentPresenter VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGrid.CellStyle>
+
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="White"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                            <Setter Property="BorderBrush" Value="#f3f4f6"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#faf5ff"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#f3e8ff"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Width="100" Binding="{Binding Id}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#9ca3af"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Nombre de Categoría" Width="*" Binding="{Binding Nombre}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="Foreground" Value="#1f2937"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTemplateColumn Header="Acciones" Width="110">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <ToggleButton x:Name="ActionsToggleButton"
+                                                     Content="⋯" 
+                                                     FontSize="24"
+                                                     FontWeight="Bold"
+                                                     Width="36" 
+                                                     Height="36" 
+                                                     Background="#f9fafb"
+                                                     BorderThickness="0"
+                                                     Foreground="#6b7280"
+                                                     Cursor="Hand"
+                                                     HorizontalAlignment="Center">
+                                            <ToggleButton.Template>
+                                                <ControlTemplate TargetType="ToggleButton">
+                                                    <Border Background="{TemplateBinding Background}"
+                                                           CornerRadius="8">
+                                                        <ContentPresenter HorizontalAlignment="Center" 
+                                                                        VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </ToggleButton.Template>
+                                            <ToggleButton.Style>
+                                                <Style TargetType="ToggleButton">
+                                                    <Setter Property="Background" Value="#f9fafb"/>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="#f3f4f6"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsChecked" Value="True">
+                                                            <Setter Property="Background" Value="#e5e7eb"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ToggleButton.Style>
+                                        </ToggleButton>
+
+                                        <Popup IsOpen="{Binding IsChecked, ElementName=ActionsToggleButton}"
+                                               StaysOpen="False"
+                                               PlacementTarget="{Binding ElementName=ActionsToggleButton}"
+                                               Placement="Bottom"
+                                               AllowsTransparency="True">
+                                            <Border Background="White"
+                                                   BorderBrush="#e5e7eb"
+                                                   BorderThickness="1"
+                                                   CornerRadius="12"
+                                                   Padding="8"
+                                                   Margin="0,8,0,0">
+                                                <Border.Effect>
+                                                    <DropShadowEffect Color="#000000" 
+                                                                    Opacity="0.15" 
+                                                                    BlurRadius="15" 
+                                                                    ShadowDepth="0"/>
+                                                </Border.Effect>
+                                                <StackPanel>
+                                                    <Button Content="✏️ Editar"
+                                                           Background="Transparent"
+                                                           BorderThickness="0"
+                                                           Padding="20,10"
+                                                           FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           HorizontalContentAlignment="Left"
+                                                           Cursor="Hand"
+                                                           Click="EditarCategoria_Click"
+                                                           Tag="{Binding}">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                       CornerRadius="6"
+                                                                       Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Background" Value="Transparent"/>
+                                                                <Setter Property="Foreground" Value="#374151"/>
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#f3f4f6"/>
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+                                                    <Button Content="🗑️ Eliminar"
+                                                           Background="Transparent"
+                                                           BorderThickness="0"
+                                                           Padding="20,10"
+                                                           FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           HorizontalContentAlignment="Left"
+                                                           Cursor="Hand"
+                                                           Foreground="#dc2626"
+                                                           Click="EliminarCategoria_Click"
+                                                           Tag="{Binding}">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                       CornerRadius="6"
+                                                                       Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Background" Value="Transparent"/>
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#fee2e2"/>
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+                                        </Popup>
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <!-- Footer con contador mejorado -->
+            <Border Grid.Row="2" 
+                   Background="White"
+                   CornerRadius="12"
+                   Padding="25,20"
+                   Margin="0,20,0,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="#000000" 
+                                    Opacity="0.05" 
+                                    BlurRadius="10" 
+                                    ShadowDepth="0"/>
+                </Border.Effect>
+                <TextBlock x:Name="CategoriaCountText"
+                          Text="Mostrando 0 de 0 categorías" 
+                          FontSize="14" 
+                          Foreground="#6b7280"
+                          FontWeight="SemiBold"
+                          VerticalAlignment="Center"/>
+            </Border>
         </Grid>
     </Grid>
 </Page>

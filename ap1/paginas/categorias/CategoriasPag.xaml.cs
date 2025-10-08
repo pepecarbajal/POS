@@ -5,13 +5,17 @@ using POS.Services;
 using POS.Interfaces;
 using POS.Models;
 using POS.Data;
+using System.Linq;
+
 namespace POS.paginas.categoria
 {
     public partial class CategoriasPag : Page
     {
         private readonly ICategoriaService _categoriaService;
         public ObservableCollection<Categoria> Categorias { get; set; }
+        public ObservableCollection<Categoria> CategoriasFiltradas { get; set; }
         private Categoria? _categoriaEnEdicion;
+        private bool _isSearchPlaceholder = true;
 
         public CategoriasPag()
         {
@@ -21,7 +25,8 @@ namespace POS.paginas.categoria
             _categoriaService = new CategoriaService(context);
 
             Categorias = new ObservableCollection<Categoria>();
-            CategoriasDataGrid.ItemsSource = Categorias;
+            CategoriasFiltradas = new ObservableCollection<Categoria>();
+            CategoriasDataGrid.ItemsSource = CategoriasFiltradas;
 
             LoadCategoriasAsync();
         }
@@ -32,10 +37,14 @@ namespace POS.paginas.categoria
             {
                 var categorias = await _categoriaService.GetAllCategoriasAsync();
                 Categorias.Clear();
+                CategoriasFiltradas.Clear();
+
                 foreach (var categoria in categorias)
                 {
                     Categorias.Add(categoria);
+                    CategoriasFiltradas.Add(categoria);
                 }
+
                 ActualizarContador();
             }
             catch (Exception ex)
@@ -81,6 +90,7 @@ namespace POS.paginas.categoria
 
                     var categoriaCreada = await _categoriaService.CreateCategoriaAsync(nuevaCategoria);
                     Categorias.Add(categoriaCreada);
+                    CategoriasFiltradas.Add(categoriaCreada);
                     LimpiarFormulario();
                     ActualizarContador();
                     MessageBox.Show("Categoría agregada exitosamente", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -92,11 +102,12 @@ namespace POS.paginas.categoria
             }
         }
 
-
         private void LimpiarFormulario()
         {
             NombreCategoriaTextBox.Clear();
             _categoriaEnEdicion = null;
+            GuardarButton.Content = "Guardar Categoría";
+            CancelarButton.Visibility = Visibility.Collapsed;
         }
 
         private void EditarCategoria_Click(object sender, RoutedEventArgs e)
@@ -108,6 +119,13 @@ namespace POS.paginas.categoria
 
             _categoriaEnEdicion = categoria;
             NombreCategoriaTextBox.Text = categoria.Nombre;
+            GuardarButton.Content = "Actualizar Categoría";
+            CancelarButton.Visibility = Visibility.Visible;
+        }
+
+        private void CancelarEdicion_Click(object sender, RoutedEventArgs e)
+        {
+            LimpiarFormulario();
         }
 
         private async void EliminarCategoria_Click(object sender, RoutedEventArgs e)
@@ -133,6 +151,7 @@ namespace POS.paginas.categoria
                     if (eliminado)
                     {
                         Categorias.Remove(categoria);
+                        CategoriasFiltradas.Remove(categoria);
                         ActualizarContador();
                         MessageBox.Show("Categoría eliminada exitosamente", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
@@ -148,10 +167,66 @@ namespace POS.paginas.categoria
             }
         }
 
+        private void SearchTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (_isSearchPlaceholder)
+            {
+                SearchTextBox.Text = "";
+                SearchTextBox.Foreground = new System.Windows.Media.SolidColorBrush(
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#1f2937"));
+                _isSearchPlaceholder = false;
+            }
+        }
+
+        private void SearchTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(SearchTextBox.Text))
+            {
+                SearchTextBox.Text = "Buscar categorías...";
+                SearchTextBox.Foreground = new System.Windows.Media.SolidColorBrush(
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#6b7280"));
+                _isSearchPlaceholder = true;
+            }
+        }
+
+        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isSearchPlaceholder) return;
+
+            FiltrarCategorias();
+        }
+
+        private void FiltrarCategorias()
+        {
+            var searchText = SearchTextBox.Text?.ToLower() ?? "";
+
+            CategoriasFiltradas.Clear();
+
+            var categoriasFiltradas = Categorias.Where(c =>
+                c.Nombre.ToLower().Contains(searchText)
+            );
+
+            foreach (var categoria in categoriasFiltradas)
+            {
+                CategoriasFiltradas.Add(categoria);
+            }
+
+            ActualizarContador();
+        }
+
         private void ActualizarContador()
         {
             int total = Categorias.Count;
-            CategoriaCountText.Text = $"Mostrando {total} de {total} categorías";
+            int filtradas = CategoriasFiltradas.Count;
+
+            if (filtradas == total)
+            {
+                CategoriaCountText.Text = $"Mostrando {total} de {total} categorías";
+            }
+            else
+            {
+                CategoriaCountText.Text = $"Mostrando {filtradas} de {total} categorías";
+            }
         }
     }
 }

@@ -2,39 +2,47 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="Detalles de Ventas"
-      Background="#f8f9fa">
+      Background="#f5f7fa">
 
     <Page.Resources>
+        <!-- Animaciones -->
+        <Storyboard x:Key="FadeIn">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                           From="0" To="1" Duration="0:0:0.3"/>
+        </Storyboard>
+
+        <!-- Estilos -->
         <Style x:Key="HeaderText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontSize" Value="32"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#1a0b2e"/>
+            <Setter Property="Foreground" Value="#1a1a2e"/>
         </Style>
 
         <Style x:Key="CardStyle" TargetType="Border">
             <Setter Property="Background" Value="White"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect Color="#000000" Opacity="0.1" BlurRadius="10" ShadowDepth="2"/>
+                    <DropShadowEffect Color="#000000" Opacity="0.08" BlurRadius="20" ShadowDepth="0"/>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <Style x:Key="ExpandButton" TargetType="Button">
-            <Setter Property="Background" Value="#2d1b4e"/>
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="#6C5CE7"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Padding" Value="16,10"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}"
-                                CornerRadius="4"
+                                CornerRadius="8"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -43,118 +51,213 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#3d2563"/>
+                    <Setter Property="Background" Value="#5F4FD1"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#5242C4"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="IconTextBlock" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
     </Page.Resources>
 
-    <Grid Margin="40">
+    <Grid Margin="32">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="Historial de Ventas" Style="{StaticResource HeaderText}"/>
-            <TextBlock Text="Consulta todas las ventas realizadas" 
-                       FontSize="14" 
-                       Foreground="#6c757d" 
-                       Margin="0,5,0,0"/>
-        </StackPanel>
-
-        <!-- Date Filter and Total Display -->
-        <Grid Grid.Row="1" Margin="0,0,0,30">
+        <!-- Filtros y Resumen -->
+        <Grid Grid.Row="1" Margin="0,0,0,24">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.2*"/>
+                <ColumnDefinition Width="16"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="20"/>
-                <ColumnDefinition Width="2.5*"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Date Filter Card -->
-            <Border Grid.Column="0" 
-                    Background="White" 
-                    CornerRadius="12" 
-                    Padding="10">
-                <Border.Effect>
-                    <DropShadowEffect Color="#000000" Opacity="0.12" BlurRadius="15" ShadowDepth="3"/>
-                </Border.Effect>
+            <!-- Calendario Moderno -->
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
                 <StackPanel>
-                    <TextBlock Text="📅 Seleccionar Fecha" 
-                               FontSize="18" 
-                               FontWeight="SemiBold"
-                               Foreground="#1a0b2e"
-                               Margin="0,0,0,15"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <TextBlock Text="📅" Style="{StaticResource IconTextBlock}"/>
+                        <TextBlock Text="Filtro por Fecha" 
+                                   FontSize="18" 
+                                   FontWeight="Bold"
+                                   Foreground="#1a1a2e"/>
+                    </StackPanel>
 
                     <Calendar x:Name="FechaFiltro"
                               SelectedDatesChanged="FechaFiltro_SelectedDateChanged"
-                              FontSize="16"
+                              FontSize="14"
                               HorizontalAlignment="Center"
-                              BorderBrush="#2d1b4e"
-                              BorderThickness="2">
+                              BorderBrush="#6C5CE7"
+                              BorderThickness="2"
+                              Background="Transparent">
                         <Calendar.CalendarDayButtonStyle>
                             <Style TargetType="CalendarDayButton">
-                                <Setter Property="FontSize" Value="16"/>
-                                <Setter Property="Width" Value="30"/>
-                                <Setter Property="Height" Value="30"/>
+                                <Setter Property="FontSize" Value="13"/>
+                                <Setter Property="Width" Value="38"/>
+                                <Setter Property="Height" Value="38"/>
+                                <Setter Property="Margin" Value="2"/>
                             </Style>
                         </Calendar.CalendarDayButtonStyle>
-                        <Calendar.CalendarButtonStyle>
-                            <Style TargetType="CalendarButton">
-                                <Setter Property="FontSize" Value="16"/>
-                                <Setter Property="Width" Value="70"/>
-                                <Setter Property="Height" Value="50"/>
-                            </Style>
-                        </Calendar.CalendarButtonStyle>
                     </Calendar>
 
-                    <TextBlock Text="Mostrando ventas del día seleccionado" 
-                               FontSize="12" 
-                               Foreground="#6c757d"
-                               Margin="0,15,0,0"
-                               TextWrapping="Wrap"
-                               HorizontalAlignment="Center"/>
+                    <Border Background="#F8F9FF" 
+                            CornerRadius="8" 
+                            Padding="12"
+                            Margin="0,16,0,0">
+                        <TextBlock Text="💡 Selecciona una fecha para filtrar las ventas" 
+                                   FontSize="12" 
+                                   Foreground="#6C5CE7"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"/>
+                    </Border>
                 </StackPanel>
             </Border>
 
-            <!-- Total Summary Card -->
-            <Border Grid.Column="2" 
-                    CornerRadius="12" 
-                    Padding="30"
-                    Background="#342354">
-                <Border.Effect>
-                    <DropShadowEffect Color="#2d1b4e" Opacity="0.3" BlurRadius="20" ShadowDepth="5"/>
-                </Border.Effect>
+            <!-- Card Total del Día -->
+            <Border Grid.Column="2">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#6C5CE7" Offset="0"/>
+                        <GradientStop Color="#A29BFE" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource CardStyle}">
+                        <Setter Property="Effect">
+                            <Setter.Value>
+                                <DropShadowEffect Color="#6C5CE7" Opacity="0.3" BlurRadius="30" ShadowDepth="0"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Border.Style>
+
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="💰 TOTAL DEL DÍA" 
-                               FontSize="16" 
+                    <TextBlock Text="💰" 
+                               FontSize="36"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,12"/>
+
+                    <TextBlock Text="TOTAL DEL DÍA" 
+                               FontSize="13" 
                                FontWeight="Bold"
                                Foreground="White"
                                Opacity="0.9"
                                HorizontalAlignment="Center"
-                               Margin="0,0,0,10"/>
+                               Margin="0,0,0,8"/>
 
                     <TextBlock x:Name="TotalVentasTextBlock"
                                Text="$0.00" 
-                               FontSize="42" 
+                               FontSize="38" 
                                FontWeight="Bold"
                                Foreground="White"
-                               HorizontalAlignment="Center"
-                               TextAlignment="Center"/>
+                               HorizontalAlignment="Center"/>
 
-                    <TextBlock Text="Resumen de ventas" 
+                    <TextBlock Text="Ventas registradas" 
                                FontSize="12" 
                                Foreground="White"
-                               Opacity="0.8"
+                               Opacity="0.85"
                                HorizontalAlignment="Center"
                                Margin="0,8,0,0"/>
                 </StackPanel>
             </Border>
+
+            <!-- Card Estadísticas Rápidas -->
+            <Border Grid.Column="4" Style="{StaticResource CardStyle}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                        <TextBlock Text="📈" Style="{StaticResource IconTextBlock}"/>
+                        <TextBlock Text="Resumen" 
+                                   FontSize="18" 
+                                   FontWeight="Bold"
+                                   Foreground="#1a1a2e"/>
+                    </StackPanel>
+
+                    <!-- Número de Ventas -->
+                    <Border Background="#F8F9FF" 
+                            CornerRadius="12" 
+                            Padding="16,12"
+                            Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0"
+                                    Background="#6C5CE7"
+                                    CornerRadius="8"
+                                    Width="40"
+                                    Height="40"
+                                    Margin="0,0,12,0">
+                                <TextBlock Text="🛒" 
+                                           FontSize="20"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock x:Name="NumeroVentasTextBlock"
+                                           Text="0" 
+                                           FontSize="24" 
+                                           FontWeight="Bold"
+                                           Foreground="#1a1a2e"/>
+                                <TextBlock Text="Ventas realizadas" 
+                                           FontSize="11" 
+                                           Foreground="#7f8c8d"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Venta Promedio -->
+                    <Border Background="#FFF8F0" 
+                            CornerRadius="12" 
+                            Padding="16,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0"
+                                    Background="#FF9F43"
+                                    CornerRadius="8"
+                                    Width="40"
+                                    Height="40"
+                                    Margin="0,0,12,0">
+                                <TextBlock Text="📊" 
+                                           FontSize="20"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock x:Name="PromedioVentaTextBlock"
+                                           Text="$0.00" 
+                                           FontSize="24" 
+                                           FontWeight="Bold"
+                                           Foreground="#1a1a2e"/>
+                                <TextBlock Text="Venta promedio" 
+                                           FontSize="11" 
+                                           Foreground="#7f8c8d"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
         </Grid>
 
-        <!-- Sales List -->
+        <!-- Lista de Ventas Mejorada -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="VentasItemsControl">
                 <ItemsControl.ItemTemplate>
@@ -166,63 +269,123 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Sale Header -->
+                                <!-- Encabezado de Venta -->
                                 <Grid Grid.Row="0">
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Text="{Binding Fecha, StringFormat='Venta del {0:dd/MM/yyyy HH:mm}'}" 
+                                    <!-- Icono -->
+                                    <Border Grid.Column="0"
+                                            Background="#F8F9FF"
+                                            CornerRadius="12"
+                                            Width="56"
+                                            Height="56"
+                                            Margin="0,0,16,0">
+                                        <TextBlock Text="🧾" 
+                                                   FontSize="28"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <!-- Información -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Fecha, StringFormat='Venta del {0:dd/MM/yyyy}'}" 
                                                    FontSize="18" 
-                                                   FontWeight="SemiBold"
-                                                   Foreground="#1a0b2e"/>
-                                        <TextBlock Text="{Binding Id, StringFormat='ID: {0}'}" 
-                                                   FontSize="12" 
-                                                   Foreground="#6c757d"
-                                                   Margin="0,4,0,0"/>
+                                                   FontWeight="Bold"
+                                                   Foreground="#1a1a2e"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                            <TextBlock Text="🕐" FontSize="12" Margin="0,0,4,0" Foreground="#7f8c8d"/>
+                                            <TextBlock Text="{Binding Fecha, StringFormat='{}{0:HH:mm}'}" 
+                                                       FontSize="13" 
+                                                       Foreground="#7f8c8d"
+                                                       Margin="0,0,12,0"/>
+                                            <TextBlock Text="•" FontSize="13" Foreground="#7f8c8d" Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding Id, StringFormat='ID: {0}'}" 
+                                                       FontSize="13" 
+                                                       Foreground="#7f8c8d"/>
+                                        </StackPanel>
                                     </StackPanel>
 
-                                    <TextBlock Grid.Column="1" 
-                                               Text="{Binding Total, StringFormat='${0:N2}'}" 
-                                               FontSize="24" 
-                                               FontWeight="Bold"
-                                               Foreground="#2d1b4e"
-                                               VerticalAlignment="Center"
-                                               Margin="0,0,20,0"/>
+                                    <!-- Total -->
+                                    <Border Grid.Column="2"
+                                            Background="#F8F9FF"
+                                            CornerRadius="10"
+                                            Padding="20,12"
+                                            Margin="0,0,16,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Total" 
+                                                       FontSize="11" 
+                                                       Foreground="#6C5CE7"
+                                                       HorizontalAlignment="Center"
+                                                       Margin="0,0,0,2"/>
+                                            <TextBlock Text="{Binding Total, StringFormat='${0:N2}'}" 
+                                                       FontSize="22" 
+                                                       FontWeight="Bold"
+                                                       Foreground="#6C5CE7"
+                                                       HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
 
-                                    <Button Grid.Column="2" 
-                                            Style="{StaticResource ExpandButton}"
+                                    <!-- Botón -->
+                                    <Button Grid.Column="3" 
+                                            Style="{StaticResource ModernButton}"
                                             Click="ToggleDetails_Click"
                                             Tag="{Binding}">
-                                        <TextBlock x:Name="ExpandButtonText" Text="Ver Detalles"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock x:Name="ExpandButtonText" Text="Ver Detalles" Margin="0,0,6,0"/>
+                                            <TextBlock Text="▼" FontSize="10"/>
+                                        </StackPanel>
                                     </Button>
                                 </Grid>
 
-                                <!-- Sale Details (Collapsed by default) -->
+                                <!-- Detalles de Productos -->
                                 <Border Grid.Row="1" 
                                         x:Name="DetailsPanel"
                                         Visibility="Collapsed"
-                                        Background="#f8f9fa"
-                                        CornerRadius="6"
-                                        Padding="15"
-                                        Margin="0,15,0,0">
+                                        Background="#F8F9FF"
+                                        CornerRadius="12"
+                                        Padding="20"
+                                        Margin="0,20,0,0">
                                     <StackPanel>
-                                        <TextBlock Text="Productos vendidos:" 
-                                                   FontSize="14" 
-                                                   FontWeight="SemiBold"
-                                                   Foreground="#1a0b2e"
-                                                   Margin="0,0,0,10"/>
+                                        <Grid Margin="0,0,0,16">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="🛍️" Style="{StaticResource IconTextBlock}"/>
+                                                <TextBlock Text="Productos Vendidos" 
+                                                           FontSize="16" 
+                                                           FontWeight="Bold"
+                                                           Foreground="#1a1a2e"/>
+                                            </StackPanel>
+
+                                            <Border Grid.Column="1"
+                                                    Background="#6C5CE7"
+                                                    CornerRadius="12"
+                                                    Padding="10,4">
+                                                <TextBlock Text="{Binding DetallesVenta.Count, StringFormat='{}{0} items'}" 
+                                                           FontSize="11"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="White"/>
+                                            </Border>
+                                        </Grid>
 
                                         <ItemsControl ItemsSource="{Binding DetallesVenta}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <Border Background="White" 
-                                                            CornerRadius="4" 
-                                                            Padding="12" 
+                                                            CornerRadius="10" 
+                                                            Padding="16" 
                                                             Margin="0,0,0,8">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect Color="#000000" Opacity="0.04" BlurRadius="8" ShadowDepth="0"/>
+                                                        </Border.Effect>
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="*"/>
@@ -231,31 +394,35 @@
                                                                 <ColumnDefinition Width="Auto"/>
                                                             </Grid.ColumnDefinitions>
 
-                                                            <TextBlock Grid.Column="0" 
-                                                                       Text="{Binding Producto.Nombre}" 
-                                                                       FontSize="14"
-                                                                       VerticalAlignment="Center"/>
+                                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Producto.Nombre}" 
+                                                                           FontSize="14"
+                                                                           FontWeight="SemiBold"
+                                                                           Foreground="#1a1a2e"/>
+                                                                <TextBlock Text="{Binding PrecioUnitario, StringFormat='${0:N2} por unidad'}" 
+                                                                           FontSize="11"
+                                                                           Foreground="#7f8c8d"
+                                                                           Margin="0,2,0,0"/>
+                                                            </StackPanel>
 
-                                                            <TextBlock Grid.Column="1" 
-                                                                       Text="{Binding Cantidad, StringFormat='x{0}'}" 
-                                                                       FontSize="14"
-                                                                       Foreground="#6c757d"
-                                                                       Margin="15,0"
-                                                                       VerticalAlignment="Center"/>
-
-                                                            <TextBlock Grid.Column="2" 
-                                                                       Text="{Binding PrecioUnitario, StringFormat='${0:N2} c/u'}" 
-                                                                       FontSize="14"
-                                                                       Foreground="#6c757d"
-                                                                       Margin="0,0,15,0"
-                                                                       VerticalAlignment="Center"/>
+                                                            <Border Grid.Column="1"
+                                                                    Background="#F0F0F0"
+                                                                    CornerRadius="6"
+                                                                    Padding="10,4"
+                                                                    Margin="12,0">
+                                                                <TextBlock Text="{Binding Cantidad, StringFormat='x{0}'}" 
+                                                                           FontSize="13"
+                                                                           FontWeight="SemiBold"
+                                                                           Foreground="#555"/>
+                                                            </Border>
 
                                                             <TextBlock Grid.Column="3" 
                                                                        Text="{Binding Subtotal, StringFormat='${0:N2}'}" 
-                                                                       FontSize="14"
-                                                                       FontWeight="SemiBold"
-                                                                       Foreground="#2d1b4e"
-                                                                       VerticalAlignment="Center"/>
+                                                                       FontSize="16"
+                                                                       FontWeight="Bold"
+                                                                       Foreground="#6C5CE7"
+                                                                       VerticalAlignment="Center"
+                                                                       Margin="20,0,0,0"/>
                                                         </Grid>
                                                     </Border>
                                                 </DataTemplate>
