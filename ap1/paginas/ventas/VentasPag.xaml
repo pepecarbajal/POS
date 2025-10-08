@@ -7,7 +7,6 @@
     <Page.Resources>
         <SolidColorBrush x:Key="PrimaryPurple" Color="#8b5cf6"/>
         <SolidColorBrush x:Key="HoverPurple" Color="#7c3aed"/>
-        <SolidColorBrush x:Key="YellowAccent" Color="#FAFF00"/>
         <SolidColorBrush x:Key="LightBorder" Color="#e0e0e0"/>
         <SolidColorBrush x:Key="LightGray" Color="#f9f9f9"/>
         <SolidColorBrush x:Key="CardGray" Color="#f5f5f5"/>
@@ -28,16 +27,6 @@
                     <Setter Property="Background" Value="{StaticResource HoverPurple}"/>
                 </Trigger>
             </Style.Triggers>
-        </Style>
-
-        <Style x:Key="ActionButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource YellowAccent}"/>
-            <Setter Property="Foreground" Value="Black"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Padding" Value="15,8"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
         </Style>
 
         <Style x:Key="CategoryComboBoxStyle" TargetType="ComboBox">
@@ -67,75 +56,59 @@
         </Style>
     </Page.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="80"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Grid Margin="30">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="450"/>
+        </Grid.ColumnDefinitions>
 
-        <Border Grid.Row="0" Background="{StaticResource PrimaryPurple}" Padding="30,0">
-            <Grid>
-                <TextBlock Text="Punto de Venta" 
-                          FontSize="28" 
-                          FontWeight="Bold" 
-                          Foreground="White"
-                          VerticalAlignment="Center"/>
-            </Grid>
-        </Border>
+        <Grid Grid.Column="0" Margin="0,0,20,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <Grid Grid.Row="1" Margin="30">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="450"/>
-            </Grid.ColumnDefinitions>
-
-            <Grid Grid.Column="0" Margin="0,0,20,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <Border Grid.Row="0" 
+            <Border Grid.Row="0" 
                         Background="White"
                         BorderBrush="{StaticResource LightBorder}"
                         BorderThickness="1"
                         Padding="15"
                         Margin="0,0,0,15">
-                    <Border BorderBrush="{StaticResource LightBorder}" 
+                <Border BorderBrush="{StaticResource LightBorder}" 
                            BorderThickness="1" 
                            Background="White"
                            Padding="15,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" 
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" 
                                       Text="🔍" 
                                       FontSize="18" 
                                       VerticalAlignment="Center"
                                       Margin="0,0,10,0"
                                       Foreground="#999"/>
-                            <Grid Grid.Column="1">
-                                <TextBlock Text="Buscar productos..."
+                        <Grid Grid.Column="1">
+                            <TextBlock Text="Buscar productos..."
                                           FontSize="14"
                                           Foreground="#999"
                                           VerticalAlignment="Center"
                                           IsHitTestVisible="False"
                                           x:Name="PlaceholderText">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Text, ElementName=SearchTextBox}" Value="">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                                <TextBox x:Name="SearchTextBox"
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Text, ElementName=SearchTextBox}" Value="">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBox x:Name="SearchTextBox"
                                          BorderThickness="0" 
                                          FontSize="14"
                                          VerticalAlignment="Center"
@@ -145,24 +118,24 @@
                                          Padding="0,8,0,0"
                                          Background="Transparent"
                                          TextChanged="SearchTextBox_TextChanged"/>
-                            </Grid>
                         </Grid>
-                    </Border>
+                    </Grid>
                 </Border>
+            </Border>
 
-                <Border Grid.Row="1"
+            <Border Grid.Row="1"
                         Background="White"
                         BorderBrush="{StaticResource LightBorder}"
                         BorderThickness="1"
                         Padding="10"
                         Margin="0,0,0,15">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                        <ComboBox Grid.Column="0"
+                    <ComboBox Grid.Column="0"
                                   x:Name="CategoriasComboBox"
                                   Style="{StaticResource CategoryComboBoxStyle}"
                                   Margin="0,0,10,0"
@@ -170,94 +143,98 @@
                                   DisplayMemberPath="Nombre"
                                   SelectedValuePath="Id"/>
 
-                        <Button Grid.Column="1"
+                    <Button Grid.Column="1"
                                 Content="Combos"
                                 Style="{StaticResource CategoryButtonStyle}"
                                 Margin="0"
                                 Click="CombosButton_Click"/>
-                    </Grid>
-                </Border>
+                </Grid>
+            </Border>
 
-                <Border Grid.Row="2"
+            <Border Grid.Row="2"
                         Background="White"
                         BorderBrush="{StaticResource LightBorder}"
                         BorderThickness="1"
                         Padding="10">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <ItemsControl x:Name="ProductosItemsControl" Margin="10">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Style="{StaticResource ProductCardStyle}" Width="180" Height="240" MouseLeftButtonDown="ProductCard_Click">
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="140"/>
-                                                <RowDefinition Height="*"/>
-                                            </Grid.RowDefinitions>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="ProductosItemsControl" Margin="10">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource ProductCardStyle}" Width="220" Height="300" MouseLeftButtonDown="ProductCard_Click">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="220"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
 
-                                            <Border Grid.Row="0" 
+                                        <Border Grid.Row="0" 
                                                     Background="#f5f5f5"
                                                     CornerRadius="6,6,0,0"
                                                     Margin="5,5,5,0">
-                                                <Grid>
-                                                    <Image x:Name="ProductImage"
+                                            <Grid>
+                                                <Image x:Name="ProductImage"
                                                            Stretch="UniformToFill"
                                                            VerticalAlignment="Center"
                                                            HorizontalAlignment="Center">
-                                                        <Image.Source>
-                                                            <Binding Path="ImagenUrl">
-                                                                <Binding.TargetNullValue>
-                                                                    <x:Null/>
-                                                                </Binding.TargetNullValue>
-                                                            </Binding>
-                                                        </Image.Source>
-                                                    </Image>
-                                                    <TextBlock Text="📦"
-                                                              FontSize="48"
+                                                    <Image.Source>
+                                                        <Binding Path="ImagenUrl">
+                                                            <Binding.TargetNullValue>
+                                                                <x:Null/>
+                                                            </Binding.TargetNullValue>
+                                                        </Binding>
+                                                    </Image.Source>
+                                                </Image>
+                                                <TextBlock Text="📦"
+                                                              FontSize="64"
                                                               HorizontalAlignment="Center"
                                                               VerticalAlignment="Center"
                                                               Foreground="#999">
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding ImagenUrl}" Value="">
-                                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding ImagenUrl}" Value="{x:Null}">
-                                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
-                                                </Grid>
-                                            </Border>
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ImagenUrl}" Value="">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding ImagenUrl}" Value="{x:Null}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Grid>
+                                        </Border>
 
-                                            <StackPanel Grid.Row="1" Margin="10">
+                                        <StackPanel Grid.Row="1" Margin="12,8">
+                                            <Grid>
                                                 <TextBlock Text="{Binding Nombre}"
-                                                           Foreground="{StaticResource TextDark}"
-                                                           FontSize="14"
-                                                           FontWeight="SemiBold"
-                                                           TextWrapping="Wrap"
-                                                           MaxHeight="35"
-                                                           TextTrimming="CharacterEllipsis"/>
+                                                               Foreground="{StaticResource TextDark}"
+                                                               FontSize="14"
+                                                               FontWeight="SemiBold"
+                                                               TextWrapping="Wrap"
+                                                               MaxHeight="32"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               HorizontalAlignment="Left"/>
+                                            </Grid>
 
+                                            <Grid Margin="0,4,0,0">
                                                 <TextBlock Text="{Binding Precio, StringFormat='${0:N2}'}"
-                                                           Foreground="{StaticResource PrimaryPurple}"
-                                                           FontSize="18"
-                                                           FontWeight="Bold"
-                                                           Margin="0,5,0,0"/>
+                                                               Foreground="{StaticResource PrimaryPurple}"
+                                                               FontSize="14"
+                                                               FontWeight="Bold"
+                                                               HorizontalAlignment="Left"/>
 
-                                                <!-- Hide stock display for combos -->
-                                                <TextBlock Text="{Binding Stock, StringFormat='Stock: {0}'}"
-                                                           Foreground="{StaticResource SuccessGreen}"
-                                                           FontSize="11"
-                                                           Margin="0,2,0,0">
+                                                <TextBlock Text="{Binding Stock}"
+                                                               Foreground="{StaticResource SuccessGreen}"
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold"
+                                                               HorizontalAlignment="Right">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
                                                             <Setter Property="Visibility" Value="Visible"/>
@@ -269,90 +246,87 @@
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Border>
-            </Grid>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+        </Grid>
 
-            <Border Grid.Column="1"
+        <Border Grid.Column="1"
                     Background="White"
                     BorderBrush="{StaticResource LightBorder}"
                     BorderThickness="1">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0"
+                <Border Grid.Row="0"
                             Background="{StaticResource PrimaryPurple}"
                             Padding="15">
-                        <TextBlock Text="Carrito"
+                    <TextBlock Text="Carrito"
                                    FontSize="24"
                                    FontWeight="Bold"
                                    Foreground="White"
                                    HorizontalAlignment="Center"/>
-                    </Border>
+                </Border>
 
-                    <ScrollViewer Grid.Row="1"
+                <ScrollViewer Grid.Row="1"
                                   VerticalScrollBarVisibility="Auto"
                                   Padding="10">
-                        <ItemsControl x:Name="CarritoItemsControl">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="White"
+                    <ItemsControl x:Name="CarritoItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="White"
                                             BorderBrush="{StaticResource LightBorder}"
                                             BorderThickness="1"
                                             CornerRadius="6"
                                             Padding="15"
                                             Margin="0,0,0,10">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
 
-                                            <!-- Product name -->
-                                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                        <TextBlock Grid.Row="0" Grid.Column="0"
                                                        Text="{Binding Nombre}"
                                                        FontSize="16"
                                                        FontWeight="SemiBold"
                                                        Foreground="{StaticResource TextDark}"
                                                        TextWrapping="Wrap"/>
 
-                                            <!-- Unit price display -->
-                                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                        <TextBlock Grid.Row="1" Grid.Column="0"
                                                        FontSize="14"
                                                        Foreground="#666"
                                                        Margin="0,3,0,0">
                                                 <Run Text="Precio unitario: "/>
                                                 <Run Text="{Binding PrecioUnitario, StringFormat='${0:N2}'}" FontWeight="SemiBold"/>
-                                            </TextBlock>
+                                        </TextBlock>
 
-                                            <!-- Quantity -->
-                                            <TextBlock Grid.Row="2" Grid.Column="0"
+                                        <TextBlock Grid.Row="2" Grid.Column="0"
                                                        FontSize="15"
                                                        Foreground="#666"
                                                        Margin="0,3,0,0">
                                                 <Run Text="Cantidad: "/>
                                                 <Run Text="{Binding Cantidad}" FontWeight="Bold"/>
-                                            </TextBlock>
+                                        </TextBlock>
 
-                                            <!-- Total price -->
-                                            <TextBlock Grid.Row="0" Grid.Column="1" Grid.RowSpan="3"
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Grid.RowSpan="3"
                                                        Text="{Binding Total, StringFormat='${0:N2}'}"
                                                        FontSize="18"
                                                        FontWeight="Bold"
@@ -360,8 +334,7 @@
                                                        VerticalAlignment="Center"
                                                        Margin="0,0,10,0"/>
 
-                                            <!-- Remove button -->
-                                            <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="3"
+                                        <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="3"
                                                     Content="✕"
                                                     FontSize="18"
                                                     FontWeight="Bold"
@@ -374,68 +347,64 @@
                                                     VerticalAlignment="Center"
                                                     Click="RemoveFromCart_Click"
                                                     ToolTip="Eliminar producto">
-                                                <Button.Style>
-                                                    <Style TargetType="Button">
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="{TemplateBinding Background}"
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}"
                                                                             CornerRadius="4"
                                                                             BorderThickness="0">
-                                                                        <ContentPresenter HorizontalAlignment="Center"
+                                                                    <ContentPresenter HorizontalAlignment="Center"
                                                                                         VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                        <Style.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter Property="Background" Value="#dc2626"/>
-                                                            </Trigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Button.Style>
-                                            </Button>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="#dc2626"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
 
-                    <Border Grid.Row="2"
+                <Border Grid.Row="2"
                             Background="White"
                             Padding="15"
                             BorderBrush="{StaticResource LightBorder}"
                             BorderThickness="0,1,0,0">
-                        <StackPanel>
-                            <!-- Total section -->
-                            <Grid>
-                                <!-- Increased font size from 18 to 22 -->
-                                <TextBlock Text="Total:"
+                    <StackPanel>
+                        <Grid>
+                            <TextBlock Text="Total:"
                                            Foreground="{StaticResource PrimaryPurple}"
                                            FontSize="22"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Left"/>
-                                <TextBlock x:Name="TotalTextBlock"
+                            <TextBlock x:Name="TotalTextBlock"
                                            Text="$0.00"
                                            Foreground="{StaticResource PrimaryPurple}"
                                            FontSize="22"
                                            FontWeight="Bold"
                                            HorizontalAlignment="Right"/>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
 
-                    <!-- Buttons container with Cancelar and Finalizar Venta buttons -->
-                    <Grid Grid.Row="3" Margin="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                <Grid Grid.Row="3" Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                        <!-- Cancelar button -->
-                        <Button Grid.Column="0"
+                    <Button Grid.Column="0"
                                 Content="Cancelar"
                                 Background="#ef4444"
                                 Foreground="White"
@@ -446,31 +415,30 @@
                                 Cursor="Hand"
                                 Margin="0,0,5,0"
                                 Click="CancelarVenta_Click">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="Button">
-                                                <Border Background="{TemplateBinding Background}"
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
                                                         CornerRadius="4"
                                                         BorderThickness="0">
-                                                    <ContentPresenter HorizontalAlignment="Center"
+                                                <ContentPresenter HorizontalAlignment="Center"
                                                                     VerticalAlignment="Center"/>
-                                                </Border>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#dc2626"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#dc2626"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
 
-                        <!-- Finalizar Venta button -->
-                        <Button Grid.Column="1"
+                    <Button Grid.Column="1"
                                 Content="Finalizar Venta"
                                 Background="{StaticResource PrimaryPurple}"
                                 Foreground="White"
@@ -481,9 +449,8 @@
                                 Cursor="Hand"
                                 Margin="5,0,0,0"
                                 Click="FinalizarVenta_Click"/>
-                    </Grid>
                 </Grid>
-            </Border>
-        </Grid>
+            </Grid>
+        </Border>
     </Grid>
 </Page>
