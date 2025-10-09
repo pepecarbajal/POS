@@ -470,6 +470,8 @@ namespace POS.paginas.ventas
                 MessageBox.Show($"Error al agregar combo: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+
     }
 
     public class ProductoVenta
@@ -521,6 +523,8 @@ namespace POS.paginas.ventas
         {
             PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
         }
+
+
     }
 
     public class CategoriaItem
@@ -528,4 +532,5 @@ namespace POS.paginas.ventas
         public required int Id { get; set; }
         public required string Nombre { get; set; }
     }
+
 }

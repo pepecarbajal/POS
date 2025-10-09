@@ -69,23 +69,20 @@
     <Grid Margin="32">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Filtros y Resumen -->
-        <Grid Grid.Row="1" Margin="0,0,0,24">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.2*"/>
-                <ColumnDefinition Width="16"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="16"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <!-- Panel Superior Combinado -->
+        <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="28">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="24"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- Calendario Moderno -->
-            <Border Grid.Column="0" Style="{StaticResource CardStyle}">
-                <StackPanel>
+                <!-- Calendario -->
+                <StackPanel Grid.Column="0">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                         <TextBlock Text="📅" Style="{StaticResource IconTextBlock}"/>
                         <TextBlock Text="Filtro por Fecha" 
@@ -122,72 +119,29 @@
                                    TextAlignment="Center"/>
                     </Border>
                 </StackPanel>
-            </Border>
 
-            <!-- Card Total del Día -->
-            <Border Grid.Column="2">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#6C5CE7" Offset="0"/>
-                        <GradientStop Color="#A29BFE" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-                <Border.Style>
-                    <Style TargetType="Border" BasedOn="{StaticResource CardStyle}">
-                        <Setter Property="Effect">
-                            <Setter.Value>
-                                <DropShadowEffect Color="#6C5CE7" Opacity="0.3" BlurRadius="30" ShadowDepth="0"/>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </Border.Style>
+                <!-- Panel de Estadísticas -->
+                <StackPanel Grid.Column="2" VerticalAlignment="Top">
+                    <!-- Total del Día - Card Grande -->
+                    <Border Margin="0,0,0,20">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#6C5CE7" Offset="0"/>
+                                <GradientStop Color="#A29BFE" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="16"/>
+                                <Setter Property="Padding" Value="32,28"/>
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#6C5CE7" Opacity="0.3" BlurRadius="30" ShadowDepth="0"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Border.Style>
 
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="💰" 
-                               FontSize="36"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,12"/>
-
-                    <TextBlock Text="TOTAL DEL DÍA" 
-                               FontSize="13" 
-                               FontWeight="Bold"
-                               Foreground="White"
-                               Opacity="0.9"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,8"/>
-
-                    <TextBlock x:Name="TotalVentasTextBlock"
-                               Text="$0.00" 
-                               FontSize="38" 
-                               FontWeight="Bold"
-                               Foreground="White"
-                               HorizontalAlignment="Center"/>
-
-                    <TextBlock Text="Ventas registradas" 
-                               FontSize="12" 
-                               Foreground="White"
-                               Opacity="0.85"
-                               HorizontalAlignment="Center"
-                               Margin="0,8,0,0"/>
-                </StackPanel>
-            </Border>
-
-            <!-- Card Estadísticas Rápidas -->
-            <Border Grid.Column="4" Style="{StaticResource CardStyle}">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                        <TextBlock Text="📈" Style="{StaticResource IconTextBlock}"/>
-                        <TextBlock Text="Resumen" 
-                                   FontSize="18" 
-                                   FontWeight="Bold"
-                                   Foreground="#1a1a2e"/>
-                    </StackPanel>
-
-                    <!-- Número de Ventas -->
-                    <Border Background="#F8F9FF" 
-                            CornerRadius="12" 
-                            Padding="16,12"
-                            Margin="0,0,0,12">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -195,70 +149,162 @@
                             </Grid.ColumnDefinitions>
 
                             <Border Grid.Column="0"
-                                    Background="#6C5CE7"
-                                    CornerRadius="8"
-                                    Width="40"
-                                    Height="40"
-                                    Margin="0,0,12,0">
-                                <TextBlock Text="🛒" 
-                                           FontSize="20"
+                                    Background="White"
+                                    Opacity="0.2"
+                                    CornerRadius="16"
+                                    Width="80"
+                                    Height="80"
+                                    Margin="0,0,24,0">
+                                <TextBlock Text="💰" 
+                                           FontSize="44"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"/>
                             </Border>
 
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock x:Name="NumeroVentasTextBlock"
-                                           Text="0" 
-                                           FontSize="24" 
+                                <TextBlock Text="TOTAL DEL DÍA" 
+                                           FontSize="14" 
                                            FontWeight="Bold"
-                                           Foreground="#1a1a2e"/>
-                                <TextBlock Text="Ventas realizadas" 
-                                           FontSize="11" 
-                                           Foreground="#7f8c8d"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
+                                           Foreground="White"
+                                           Opacity="0.9"
+                                           Margin="0,0,0,8"/>
 
-                    <!-- Venta Promedio -->
-                    <Border Background="#FFF8F0" 
-                            CornerRadius="12" 
-                            Padding="16,12">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.Column="0"
-                                    Background="#FF9F43"
-                                    CornerRadius="8"
-                                    Width="40"
-                                    Height="40"
-                                    Margin="0,0,12,0">
-                                <TextBlock Text="📊" 
-                                           FontSize="20"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
-                            </Border>
-
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock x:Name="PromedioVentaTextBlock"
+                                <TextBlock x:Name="TotalVentasTextBlock"
                                            Text="$0.00" 
-                                           FontSize="24" 
+                                           FontSize="48" 
                                            FontWeight="Bold"
-                                           Foreground="#1a1a2e"/>
-                                <TextBlock Text="Venta promedio" 
-                                           FontSize="11" 
-                                           Foreground="#7f8c8d"/>
+                                           Foreground="White"/>
+
+                                <TextBlock Text="Ventas registradas en la fecha seleccionada" 
+                                           FontSize="13" 
+                                           Foreground="White"
+                                           Opacity="0.85"
+                                           Margin="0,8,0,0"/>
                             </StackPanel>
                         </Grid>
                     </Border>
-                </StackPanel>
-            </Border>
-        </Grid>
 
-        <!-- Lista de Ventas Mejorada -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <!-- Estadísticas en Fila -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Número de Ventas -->
+                        <Border Grid.Column="0" 
+                                Background="#F8F9FF" 
+                                CornerRadius="14" 
+                                Padding="20,18">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0"
+                                        Background="#6C5CE7"
+                                        CornerRadius="12"
+                                        Width="56"
+                                        Height="56"
+                                        Margin="0,0,16,0">
+                                    <TextBlock Text="🛒" 
+                                               FontSize="28"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="Ventas" 
+                                               FontSize="12" 
+                                               Foreground="#7f8c8d"
+                                               Margin="0,0,0,4"/>
+                                    <TextBlock x:Name="NumeroVentasTextBlock"
+                                               Text="0" 
+                                               FontSize="32" 
+                                               FontWeight="Bold"
+                                               Foreground="#1a1a2e"/>
+                                    <TextBlock Text="realizadas" 
+                                               FontSize="11" 
+                                               Foreground="#7f8c8d"
+                                               Margin="0,2,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Botón Descargar PDF -->
+                        <Button Grid.Column="2" 
+                                x:Name="DescargarPdfButton"
+                                Click="DescargarPdf_Click"
+                                Background="#FF9F43"
+                                BorderThickness="0"
+                                Padding="20,18"
+                                Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            CornerRadius="14"
+                                            Padding="{TemplateBinding Padding}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Grid.Column="0"
+                                                    Background="White"
+                                                    Opacity="0.3"
+                                                    CornerRadius="12"
+                                                    Width="56"
+                                                    Height="56"
+                                                    Margin="0,0,16,0">
+                                                <TextBlock Text="📄" 
+                                                           FontSize="28"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="Descargar" 
+                                                           FontSize="12" 
+                                                           Foreground="White"
+                                                           Opacity="0.9"
+                                                           Margin="0,0,0,4"/>
+                                                <TextBlock Text="Reporte PDF" 
+                                                           FontSize="24" 
+                                                           FontWeight="Bold"
+                                                           Foreground="White"/>
+                                                <TextBlock Text="del día seleccionado" 
+                                                           FontSize="11" 
+                                                           Foreground="White"
+                                                           Opacity="0.85"
+                                                           Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#FF8C2E"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter Property="Background" Value="#F07D1A"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Lista de Ventas -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="VentasItemsControl">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -391,7 +437,6 @@
                                                                 <ColumnDefinition Width="*"/>
                                                                 <ColumnDefinition Width="Auto"/>
                                                                 <ColumnDefinition Width="Auto"/>
-                                                                <ColumnDefinition Width="Auto"/>
                                                             </Grid.ColumnDefinitions>
 
                                                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
@@ -416,7 +461,7 @@
                                                                            Foreground="#555"/>
                                                             </Border>
 
-                                                            <TextBlock Grid.Column="3" 
+                                                            <TextBlock Grid.Column="2" 
                                                                        Text="{Binding Subtotal, StringFormat='${0:N2}'}" 
                                                                        FontSize="16"
                                                                        FontWeight="Bold"
