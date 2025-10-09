@@ -1,9 +1,10 @@
-﻿using POS.Data;
-using POS.Services;
-using POS.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
-using System.Windows;
+﻿using Microsoft.Extensions.DependencyInjection;
 using POS;
+using POS.Data;
+using POS.Interfaces;
+using POS.Services;
+using QuestPDF.Infrastructure;
+using System.Windows;
 
 public partial class App : Application
 {
@@ -12,6 +13,8 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        QuestPDF.Settings.License = LicenseType.Community;
 
         var serviceCollection = new ServiceCollection();
         ConfigureServices(serviceCollection);
