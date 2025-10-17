@@ -1,43 +1,52 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using POS;
-using POS.Data;
-using POS.Interfaces;
+﻿using POS.Data;
 using POS.Services;
-using QuestPDF.Infrastructure;
+using POS.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 
-public partial class App : Application
+namespace POS
 {
-    public static ServiceProvider ServiceProvider { get; private set; }
-
-    protected override void OnStartup(StartupEventArgs e)
+    public partial class App : Application
     {
-        base.OnStartup(e);
+        public static ServiceProvider ServiceProvider { get; private set; }
 
-        QuestPDF.Settings.License = LicenseType.Community;
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            base.OnStartup(e);
 
-        var serviceCollection = new ServiceCollection();
-        ConfigureServices(serviceCollection);
-        ServiceProvider = serviceCollection.BuildServiceProvider();
+            var serviceCollection = new ServiceCollection();
+            ConfigureServices(serviceCollection);
+            ServiceProvider = serviceCollection.BuildServiceProvider();
 
-        // Aquí puedes abrir tu ventana principal, pasándole los servicios si es necesario
-        var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
-        mainWindow.Show();
-    }
+            var nfcReader = ServiceProvider.GetRequiredService<INFCReaderService>();
+            nfcReader.Connect();
 
-    private void ConfigureServices(IServiceCollection services)
-    {
-        // 1. Registra el DbContext
-        // AddDbContext es la forma recomendada porque maneja el ciclo de vida del contexto.
-        services.AddDbContext<AppDbContext>();
+            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+            mainWindow.Show();
+        }
 
-        // 2. Registra los servicios
-        // AddScoped significa que se creará una nueva instancia por cada "scope" (ej. por cada ventana o petición)
-        services.AddScoped<ICategoriaService, CategoriaService>();
-        services.AddScoped<IProductoService, ProductoService>();
-        services.AddScoped<IComboService, ComboService>();
+        protected override void OnExit(ExitEventArgs e)
+        {
+            var nfcReader = ServiceProvider.GetService<INFCReaderService>();
+            nfcReader?.Dispose();
 
-        // 3. Registra tu ventana principal
-        services.AddTransient<MainWindow>();
+            base.OnExit(e);
+        }
+
+        private void ConfigureServices(IServiceCollection services)
+        {
+            services.AddDbContext<AppDbContext>();
+
+            services.AddScoped<ICategoriaService, CategoriaService>();
+            services.AddScoped<IProductoService, ProductoService>();
+            services.AddScoped<IComboService, ComboService>();
+            services.AddScoped<ITiempoService, TiempoService>();
+            services.AddScoped<IPrecioTiempoService, PrecioTiempoService>();
+            services.AddScoped<IVentaService, VentaService>();
+
+            services.AddSingleton<INFCReaderService, NFCReaderService>();
+
+            services.AddTransient<MainWindow>();
+        }
     }
 }

@@ -12,6 +12,9 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using POS.ventanas;
+using POS.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
+using POS.ventanas;
 
 namespace POS.paginas.ventas
 {
@@ -20,13 +23,20 @@ namespace POS.paginas.ventas
         private readonly AppDbContext _context;
         private readonly VentaService _ventaService;
         private readonly ComboService _comboService;
+        private readonly TiempoService _tiempoService;
+        private readonly PrecioTiempoService _precioTiempoService;
+        private readonly INFCReaderService _nfcReaderService;
 
         public ObservableCollection<ProductoVenta> Productos { get; set; }
         public ObservableCollection<ItemCarrito> Carrito { get; set; }
         public ObservableCollection<CategoriaItem> Categorias { get; set; }
+        public ObservableCollection<TiempoActivo> TiemposActivos { get; set; }
 
         private ObservableCollection<ProductoVenta> _todosLosProductos = new ObservableCollection<ProductoVenta>();
         private bool _mostrandoCombos = false;
+        private bool _mostrandoTiempo = false;
+        private bool _esperandoTarjeta = false;
+        private string _accionEsperada = ""; // "iniciar" or "finalizar"
 
         public VentasPag()
         {
@@ -37,16 +47,111 @@ namespace POS.paginas.ventas
 
             _ventaService = new VentaService(_context);
             _comboService = new ComboService(_context);
+            _precioTiempoService = new PrecioTiempoService(_context);
+            _tiempoService = new TiempoService(_context, _precioTiempoService);
+
+            _nfcReaderService = App.ServiceProvider.GetService<INFCReaderService>()
+                ?? throw new InvalidOperationException("NFCReaderService no está registrado");
 
             Productos = new ObservableCollection<ProductoVenta>();
             Carrito = new ObservableCollection<ItemCarrito>();
             Categorias = new ObservableCollection<CategoriaItem>();
+            TiemposActivos = new ObservableCollection<TiempoActivo>();
 
             ProductosItemsControl.ItemsSource = Productos;
             CarritoItemsControl.ItemsSource = Carrito;
+            TiemposActivosItemsControl.ItemsSource = TiemposActivos;
 
             LoadCategoriasAsync();
             LoadProductosAsync();
+        }
+
+        private async void OnCardScanned(object? sender, string cardId)
+        {
+            await Dispatcher.InvokeAsync(async () =>
+            {
+                if (!_esperandoTarjeta) return;
+
+                WaitingIndicator.Visibility = Visibility.Collapsed;
+                _esperandoTarjeta = false;
+
+                _nfcReaderService.CardScanned -= OnCardScanned;
+
+                if (_accionEsperada == "iniciar")
+                {
+                    await IniciarTiempoConNFC(cardId);
+                }
+                else if (_accionEsperada == "finalizar")
+                {
+                    await FinalizarTiempoConNFC(cardId);
+                }
+
+                _accionEsperada = "";
+            });
+        }
+
+        private void CancelWaiting_Click(object sender, RoutedEventArgs e)
+        {
+            WaitingIndicator.Visibility = Visibility.Collapsed;
+            _esperandoTarjeta = false;
+            _accionEsperada = "";
+            _nfcReaderService.CardScanned -= OnCardScanned;
+        }
+
+        private async Task IniciarTiempoConNFC(string idNfc)
+        {
+            if (string.IsNullOrWhiteSpace(idNfc))
+            {
+                MessageBox.Show("El ID de la tarjeta NFC no puede estar vacío", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var entradaActiva = await _tiempoService.GetTiempoActivoByIdNfcAsync(idNfc);
+            if (entradaActiva != null)
+            {
+                MessageBox.Show($"Ya existe una entrada activa para la tarjeta {idNfc}", "Advertencia", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var tiempo = await _tiempoService.RegistrarEntradaAsync(idNfc);
+            MessageBox.Show($"Entrada registrada exitosamente para tarjeta {idNfc}\nHora: {tiempo.HoraEntrada:hh:mm tt}", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            LoadTiemposActivosAsync();
+        }
+
+        private async Task FinalizarTiempoConNFC(string idNfc)
+        {
+            if (string.IsNullOrWhiteSpace(idNfc))
+            {
+                MessageBox.Show("El ID de la tarjeta NFC no puede estar vacío", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var entradaActiva = await _tiempoService.GetTiempoActivoByIdNfcAsync(idNfc);
+            if (entradaActiva == null)
+            {
+                MessageBox.Show($"No se encontró una entrada activa para la tarjeta {idNfc}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var tiempoFinalizado = await _tiempoService.RegistrarSalidaAsync(entradaActiva.Id);
+
+            var tiempoTranscurrido = (tiempoFinalizado.HoraSalida!.Value - tiempoFinalizado.HoraEntrada).TotalMinutes;
+            var itemCarrito = new ItemCarrito
+            {
+                ProductoId = -tiempoFinalizado.Id,
+                Nombre = $"Tiempo - NFC {tiempoFinalizado.IdNfc} ({Math.Ceiling(tiempoTranscurrido)} min)",
+                PrecioUnitario = tiempoFinalizado.Total,
+                Cantidad = 1,
+                Total = tiempoFinalizado.Total
+            };
+
+            Carrito.Add(itemCarrito);
+            ActualizarTotales();
+
+            MessageBox.Show($"Tiempo finalizado para tarjeta {idNfc}\nTiempo: {Math.Ceiling(tiempoTranscurrido)} minutos\nTotal: ${tiempoFinalizado.Total:N2}\n\nAgregado al carrito", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            LoadTiemposActivosAsync();
         }
 
         private async void LoadCategoriasAsync()
@@ -83,6 +188,7 @@ namespace POS.paginas.ventas
             try
             {
                 _mostrandoCombos = false;
+                _mostrandoTiempo = false;
 
                 var todosQuery = _context.Productos
                     .Where(p => p.Estado == "Activo" && p.Stock > 0);
@@ -136,6 +242,9 @@ namespace POS.paginas.ventas
                 {
                     Productos.Add(producto);
                 }
+
+                ProductosScrollViewer.Visibility = Visibility.Visible;
+                TiempoPanel.Visibility = Visibility.Collapsed;
             }
             catch (Exception ex)
             {
@@ -148,6 +257,7 @@ namespace POS.paginas.ventas
             try
             {
                 _mostrandoCombos = true;
+                _mostrandoTiempo = false;
 
                 var combosDb = await _context.Combos
                     .Include(c => c.Productos)
@@ -189,10 +299,43 @@ namespace POS.paginas.ventas
                     _todosLosProductos.Add(productoVenta);
                     Productos.Add(productoVenta);
                 }
+
+                ProductosScrollViewer.Visibility = Visibility.Visible;
+                TiempoPanel.Visibility = Visibility.Collapsed;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error al cargar combos: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void LoadTiemposActivosAsync()
+        {
+            try
+            {
+                _mostrandoCombos = false;
+                _mostrandoTiempo = true;
+
+                var tiemposActivos = await _tiempoService.GetTiemposActivosAsync();
+
+                TiemposActivos.Clear();
+                foreach (var tiempo in tiemposActivos)
+                {
+                    TiemposActivos.Add(new TiempoActivo
+                    {
+                        Id = tiempo.Id,
+                        IdNfc = tiempo.IdNfc,
+                        HoraEntrada = tiempo.HoraEntrada,
+                        Estado = tiempo.Estado
+                    });
+                }
+
+                ProductosScrollViewer.Visibility = Visibility.Collapsed;
+                TiempoPanel.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar tiempos activos: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -241,6 +384,57 @@ namespace POS.paginas.ventas
         private void CombosButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             LoadCombosAsync();
+        }
+
+        private void TiempoButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            LoadTiemposActivosAsync();
+        }
+
+        private void IniciarTiempo_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            try
+            {
+                if (!_nfcReaderService.IsConnected)
+                {
+                    MessageBox.Show("El lector NFC no está conectado. Verifique la conexión.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                _esperandoTarjeta = true;
+                _accionEsperada = "iniciar";
+                WaitingText.Text = "Esperando tarjeta para iniciar tiempo...";
+                WaitingIndicator.Visibility = Visibility.Visible;
+
+                _nfcReaderService.CardScanned += OnCardScanned;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al iniciar tiempo: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void FinalizarTiempo_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            try
+            {
+                if (!_nfcReaderService.IsConnected)
+                {
+                    MessageBox.Show("El lector NFC no está conectado. Verifique la conexión.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                _esperandoTarjeta = true;
+                _accionEsperada = "finalizar";
+                WaitingText.Text = "Esperando tarjeta para finalizar tiempo...";
+                WaitingIndicator.Visibility = Visibility.Visible;
+
+                _nfcReaderService.CardScanned += OnCardScanned;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al finalizar tiempo: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private async void ProductCard_Click(object sender, MouseButtonEventArgs e)
@@ -302,8 +496,7 @@ namespace POS.paginas.ventas
                     DetallesVenta = new List<DetalleVenta>()
                 };
 
-                // Add details to the collection without setting VentaId (will be set by service)
-                foreach (var item in Carrito)
+                foreach (var item in Carrito.Where(i => i.ProductoId > 0))
                 {
                     venta.DetallesVenta.Add(new DetalleVenta
                     {
@@ -316,9 +509,11 @@ namespace POS.paginas.ventas
 
                 Console.WriteLine($"[v0] Venta creada con {venta.DetallesVenta.Count} items, Total: ${venta.Total}");
 
-                await _ventaService.CreateVentaAsync(venta);
-
-                Console.WriteLine($"[v0] Venta guardada exitosamente con ID: {venta.Id}");
+                if (venta.DetallesVenta.Any())
+                {
+                    await _ventaService.CreateVentaAsync(venta);
+                    Console.WriteLine($"[v0] Venta guardada exitosamente con ID: {venta.Id}");
+                }
 
                 var itemsParaTicket = Carrito.Select(item => new ItemCarrito
                 {
@@ -470,8 +665,6 @@ namespace POS.paginas.ventas
                 MessageBox.Show($"Error al agregar combo: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-
     }
 
     public class ProductoVenta
@@ -523,8 +716,6 @@ namespace POS.paginas.ventas
         {
             PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
         }
-
-
     }
 
     public class CategoriaItem
@@ -533,4 +724,18 @@ namespace POS.paginas.ventas
         public required string Nombre { get; set; }
     }
 
+    public class TiempoActivo : System.ComponentModel.INotifyPropertyChanged
+    {
+        public required int Id { get; set; }
+        public required string IdNfc { get; set; }
+        public required DateTime HoraEntrada { get; set; }
+        public required string Estado { get; set; }
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+        }
+    }
 }

@@ -27,7 +27,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
+    <PackageReference Include="PCSC" Version="7.0.1" />
     <PackageReference Include="QuestPDF" Version="2025.7.2" />
+    <PackageReference Include="System.IO.Ports" Version="9.0.10" />
   </ItemGroup>
 
 </Project>

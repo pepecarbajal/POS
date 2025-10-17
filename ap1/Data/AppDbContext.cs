@@ -13,6 +13,8 @@ namespace POS.Data
         public DbSet<ComboProducto> ComboProductos { get; set; }
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<DetalleVenta> DetallesVenta { get; set; }
+        public DbSet<Tiempo> Tiempos { get; set; }
+        public DbSet<PrecioTiempo> PreciosTiempo { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -60,6 +62,70 @@ namespace POS.Data
             modelBuilder.Entity<DetalleVenta>()
                 .Property(dv => dv.Id)
                 .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Tiempo>()
+                .ToTable("Tiempo");
+
+            modelBuilder.Entity<PrecioTiempo>()
+                .ToTable("PrecioTiempo");
+
+            // Configuración de Tiempo
+            modelBuilder.Entity<Tiempo>()
+                .Property(t => t.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Tiempo>()
+                .Property(t => t.Total)
+                .HasColumnType("decimal(18,2)");
+
+            // Configuración de PrecioTiempo
+            modelBuilder.Entity<PrecioTiempo>()
+                .Property(pt => pt.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<PrecioTiempo>()
+                .Property(pt => pt.Precio)
+                .HasColumnType("decimal(18,2)");
+
+            // Seed data: 4 tramos de precios predefinidos
+            modelBuilder.Entity<PrecioTiempo>().HasData(
+                new PrecioTiempo
+                {
+                    Id = 1,
+                    Nombre = "15 minutos",
+                    Minutos = 15,
+                    Precio = 10.00m,
+                    Orden = 1,
+                    Estado = "Activo"
+                },
+                new PrecioTiempo
+                {
+                    Id = 2,
+                    Nombre = "30 minutos",
+                    Minutos = 30,
+                    Precio = 20.00m,
+                    Orden = 2,
+                    Estado = "Activo"
+                },
+                new PrecioTiempo
+                {
+                    Id = 3,
+                    Nombre = "1 hora",
+                    Minutos = 60,
+                    Precio = 35.00m,
+                    Orden = 3,
+                    Estado = "Activo"
+                },
+                new PrecioTiempo
+                {
+                    Id = 4,
+                    Nombre = "2 horas",
+                    Minutos = 120,
+                    Precio = 60.00m,
+                    Orden = 4,
+                    Estado = "Activo"
+                }
+            );
         }
     }
 }
