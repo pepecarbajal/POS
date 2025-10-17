@@ -1,11 +1,12 @@
-﻿using POS.Models;
-using POS.paginas.ventas;
-using QuestPDF.Fluent;
+﻿using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using POS.Models;
+using POS.paginas.ventas;
 
 namespace POS.Helpers
 {
@@ -19,69 +20,57 @@ namespace POS.Helpers
             {
                 container.Page(page =>
                 {
-                    page.Size(PageSizes.A4);
-                    page.Margin(2, Unit.Centimetre);
-                    page.DefaultTextStyle(x => x.FontSize(11));
-
-                    page.Header()
-                        .Column(column =>
-                        {
-                            column.Item().AlignCenter().Text("TICKET DE VENTA").FontSize(20).Bold();
-                            column.Item().AlignCenter().Text($"Fecha: {venta.Fecha:dd/MM/yyyy HH:mm}").FontSize(10);
-                            column.Item().AlignCenter().Text($"Ticket #: {venta.Id}").FontSize(10);
-                            column.Item().PaddingVertical(10).LineHorizontal(1);
-                        });
+                    page.ContinuousSize(216);
+                    page.Margin(10);
+                    page.DefaultTextStyle(x => x.FontFamily("Courier New").FontSize(9));
 
                     page.Content()
                         .Column(column =>
                         {
-                            // Tabla de productos
-                            column.Item().Table(table =>
+                            var logoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logo", "icono.png");
+                            if (File.Exists(logoPath))
                             {
-                                table.ColumnsDefinition(columns =>
-                                {
-                                    columns.RelativeColumn(3); // Producto
-                                    columns.RelativeColumn(1); // Cantidad
-                                    columns.RelativeColumn(1.5f); // Precio Unit.
-                                    columns.RelativeColumn(1.5f); // Subtotal
-                                });
+                                column.Item().AlignCenter().Height(40).Image(logoPath);
+                                column.Item().PaddingTop(3);
+                            }
 
-                                // Encabezado
-                                table.Header(header =>
-                                {
-                                    header.Cell().Background(Colors.Grey.Lighten2).Padding(5).Text("Producto").Bold();
-                                    header.Cell().Background(Colors.Grey.Lighten2).Padding(5).Text("Cant.").Bold();
-                                    header.Cell().Background(Colors.Grey.Lighten2).Padding(5).Text("P. Unit.").Bold();
-                                    header.Cell().Background(Colors.Grey.Lighten2).Padding(5).Text("Subtotal").Bold();
-                                });
+                            column.Item().AlignCenter().Text("Valala").FontSize(11).Bold();
+                            column.Item().AlignCenter().Text("RFC: XAXX010101000").FontSize(8);
+                            column.Item().AlignCenter().Text($"Fecha: {venta.Fecha:dd/MM/yyyy - HH:mm:ss}").FontSize(8);
+                            column.Item().AlignCenter().Text($"Ticket No. {venta.Id:D6}").FontSize(8);
+                            column.Item().PaddingVertical(3).AlignCenter().Text("================================").FontSize(7);
 
-                                // Filas de productos
-                                foreach (var item in items)
-                                {
-                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(item.NombreProducto);
-                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).AlignCenter().Text(item.Cantidad.ToString());
-                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).AlignRight().Text($"${item.PrecioUnitario:F2}");
-                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).AlignRight().Text($"${item.Subtotal:F2}");
-                                }
+                            column.Item().PaddingTop(3).Row(row =>
+                            {
+                                row.RelativeItem(1).Text("CANT").FontSize(7).Bold();
+                                row.RelativeItem(4).Text("DESCRIPCION").FontSize(7).Bold();
+                                row.RelativeItem(2).AlignRight().Text("PRECIO").FontSize(7).Bold();
+                                row.RelativeItem(2).AlignRight().Text("TOTAL").FontSize(7).Bold();
                             });
 
-                            // Total
-                            column.Item().PaddingTop(20).AlignRight().Row(row =>
+                            foreach (var item in items)
                             {
-                                row.AutoItem().PaddingRight(10).Text("TOTAL:").FontSize(16).Bold();
-                                row.AutoItem().Text($"${venta.Total:F2}").FontSize(16).Bold();
-                            });
+                                column.Item().Row(row =>
+                                {
+                                    row.RelativeItem(1).Text(item.Cantidad.ToString()).FontSize(7);
+                                    row.RelativeItem(4).Text(item.NombreProducto).FontSize(7);
+                                    row.RelativeItem(2).AlignRight().Text($"${item.PrecioUnitario:N2}").FontSize(7);
+                                    row.RelativeItem(2).AlignRight().Text($"${item.Subtotal:N2}").FontSize(7);
+                                });
+                            }
 
-                            // Pie de página
-                            column.Item().PaddingTop(30).AlignCenter().Text("¡Gracias por su compra!").FontSize(12).Italic();
-                        });
+                            column.Item().PaddingTop(3).AlignCenter().Text("================================").FontSize(7);
 
-                    page.Footer()
-                        .AlignCenter()
-                        .Text(x =>
-                        {
-                            x.Span("Página ");
-                            x.CurrentPageNumber();
+                            column.Item().PaddingTop(3).AlignCenter().Text($"Total Neto ${venta.Total:N2}").FontSize(11).Bold();
+                            column.Item().PaddingTop(2).AlignCenter().Text("================================").FontSize(7);
+
+                            column.Item().PaddingTop(3).AlignRight().Text($"EFECTIVO pesos ${venta.Total:N2}").FontSize(8);
+                            column.Item().AlignRight().Text("Cambio pesos $0.00").FontSize(8);
+
+                            column.Item().PaddingTop(5).AlignCenter().Text("PUNTO DE VENTA").FontSize(8).Bold();
+                            column.Item().AlignCenter().Text($"Folio Interno: {venta.Id:D6}").FontSize(8);
+                            column.Item().PaddingTop(3).AlignCenter().Text("¡Gracias por su compra!").FontSize(9);
+                            column.Item().PaddingBottom(5);
                         });
                 });
             });
