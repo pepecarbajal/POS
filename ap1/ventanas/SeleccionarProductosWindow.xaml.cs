@@ -1,11 +1,12 @@
-﻿using System.Collections.ObjectModel;
+﻿using POS.Models;
+using POS.paginas.combos;
+using POS.Services;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using POS.paginas.combos;
-using POS.Services;
-using POS.Models;
-using System.Collections.Generic;
+using System.Windows.Input;
 
 namespace POS.ventanas
 {
@@ -40,6 +41,14 @@ namespace POS.ventanas
 
             CategoriaComboBox.ItemsSource = categoriasList;
             CategoriaComboBox.SelectedIndex = 0;
+        }
+
+        private void ProductCard_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border border && border.Tag is ProductoSeleccionable producto)
+            {
+                producto.IsSelected = !producto.IsSelected;
+            }
         }
 
         private void CategoriaComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -318,18 +318,16 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border BorderThickness="2"
-                                                        CornerRadius="8"
-                                                        Padding="20"
-                                                        Margin="0,0,0,15">
+                CornerRadius="8"
+                Padding="20"
+                Margin="0,0,0,15">
                                                     <Border.Style>
                                                         <Style TargetType="Border">
                                                             <Style.Triggers>
-                                                                <!-- Combo con tiempo: fondo morado -->
                                                                 <DataTrigger Binding="{Binding EsCombo}" Value="True">
                                                                     <Setter Property="Background" Value="{StaticResource BackgroundPurple}"/>
                                                                     <Setter Property="BorderBrush" Value="{StaticResource PrimaryPurple}"/>
                                                                 </DataTrigger>
-                                                                <!-- Tiempo individual: fondo gris -->
                                                                 <DataTrigger Binding="{Binding EsCombo}" Value="False">
                                                                     <Setter Property="Background" Value="{StaticResource CardGray}"/>
                                                                     <Setter Property="BorderBrush" Value="{StaticResource PrimaryPurple}"/>
@@ -343,6 +341,7 @@
                                                             <ColumnDefinition Width="Auto"/>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
                                                         <Grid.RowDefinitions>
                                                             <RowDefinition Height="Auto"/>
@@ -352,14 +351,14 @@
 
                                                         <!-- Icono -->
                                                         <Border Grid.Row="0" Grid.Column="0" Grid.RowSpan="3"
-                                                                Background="{StaticResource PrimaryPurple}"
-                                                                CornerRadius="6"
-                                                                Width="50"
-                                                                Height="50"
-                                                                Margin="0,0,15,0">
+                        Background="{StaticResource PrimaryPurple}"
+                        CornerRadius="6"
+                        Width="50"
+                        Height="50"
+                        Margin="0,0,15,0">
                                                             <TextBlock FontSize="28"
-                                                                       HorizontalAlignment="Center"
-                                                                       VerticalAlignment="Center">
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock">
                                                                         <Style.Triggers>
@@ -377,27 +376,26 @@
 
                                                         <!-- NFC -->
                                                         <TextBlock Grid.Row="0" Grid.Column="1"
-                                                                   FontSize="18"
-                                                                   FontWeight="Bold"
-                                                                   Foreground="{StaticResource TextMedium}">
-                                                            <Run Text="NFC: "/>
-                                                            <Run Text="{Binding IdNfc}" Foreground="{StaticResource PrimaryPurple}"/>
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource TextMedium}">
+                    <Run Text="NFC: "/>
+                    <Run Text="{Binding IdNfc}" Foreground="{StaticResource PrimaryPurple}"/>
                                                         </TextBlock>
 
                                                         <!-- Hora de entrada -->
                                                         <TextBlock Grid.Row="1" Grid.Column="1"
-                                                                   FontSize="15"
-                                                                   Foreground="#666"
-                                                                   Margin="0,8,0,0">
-                                                            <Run Text="⏰ Entrada: "/>
-                                                            <Run Text="{Binding HoraEntrada, StringFormat='hh:mm tt'}" 
-                                                                 FontWeight="Bold" 
-                                                                 Foreground="{StaticResource TextMedium}"/>
+                           FontSize="15"
+                           Foreground="#666"
+                           Margin="0,8,0,0">
+                    <Run Text="⏰ Entrada: "/>
+                    <Run Text="{Binding HoraEntrada, StringFormat='hh:mm tt'}" 
+                         FontWeight="Bold" 
+                         Foreground="{StaticResource TextMedium}"/>
                                                         </TextBlock>
 
-                                                        <!-- Información adicional (combo o tiempo individual) -->
+                                                        <!-- Información adicional -->
                                                         <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,8,0,0">
-                                                            <!-- Para combos: mostrar nombre y minutos -->
                                                             <TextBlock FontSize="14" Foreground="#666">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock">
@@ -409,31 +407,69 @@
                                                                         </Style.Triggers>
                                                                     </Style>
                                                                 </TextBlock.Style>
-                                                                <Run Text="📦 "/>
-                                                                <Run Text="{Binding NombreCombo}" FontWeight="SemiBold"/>
-                                                                <LineBreak/>
-                                                                <Run Text="⏱ "/>
-                                                                <Run Text="{Binding MinutosIncluidos}"/>
-                                                                <Run Text=" min incluidos"/>
-                                                                <Run Text=" • Total: $"/>
-                                                                <Run Text="{Binding MontoTotal, StringFormat='F2'}" FontWeight="Bold"/>
+                        <Run Text="📦 "/>
+                        <Run Text="{Binding NombreCombo}" FontWeight="SemiBold"/>
+                        <LineBreak/>
+                        <Run Text="⏱ "/>
+                        <Run Text="{Binding MinutosIncluidos}"/>
+                        <Run Text=" min incluidos"/>
+                        <Run Text=" • Total: $"/>
+                        <Run Text="{Binding MontoTotal, StringFormat='F2'}" FontWeight="Bold"/>
                                                             </TextBlock>
                                                         </StackPanel>
 
                                                         <!-- Badge de estado -->
                                                         <Border Grid.Row="0" Grid.Column="2" Grid.RowSpan="3"
-                                                                Background="{StaticResource SuccessGreen}"
-                                                                CornerRadius="6"
-                                                                Padding="15,8"
-                                                                VerticalAlignment="Center">
+                        Background="{StaticResource SuccessGreen}"
+                        CornerRadius="6"
+                        Padding="15,8"
+                        VerticalAlignment="Center"
+                        Margin="0,0,10,0">
                                                             <StackPanel Orientation="Horizontal">
                                                                 <TextBlock Text="●" FontSize="16" Margin="0,0,8,0" Foreground="White"/>
                                                                 <TextBlock Text="ACTIVO"
-                                                                           FontSize="14"
-                                                                           FontWeight="Bold"
-                                                                           Foreground="White"/>
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="White"/>
                                                             </StackPanel>
                                                         </Border>
+
+                                                        <!-- Botón Cancelar (NUEVO) -->
+                                                        <Button Grid.Row="0" Grid.Column="3" Grid.RowSpan="3"
+                        Content="✕"
+                        FontSize="20"
+                        FontWeight="Bold"
+                        Width="40"
+                        Height="40"
+                        Background="#ef4444"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        VerticalAlignment="Center"
+                        Tag="{Binding}"
+                        Click="CancelarVentaTiempo_Click"
+                        ToolTip="Cancelar y mover al carrito">
+                                                            <Button.Template>
+                                                                <ControlTemplate TargetType="Button">
+                                                                    <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="6"
+                                    Padding="0">
+                                                                        <ContentPresenter HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Button.Template>
+                                                            <Button.Style>
+                                                                <Style TargetType="Button">
+                                                                    <Setter Property="Background" Value="#ef4444"/>
+                                                                    <Style.Triggers>
+                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                            <Setter Property="Background" Value="#dc2626"/>
+                                                                        </Trigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Button.Style>
+                                                        </Button>
                                                     </Grid>
                                                 </Border>
                                             </DataTemplate>
@@ -719,7 +755,6 @@
                         CornerRadius="6"
                         Background="White">
                                     <TextBox x:Name="RecibidoTextBox"
-                             Text="0"
                              FontSize="16"
                              FontWeight="SemiBold"
                              Foreground="{StaticResource TextDark}"

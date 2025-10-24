@@ -221,7 +221,7 @@ namespace POS.Data
                 {
                     Id = 1,
                     Nombre = "1 hora",
-                    Minutos = 2,
+                    Minutos = 60,
                     Precio = 100.00m,
                     Orden = 1,
                     Estado = "Activo"

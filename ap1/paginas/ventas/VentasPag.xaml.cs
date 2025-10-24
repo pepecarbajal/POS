@@ -33,6 +33,8 @@ namespace POS.paginas.ventas
         public ObservableCollection<TiempoActivo> TiemposActivos { get; set; }
 
         private ObservableCollection<ProductoVenta> _todosLosProductos = new ObservableCollection<ProductoVenta>();
+        private List<VentaTiempoRecuperable> _itemsRecuperables = new List<VentaTiempoRecuperable>();
+
         private bool _mostrandoCombos = false;
         private bool _mostrandoTiempo = false;
         private bool _esperandoTarjeta = false;
@@ -412,6 +414,9 @@ namespace POS.paginas.ventas
                         await ReactivarTiempo(tiempoId);
                     }
 
+                    // ⭐ NUEVO: Restaurar ventas/tiempos recuperables
+                    await RestaurarItemsRecuperables();
+
                     // Eliminar excedente de venta pendiente recuperada si existe
                     if (_ventaPendienteRecuperada != null)
                     {
@@ -423,8 +428,6 @@ namespace POS.paginas.ventas
                             _context.DetallesVenta.Remove(detalleExcedente);
                             await _context.SaveChangesAsync();
                         }
-
-                        // La venta pendiente se mantiene como pendiente, no se modifica
                     }
 
                     // Limpiar el carrito y estados
@@ -1116,13 +1119,33 @@ namespace POS.paginas.ventas
             {
                 try
                 {
-                    // NUEVO: Procesar items ADICIONALES del carrito que no estén en la venta original
+                    // Procesar items ADICIONALES del carrito que no estén en la venta original
                     var idsDetallesOriginales = _ventaPendienteRecuperada.DetallesVenta
                         .Select(d => d.ProductoId ?? 0)
                         .ToHashSet();
 
                     foreach (var item in Carrito)
                     {
+                        // ⭐ NUEVO: Manejar cargo por tarjeta extraviada
+                        if (item.ProductoId == -998)
+                        {
+                            var detalleTarjeta = new DetalleVenta
+                            {
+                                VentaId = _ventaPendienteRecuperada.Id,
+                                TipoItem = (int)TipoItemVenta.Producto,
+                                ProductoId = null,
+                                ItemReferenciaId = null,
+                                NombreItem = "Tarjeta extraviada/dañada",
+                                Cantidad = 1,
+                                PrecioUnitario = 50,
+                                Subtotal = 50
+                            };
+
+                            _ventaPendienteRecuperada.DetallesVenta.Add(detalleTarjeta);
+                            _context.DetallesVenta.Add(detalleTarjeta);
+                            continue;
+                        }
+
                         // Verificar si es un item nuevo (no estaba en la venta original)
                         bool esItemNuevo = false;
 
@@ -1266,14 +1289,13 @@ namespace POS.paginas.ventas
                                     }
                                 }
 
-                                // ⭐ CORRECCIÓN: ProductoId = null
                                 var detalleCombo = new DetalleVenta
                                 {
                                     VentaId = _ventaPendienteRecuperada.Id,
                                     TipoItem = (int)TipoItemVenta.Combo,
-                                    ProductoId = null,  // 👈 CAMBIO
+                                    ProductoId = null,
                                     ItemReferenciaId = combo.Id,
-                                    NombreItem = combo.Nombre,  // 👈 Nombre del combo
+                                    NombreItem = combo.Nombre,
                                     Cantidad = item.Cantidad,
                                     PrecioUnitario = item.PrecioUnitario,
                                     Subtotal = item.Total
@@ -1359,6 +1381,7 @@ namespace POS.paginas.ventas
                     _carritoTieneComboConTiempo = false;
                     _comboConTiempoId = null;
                     _minutosComboTiempo = 0;
+                    _itemsRecuperables.Clear(); // ⭐ Limpiar recuperables al finalizar
 
                     FinalizarVentaButton.Visibility = Visibility.Visible;
                     PendienteButton.Visibility = Visibility.Collapsed;
@@ -1401,6 +1424,22 @@ namespace POS.paginas.ventas
 
                 foreach (var item in Carrito)
                 {
+                    // ⭐ NUEVO: Manejar cargo por tarjeta extraviada en venta nueva
+                    if (item.ProductoId == -998)
+                    {
+                        venta.DetallesVenta.Add(new DetalleVenta
+                        {
+                            TipoItem = (int)TipoItemVenta.Producto,
+                            ProductoId = null,
+                            ItemReferenciaId = null,
+                            NombreItem = "Tarjeta extraviada/dañada",
+                            Cantidad = 1,
+                            PrecioUnitario = 50,
+                            Subtotal = 50
+                        });
+                        continue;
+                    }
+
                     if (item.ProductoId > 0)
                     {
                         var producto = await _context.Productos.FindAsync(item.ProductoId);
@@ -1430,7 +1469,7 @@ namespace POS.paginas.ventas
 
                         Console.WriteLine($"Producto: {producto.Nombre} - Cantidad: {item.Cantidad} - Stock restante: {producto.Stock}");
                     }
-                    else if (item.ProductoId < 0 && item.Nombre.StartsWith("Tiempo"))
+                    else if (item.ProductoId < 0 && item.Nombre.StartsWith("Tiempo") && item.ProductoId != -999)
                     {
                         int tiempoId = -item.ProductoId;
 
@@ -1484,13 +1523,12 @@ namespace POS.paginas.ventas
                             }
                         }
 
-                        // ⭐ CORRECCIÓN: ProductoId = null
                         venta.DetallesVenta.Add(new DetalleVenta
                         {
                             TipoItem = (int)TipoItemVenta.Combo,
-                            ProductoId = null,  // 👈 CAMBIO
+                            ProductoId = null,
                             ItemReferenciaId = combo.Id,
-                            NombreItem = combo.Nombre,  // 👈 Nombre del combo
+                            NombreItem = combo.Nombre,
                             Cantidad = item.Cantidad,
                             PrecioUnitario = item.PrecioUnitario,
                             Subtotal = item.Total
@@ -1537,6 +1575,11 @@ namespace POS.paginas.ventas
                 ticketWindow.ShowDialog();
 
                 Carrito.Clear();
+                RecibidoTextBox.Text = "0";
+                _montoRecibido = 0;
+                _cambio = 0;
+                _itemsRecuperables.Clear(); // ⭐ Limpiar recuperables al finalizar
+
                 ActualizarTotales();
                 LoadProductosAsync();
             }
@@ -1657,6 +1700,23 @@ namespace POS.paginas.ventas
                     {
                         int tiempoId = -item.ProductoId;
                         await ReactivarTiempo(tiempoId);
+                    }
+
+                    // ⭐ NUEVO: Verificar si este item pertenece a una venta/tiempo recuperable
+                    var recuperable = _itemsRecuperables.FirstOrDefault(r =>
+                        r.Items.Any(i => i.ProductoId == item.ProductoId && i.Nombre == item.Nombre));
+
+                    if (recuperable != null)
+                    {
+                        // Remover solo este item de la lista de items recuperables
+                        recuperable.Items.RemoveAll(i => i.ProductoId == item.ProductoId && i.Nombre == item.Nombre);
+
+                        // Si ya no quedan items de este recuperable en el carrito, restaurarlo
+                        if (!recuperable.Items.Any(i => Carrito.Contains(i)))
+                        {
+                            await RestaurarItemRecuperable(recuperable);
+                            _itemsRecuperables.Remove(recuperable);
+                        }
                     }
 
                     Carrito.Remove(item);
@@ -1947,6 +2007,327 @@ namespace POS.paginas.ventas
                 MessageBox.Show($"Error al cargar combos: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        private async void CancelarVentaTiempo_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is TiempoActivo tiempo)
+            {
+                var resultExtravio = MessageBox.Show(
+                    $"¿La tarjeta NFC {tiempo.IdNfc} se ha extraviado?",
+                    "Confirmar",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (resultExtravio == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        if (tiempo.EsCombo)
+                        {
+                            // Es una venta pendiente con combo
+                            await MoverVentaPendienteACarrito(tiempo);
+                        }
+                        else
+                        {
+                            // Es un tiempo individual
+                            await MoverTiempoACarrito(tiempo);
+                        }
+
+                        await LoadTiemposActivosAsync();
+                        MessageBox.Show("Items movidos al carrito correctamente", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                else
+                {
+                    // ⭐ NUEVO: Si no se extravió, preguntar si quiere eliminar el registro
+                    var resultEliminar = MessageBox.Show(
+                        $"¿Desea eliminar permanentemente este {(tiempo.EsCombo ? "combo" : "tiempo")} de los registros?\n\n" +
+                        $"Tarjeta: {tiempo.IdNfc}\n" +
+                        $"Hora entrada: {tiempo.HoraEntrada:HH:mm}\n\n" +
+                        "⚠ ADVERTENCIA: Esta acción eliminará el registro de la base de datos y no se podrá recuperar.",
+                        "Confirmar eliminación",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+
+                    if (resultEliminar == MessageBoxResult.Yes)
+                    {
+                        try
+                        {
+                            if (tiempo.EsCombo)
+                            {
+                                // Eliminar venta pendiente
+                                await EliminarVentaPendiente(tiempo.Id);
+                            }
+                            else
+                            {
+                                // Eliminar tiempo individual
+                                await EliminarTiempoIndividual(tiempo.Id);
+                            }
+
+                            await LoadTiemposActivosAsync();
+                            MessageBox.Show("Registro eliminado correctamente", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error al eliminar: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                    // Si dice "No", no hacer nada
+                }
+            }
+        }
+
+        private async Task MoverVentaPendienteACarrito(TiempoActivo tiempo)
+        {
+            var venta = await _context.Ventas
+                .Include(v => v.DetallesVenta)
+                    .ThenInclude(d => d.Producto)
+                .FirstOrDefaultAsync(v => v.Id == tiempo.Id && v.Estado == (int)EstadoVenta.Pendiente);
+
+            if (venta == null)
+                throw new InvalidOperationException("No se encontró la venta pendiente");
+
+            // ⭐ IMPORTANTE: Marcar que estamos recuperando esta venta pendiente
+            _ventaPendienteRecuperada = venta;
+
+            // Guardar información para restauración
+            var recuperable = new VentaTiempoRecuperable
+            {
+                Id = venta.Id,
+                EsCombo = true,
+                IdNfc = venta.IdNfc ?? "",
+                HoraEntrada = venta.HoraEntrada ?? DateTime.Now,
+                MinutosTiempo = venta.MinutosTiempoCombo ?? 0,
+                Items = new List<ItemCarrito>()
+            };
+
+            // Calcular excedente si aplica
+            if (venta.HoraEntrada.HasValue)
+            {
+                var tiempoTranscurrido = (DateTime.Now - venta.HoraEntrada.Value).TotalMinutes;
+                var minutosIncluidos = venta.MinutosTiempoCombo ?? 0;
+
+                if (tiempoTranscurrido > minutosIncluidos)
+                {
+                    var precios = await _precioTiempoService.GetPreciosTiempoActivosAsync();
+
+                    if (precios != null && precios.Count > 0)
+                    {
+                        var ultimoTramo = precios.Last();
+                        decimal precioPorMinuto;
+
+                        if (precios.Count > 1)
+                        {
+                            var penultimoTramo = precios[precios.Count - 2];
+                            int minutosExcedente = ultimoTramo.Minutos - penultimoTramo.Minutos;
+                            decimal precioExcedente = ultimoTramo.Precio - penultimoTramo.Precio;
+                            precioPorMinuto = precioExcedente / minutosExcedente;
+                        }
+                        else
+                        {
+                            precioPorMinuto = ultimoTramo.Precio / ultimoTramo.Minutos;
+                        }
+
+                        int minutosExtra = (int)Math.Ceiling(tiempoTranscurrido - minutosIncluidos);
+                        decimal excedente = minutosExtra * precioPorMinuto;
+
+                        if (excedente > 0)
+                        {
+                            var itemExcedente = new ItemCarrito
+                            {
+                                ProductoId = -999,
+                                Nombre = $"Excedente de tiempo ({minutosExtra} min extra)",
+                                PrecioUnitario = excedente,
+                                Cantidad = 1,
+                                Total = excedente
+                            };
+
+                            recuperable.Items.Add(itemExcedente);
+                            Carrito.Add(itemExcedente);
+                        }
+                    }
+                }
+            }
+
+            // Mover detalles al carrito
+            foreach (var detalle in venta.DetallesVenta)
+            {
+                var itemCarrito = new ItemCarrito
+                {
+                    ProductoId = detalle.TipoItem == (int)TipoItemVenta.Producto ? detalle.ProductoId ?? 0 : -detalle.ItemReferenciaId ?? 0,
+                    Nombre = detalle.NombreParaMostrar,
+                    PrecioUnitario = detalle.PrecioUnitario,
+                    Cantidad = detalle.Cantidad,
+                    Total = detalle.Subtotal
+                };
+
+                recuperable.Items.Add(itemCarrito);
+                Carrito.Add(itemCarrito);
+            }
+
+            // ⭐ NUEVO: Agregar cargo por tarjeta extraviada
+            var itemTarjetaPerdida = new ItemCarrito
+            {
+                ProductoId = -998, // ID especial para identificar el cargo
+                Nombre = "Tarjeta extraviada/dañada",
+                PrecioUnitario = 50,
+                Cantidad = 1,
+                Total = 50
+            };
+
+            recuperable.Items.Add(itemTarjetaPerdida);
+            Carrito.Add(itemTarjetaPerdida);
+
+            _itemsRecuperables.Add(recuperable);
+
+            // ⭐ CORREGIDO: NO marcar como combo con tiempo para permitir finalización directa
+            _carritoTieneComboConTiempo = false;
+            _comboConTiempoId = null;
+            _minutosComboTiempo = 0;
+
+            // ⭐ IMPORTANTE: Mostrar botón de Finalizar Venta, NO el de Guardar Pendiente
+            CancelarButton.Visibility = Visibility.Visible;
+            PendienteButton.Visibility = Visibility.Collapsed;
+            FinalizarVentaButton.Visibility = Visibility.Visible;
+
+            ActualizarTotales();
+
+            // Cambiar a vista de productos
+            ProductosScrollViewer.Visibility = Visibility.Visible;
+            TiempoPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private async Task MoverTiempoACarrito(TiempoActivo tiempo)
+        {
+            var tiempoDb = await _context.Tiempos.FindAsync(tiempo.Id);
+
+            if (tiempoDb == null || tiempoDb.Estado != "Activo")
+                throw new InvalidOperationException("No se encontró el tiempo activo");
+
+            // Finalizar tiempo para calcular el total
+            var tiempoFinalizado = await _tiempoService.RegistrarSalidaAsync(tiempoDb.Id);
+
+            var tiempoTranscurrido = (tiempoFinalizado.HoraSalida!.Value - tiempoFinalizado.HoraEntrada).TotalMinutes;
+
+            var itemCarrito = new ItemCarrito
+            {
+                ProductoId = -tiempoFinalizado.Id,
+                Nombre = $"Tiempo - ({Math.Ceiling(tiempoTranscurrido)} min)",
+                PrecioUnitario = tiempoFinalizado.Total,
+                Cantidad = 1,
+                Total = tiempoFinalizado.Total
+            };
+
+            // ⭐ NUEVO: Agregar cargo por tarjeta extraviada
+            var itemTarjetaPerdida = new ItemCarrito
+            {
+                ProductoId = -998,
+                Nombre = "Tarjeta extraviada/dañada",
+                PrecioUnitario = 50,
+                Cantidad = 1,
+                Total = 50
+            };
+
+            // Guardar para restauración
+            var recuperable = new VentaTiempoRecuperable
+            {
+                Id = tiempoFinalizado.Id,
+                EsCombo = false,
+                IdNfc = tiempoFinalizado.IdNfc,
+                HoraEntrada = tiempoFinalizado.HoraEntrada,
+                Items = new List<ItemCarrito> { itemCarrito, itemTarjetaPerdida }
+            };
+
+            _itemsRecuperables.Add(recuperable);
+            Carrito.Add(itemCarrito);
+            Carrito.Add(itemTarjetaPerdida);
+
+            ActualizarTotales();
+
+            // Cambiar a vista de productos
+            ProductosScrollViewer.Visibility = Visibility.Visible;
+            TiempoPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private async Task RestaurarItemsRecuperables()
+        {
+            foreach (var recuperable in _itemsRecuperables.ToList())
+            {
+                await RestaurarItemRecuperable(recuperable);
+            }
+            _itemsRecuperables.Clear();
+        }
+
+        private async Task RestaurarItemRecuperable(VentaTiempoRecuperable recuperable)
+        {
+            if (recuperable.EsCombo)
+            {
+                // Restaurar venta pendiente: eliminar el cargo de tarjeta extraviada si existe
+                var venta = await _context.Ventas
+                    .Include(v => v.DetallesVenta)
+                    .FirstOrDefaultAsync(v => v.Id == recuperable.Id);
+
+                if (venta != null)
+                {
+                    var detalleTarjeta = venta.DetallesVenta
+                        .FirstOrDefault(d => d.NombreItem == "Tarjeta extraviada/dañada");
+
+                    if (detalleTarjeta != null)
+                    {
+                        _context.DetallesVenta.Remove(detalleTarjeta);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                // La venta sigue como pendiente
+            }
+            else
+            {
+                // Reactivar tiempo individual
+                await ReactivarTiempo(recuperable.Id);
+            }
+        }
+
+        private async Task EliminarVentaPendiente(int ventaId)
+        {
+            var venta = await _context.Ventas
+                .Include(v => v.DetallesVenta)
+                .FirstOrDefaultAsync(v => v.Id == ventaId && v.Estado == (int)EstadoVenta.Pendiente);
+
+            if (venta == null)
+                throw new InvalidOperationException("No se encontró la venta pendiente");
+
+            // Eliminar detalles primero (por la relación foreign key)
+            _context.DetallesVenta.RemoveRange(venta.DetallesVenta);
+
+            // Eliminar la venta
+            _context.Ventas.Remove(venta);
+
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task EliminarTiempoIndividual(int tiempoId)
+        {
+            var tiempo = await _context.Tiempos.FindAsync(tiempoId);
+
+            if (tiempo == null)
+                throw new InvalidOperationException("No se encontró el tiempo");
+
+            // Verificar si el tiempo ya está asociado a alguna venta
+            var tiempoEnVenta = await _context.DetallesVenta
+                .AnyAsync(d => d.TipoItem == (int)TipoItemVenta.Tiempo && d.ItemReferenciaId == tiempoId);
+
+            if (tiempoEnVenta)
+            {
+                throw new InvalidOperationException("No se puede eliminar este tiempo porque ya está asociado a una venta");
+            }
+
+            _context.Tiempos.Remove(tiempo);
+            await _context.SaveChangesAsync();
+        }
     }
 
     public class ProductoVenta
@@ -2026,6 +2407,16 @@ namespace POS.paginas.ventas
         {
             PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
         }
+    }
+
+    public class VentaTiempoRecuperable
+    {
+        public int Id { get; set; }
+        public bool EsCombo { get; set; }
+        public string IdNfc { get; set; } = "";
+        public List<ItemCarrito> Items { get; set; } = new List<ItemCarrito>();
+        public DateTime HoraEntrada { get; set; }
+        public int MinutosTiempo { get; set; }
     }
 
 
