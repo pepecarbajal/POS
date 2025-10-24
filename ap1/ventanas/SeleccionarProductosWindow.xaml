@@ -1,0 +1,228 @@
+﻿<Window x:Class="POS.ventanas.SeleccionarProductosWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Seleccionar Productos" 
+        Height="700" 
+        Width="900"
+        WindowStartupLocation="CenterOwner"
+        Background="#f8f9fa"
+        ResizeMode="CanResize">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#8b5cf6"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="White" Padding="25" BorderBrush="#e5e7eb" BorderThickness="0,0,0,1">
+            <StackPanel>
+                <TextBlock Text="Seleccionar Productos" 
+                          FontSize="24" 
+                          FontWeight="Bold" 
+                          Foreground="#1f2937"/>
+                <TextBlock Text="Marca los productos y ajusta las cantidades" 
+                          Foreground="#6b7280" 
+                          FontSize="14" 
+                          Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Category Filter -->
+        <Border Grid.Row="1" Background="White" Padding="25,15" BorderBrush="#e5e7eb" BorderThickness="0,0,0,1">
+            <StackPanel>
+                <TextBlock Text="Filtrar por categoría:" 
+                          FontSize="13" 
+                          Foreground="#6b7280"
+                          Margin="0,0,0,8"/>
+                <ComboBox x:Name="CategoriaComboBox"
+                         Height="40"
+                         FontSize="14"
+                         BorderBrush="#d1d5db"
+                         BorderThickness="1"
+                         Background="White"
+                         SelectionChanged="CategoriaComboBox_SelectionChanged">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Nombre}" 
+                                      Padding="5"
+                                      FontSize="14"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+        </Border>
+
+        <!-- Changed from ListBox to ItemsControl with WrapPanel for card layout -->
+        <Border Grid.Row="2" Background="White" Margin="0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+                <ItemsControl x:Name="ProductosListBox">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <!-- Product card with image, name, price, and quantity controls -->
+                            <Border Background="White"
+                                   BorderBrush="#e5e7eb"
+                                   BorderThickness="1"
+                                   CornerRadius="8"
+                                   Margin="10"
+                                   Width="200"
+                                   Cursor="Hand">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="BorderBrush" Value="#8b5cf6"/>
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect Color="#8b5cf6" 
+                                                                        Opacity="0.3" 
+                                                                        BlurRadius="10" 
+                                                                        ShadowDepth="0"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="180"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Checkbox in top-right corner -->
+                                    <CheckBox Grid.Row="0"
+                                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                            HorizontalAlignment="Right"
+                                            Margin="10"
+                                            Width="20"
+                                            Height="20"/>
+
+                                    <!-- Product Image -->
+                                    <Border Grid.Row="1" 
+                                           Background="#f9fafb"
+                                           CornerRadius="6"
+                                           Margin="10,0,10,10">
+                                        <!-- Fixed binding from ImagenPath to UrlImage -->
+                                        <Image Source="{Binding UrlImage}"
+                                              Stretch="Uniform"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"
+                                              Margin="10"/>
+                                    </Border>
+
+                                    <!-- Product Name -->
+                                    <TextBlock Grid.Row="2"
+                                             Text="{Binding Nombre}"
+                                             FontSize="14"
+                                             FontWeight="SemiBold"
+                                             Foreground="#374151"
+                                             TextWrapping="Wrap"
+                                             TextAlignment="Center"
+                                             Margin="10,0,10,5"
+                                             MaxHeight="40"/>
+
+                                    <!-- Product Price -->
+                                    <TextBlock Grid.Row="3"
+                                             Text="{Binding Precio, StringFormat='${0:N2}'}"
+                                             FontSize="16"
+                                             FontWeight="Bold"
+                                             Foreground="#8b5cf6"
+                                             TextAlignment="Center"
+                                             Margin="10,0,10,10"/>
+
+                                    <!-- Quantity Controls (only visible when selected) -->
+                                    <Border Grid.Row="4"
+                                           Background="#f9fafb"
+                                           Padding="10"
+                                           Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <StackPanel Orientation="Horizontal" 
+                                                  HorizontalAlignment="Center">
+                                            <Button Content="-" 
+                                                   Width="32" 
+                                                   Height="32"
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   Background="White"
+                                                   BorderThickness="1"
+                                                   BorderBrush="#d1d5db"
+                                                   Foreground="#374151"
+                                                   Cursor="Hand"
+                                                   Click="DecrementarCantidad_Click"
+                                                   Tag="{Binding}"/>
+                                            <TextBox Text="{Binding Cantidad, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                   Width="50"
+                                                   Height="32"
+                                                   TextAlignment="Center"
+                                                   FontSize="14"
+                                                   BorderBrush="#d1d5db"
+                                                   BorderThickness="1"
+                                                   Margin="8,0"
+                                                   VerticalContentAlignment="Center"/>
+                                            <Button Content="+" 
+                                                   Width="32" 
+                                                   Height="32"
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   Background="White"
+                                                   BorderThickness="1"
+                                                   BorderBrush="#d1d5db"
+                                                   Foreground="#374151"
+                                                   Cursor="Hand"
+                                                   Click="IncrementarCantidad_Click"
+                                                   Tag="{Binding}"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Footer with buttons -->
+        <Border Grid.Row="3" Background="White" Padding="25" BorderBrush="#e5e7eb" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancelar" 
+                       Background="#6b7280"
+                       Foreground="White"
+                       Padding="20,12"
+                       BorderThickness="0"
+                       Cursor="Hand"
+                       FontWeight="SemiBold"
+                       FontSize="14"
+                       Margin="0,0,10,0"
+                       Click="Cancelar_Click"/>
+                <Button Content="Confirmar Selección" 
+                       Style="{StaticResource PrimaryButton}"
+                       Click="Confirmar_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

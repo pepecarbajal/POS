@@ -1,0 +1,239 @@
+﻿<Page x:Class="POS.paginas.precios.PrecioTiempoPag"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      mc:Ignorable="d" 
+      d:DesignHeight="800" d:DesignWidth="1400"
+      Background="{StaticResource BackgroundGray}">
+
+    <Grid Margin="30">
+        <Border Style="{StaticResource CardStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Configuración de Precios" 
+                          FontSize="28" 
+                          FontWeight="Bold" 
+                          Foreground="{StaticResource TextDark}" 
+                          Margin="0,0,0,30"/>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- 60 minutos -->
+                        <Border Background="{StaticResource LightGray}" 
+                                Padding="25" 
+                                Margin="0,0,0,20"
+                                CornerRadius="12"
+                                BorderBrush="{StaticResource BorderGray}"
+                                BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="150"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Margin="0,0,15,0">
+                                    <TextBlock Text="Duración" Style="{StaticResource FormLabel}"/>
+                                    <TextBox x:Name="Precio60TextBox" 
+                                             Style="{StaticResource FormInputStyle}"
+                                             IsReadOnly="True"
+                                             Background="{StaticResource MediumGray}"
+                                             Foreground="{StaticResource TextLight}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="0,0,15,0">
+                                    <TextBlock Text="Precio *" Style="{StaticResource FormLabel}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="$" 
+                                                   FontSize="20" 
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource TextLight}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,10,0"/>
+                                        <TextBox x:Name="PrecioValor60TextBox" 
+                                                 Style="{StaticResource FormInputStyle}"
+                                                 Width="200"
+                                                 PreviewTextInput="PrecioTextBox_PreviewTextInput"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <Button Grid.Column="2" 
+                                        Content="Actualizar" 
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        VerticalAlignment="Bottom"
+                                        Click="ActualizarPrecio60_Click"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- 80 minutos -->
+                        <Border Background="{StaticResource LightGray}" 
+                                Padding="25" 
+                                Margin="0,0,0,20"
+                                CornerRadius="12"
+                                BorderBrush="{StaticResource BorderGray}"
+                                BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="150"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Margin="0,0,15,0">
+                                    <TextBlock Text="Duración" Style="{StaticResource FormLabel}"/>
+                                    <TextBox x:Name="Precio80TextBox" 
+                                             Style="{StaticResource FormInputStyle}"
+                                             IsReadOnly="True"
+                                             Background="{StaticResource MediumGray}"
+                                             Foreground="{StaticResource TextLight}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="0,0,15,0">
+                                    <TextBlock Text="Precio *" Style="{StaticResource FormLabel}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="$" 
+                                                   FontSize="20" 
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource TextLight}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,10,0"/>
+                                        <TextBox x:Name="PrecioValor80TextBox" 
+                                                 Style="{StaticResource FormInputStyle}"
+                                                 Width="200"
+                                                 PreviewTextInput="PrecioTextBox_PreviewTextInput"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <Button Grid.Column="2" 
+                                        Content="Actualizar" 
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        VerticalAlignment="Bottom"
+                                        Click="ActualizarPrecio80_Click"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- 120 minutos -->
+                        <Border Background="{StaticResource LightGray}" 
+                                Padding="25" 
+                                Margin="0,0,0,20"
+                                CornerRadius="12"
+                                BorderBrush="{StaticResource BorderGray}"
+                                BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="150"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Margin="0,0,15,0">
+                                    <TextBlock Text="Duración" Style="{StaticResource FormLabel}"/>
+                                    <TextBox x:Name="Precio120TextBox" 
+                                             Style="{StaticResource FormInputStyle}"
+                                             IsReadOnly="True"
+                                             Background="{StaticResource MediumGray}"
+                                             Foreground="{StaticResource TextLight}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="0,0,15,0">
+                                    <TextBlock Text="Precio *" Style="{StaticResource FormLabel}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="$" 
+                                                   FontSize="20" 
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource TextLight}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,10,0"/>
+                                        <TextBox x:Name="PrecioValor120TextBox" 
+                                                 Style="{StaticResource FormInputStyle}"
+                                                 Width="200"
+                                                 PreviewTextInput="PrecioTextBox_PreviewTextInput"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <Button Grid.Column="2" 
+                                        Content="Actualizar" 
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        VerticalAlignment="Bottom"
+                                        Click="ActualizarPrecio120_Click"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- 140 minutos -->
+                        <Border Background="{StaticResource LightGray}" 
+                                Padding="25" 
+                                Margin="0,0,0,20"
+                                CornerRadius="12"
+                                BorderBrush="{StaticResource BorderGray}"
+                                BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="150"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Margin="0,0,15,0">
+                                    <TextBlock Text="Duración" Style="{StaticResource FormLabel}"/>
+                                    <TextBox x:Name="Precio140TextBox" 
+                                             Style="{StaticResource FormInputStyle}"
+                                             IsReadOnly="True"
+                                             Background="{StaticResource MediumGray}"
+                                             Foreground="{StaticResource TextLight}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="0,0,15,0">
+                                    <TextBlock Text="Precio *" Style="{StaticResource FormLabel}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="$" 
+                                                   FontSize="20" 
+                                                   FontWeight="Bold"
+                                                   Foreground="{StaticResource TextLight}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,10,0"/>
+                                        <TextBox x:Name="PrecioValor140TextBox" 
+                                                 Style="{StaticResource FormInputStyle}"
+                                                 Width="200"
+                                                 PreviewTextInput="PrecioTextBox_PreviewTextInput"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <Button Grid.Column="2" 
+                                        Content="Actualizar" 
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        VerticalAlignment="Bottom"
+                                        Click="ActualizarPrecio140_Click"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Nota informativa -->
+                        <Border Background="#e0e7ff" 
+                                Padding="20" 
+                                Margin="0,20,0,0"
+                                CornerRadius="12"
+                                BorderBrush="{StaticResource PrimaryPurple}"
+                                BorderThickness="2">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="ℹ️" 
+                                           FontSize="24" 
+                                           Margin="0,0,15,0"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock TextWrapping="Wrap" 
+                                           Foreground="#5b21b6"
+                                           FontSize="14">
+                                    <Run FontWeight="SemiBold">Nota:</Run>
+                                    <Run>Los cambios en los precios se aplicarán inmediatamente para nuevas sesiones de tiempo.</Run>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>
