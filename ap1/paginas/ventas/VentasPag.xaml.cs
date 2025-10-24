@@ -383,7 +383,7 @@ namespace POS.paginas.ventas
             }
         }
 
-        private void CancelarVenta_Click(object sender, RoutedEventArgs e)
+        private async void CancelarVenta_Click(object sender, RoutedEventArgs e)
         {
             if (!Carrito.Any())
             {
@@ -392,26 +392,68 @@ namespace POS.paginas.ventas
             }
 
             var result = MessageBox.Show(
-                "¿Está seguro que desea cancelar la venta y vaciar el carrito?",
+                "¿Está seguro que desea vaciar el carrito?\n\nLos tiempos se reactivarán y las ventas pendientes se mantendrán como pendientes.",
                 "Confirmar cancelación",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
 
             if (result == MessageBoxResult.Yes)
             {
-                Carrito.Clear();
-                RecibidoTextBox.Text = "0";
-                _montoRecibido = 0;
-                _cambio = 0;
-                _ventaPendienteRecuperada = null;
-                _carritoTieneComboConTiempo = false;
-                _comboConTiempoId = null;
-                _minutosComboTiempo = 0;
+                try
+                {
+                    // Reactivar tiempos individuales finalizados
+                    var tiemposAReactivar = Carrito
+                        .Where(i => i.ProductoId < 0 && i.Nombre.StartsWith("Tiempo") && i.ProductoId != -999)
+                        .ToList();
 
-                CancelarButton.Visibility = Visibility.Visible;
-                PendienteButton.Visibility = Visibility.Collapsed;
+                    foreach (var itemTiempo in tiemposAReactivar)
+                    {
+                        int tiempoId = -itemTiempo.ProductoId;
+                        await ReactivarTiempo(tiempoId);
+                    }
 
-                ActualizarTotales();
+                    // Eliminar excedente de venta pendiente recuperada si existe
+                    if (_ventaPendienteRecuperada != null)
+                    {
+                        var detalleExcedente = _ventaPendienteRecuperada.DetallesVenta
+                            .FirstOrDefault(d => d.NombreItem.Contains("Excedente de tiempo"));
+
+                        if (detalleExcedente != null)
+                        {
+                            _context.DetallesVenta.Remove(detalleExcedente);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // La venta pendiente se mantiene como pendiente, no se modifica
+                    }
+
+                    // Limpiar el carrito y estados
+                    Carrito.Clear();
+                    RecibidoTextBox.Text = "0";
+                    _montoRecibido = 0;
+                    _cambio = 0;
+                    _ventaPendienteRecuperada = null;
+                    _carritoTieneComboConTiempo = false;
+                    _comboConTiempoId = null;
+                    _minutosComboTiempo = 0;
+
+                    CancelarButton.Visibility = Visibility.Visible;
+                    PendienteButton.Visibility = Visibility.Collapsed;
+
+                    ActualizarTotales();
+
+                    // Refrescar vista de tiempos si está activa
+                    if (_mostrandoTiempo)
+                    {
+                        await LoadTiemposActivosAsync();
+                    }
+
+                    MessageBox.Show("Carrito vaciado correctamente", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error al cancelar: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
