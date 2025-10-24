@@ -404,7 +404,6 @@
                                              MaxHeight="36"
                                              TextTrimming="CharacterEllipsis"/>
 
-                                    <!-- Precio compacto -->
                                     <TextBlock Grid.Row="2"
                                              Text="{Binding Precio, StringFormat='${0:N2}'}"
                                              FontSize="16"
@@ -418,7 +417,7 @@
                                            Background="#f9fafb"
                                            CornerRadius="0,0,12,12"
                                            Padding="8,6"
-                                           VerticalAlignment="Bottom"
+                                           VerticalAlignment="Top"
                                            Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <StackPanel Orientation="Horizontal" 
                                                   HorizontalAlignment="Center">

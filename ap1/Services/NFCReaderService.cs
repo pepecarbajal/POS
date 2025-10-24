@@ -22,19 +22,14 @@ namespace POS.Services
         public NFCReaderService()
         {
             _isConnected = false;
-            Initialize(); // 🔁 intenta conectar automáticamente al iniciar
-        }
+            Initialize();         }
 
         public bool IsConnected => _isConnected;
 
-        /// <summary>
-        /// Inicializa el lector NFC y activa reconexión automática si no hay lector disponible.
-        /// </summary>
-        public void Initialize()
+                                public void Initialize()
         {
             if (_reconnectTask != null && !_reconnectTask.IsCompleted)
-                return; // ya hay un proceso corriendo
-
+                return; 
             _cancellationTokenSource = new CancellationTokenSource();
             var token = _cancellationTokenSource.Token;
 
@@ -55,15 +50,11 @@ namespace POS.Services
                         }
                     }
 
-                    await Task.Delay(5000, token); // ⏳ reintentar cada 5 segundos
-                }
+                    await Task.Delay(5000, token);                 }
             }, token);
         }
 
-        /// <summary>
-        /// Establece conexión con el lector NFC.
-        /// </summary>
-        public bool Connect()
+                                public bool Connect()
         {
             try
             {
@@ -99,10 +90,7 @@ namespace POS.Services
             }
         }
 
-        /// <summary>
-        /// Desconecta y limpia recursos del lector.
-        /// </summary>
-        public void Disconnect()
+                                public void Disconnect()
         {
             try
             {

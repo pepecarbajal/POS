@@ -103,7 +103,6 @@ namespace POS.paginas.combos
                     }
                 }
 
-                // ⭐ CAMBIO: Mostrar información apropiada si no hay productos
                 string productosTexto;
                 int productosCount = productosNombres.Count();
 
@@ -158,8 +157,7 @@ namespace POS.paginas.combos
         {
             var productosSeleccionados = productosDisponibles.Where(p => p.IsSelected).ToList();
 
-            // ⭐ CAMBIO: Permitir guardar sin productos si tiene tiempo incluido
-            int? precioTiempoId = null;
+                        int? precioTiempoId = null;
             if (TiempoComboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 int tiempoId = Convert.ToInt32(selectedItem.Tag);
@@ -169,16 +167,14 @@ namespace POS.paginas.combos
                 }
             }
 
-            // Validación: debe tener nombre, precio y al menos productos O tiempo
-            if (string.IsNullOrWhiteSpace(NombreTextBox.Text) ||
+                        if (string.IsNullOrWhiteSpace(NombreTextBox.Text) ||
                 string.IsNullOrWhiteSpace(PrecioTextBox.Text))
             {
                 MessageBox.Show("Por favor completa el nombre y precio del combo.", "Campos incompletos", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // ⭐ NUEVA VALIDACIÓN: Debe tener productos O tiempo (al menos uno)
-            if (productosSeleccionados.Count == 0 && !precioTiempoId.HasValue)
+                        if (productosSeleccionados.Count == 0 && !precioTiempoId.HasValue)
             {
                 MessageBox.Show("El combo debe tener al menos productos o tiempo incluido.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
@@ -213,15 +209,13 @@ namespace POS.paginas.combos
 
                         await _comboService.UpdateComboAsync(comboEditandoId.Value, comboExistente);
 
-                        // Limpiar productos actuales
-                        var productosActuales = await _comboService.GetProductosByComboIdAsync(comboEditandoId.Value);
+                                                var productosActuales = await _comboService.GetProductosByComboIdAsync(comboEditandoId.Value);
                         foreach (var prod in productosActuales)
                         {
                             await _comboService.RemoveProductoFromComboAsync(comboEditandoId.Value, prod.Id);
                         }
 
-                        // ⭐ CAMBIO: Solo agregar productos si hay seleccionados
-                        if (productosSeleccionados.Count > 0)
+                                                if (productosSeleccionados.Count > 0)
                         {
                             foreach (var prod in productosSeleccionados)
                             {
@@ -245,8 +239,7 @@ namespace POS.paginas.combos
 
                     var comboCreado = await _comboService.CreateComboAsync(nuevoCombo);
 
-                    // ⭐ CAMBIO: Solo agregar productos si hay seleccionados
-                    if (productosSeleccionados.Count > 0)
+                                        if (productosSeleccionados.Count > 0)
                     {
                         foreach (var prod in productosSeleccionados)
                         {
@@ -288,8 +281,7 @@ namespace POS.paginas.combos
                             PlaceholderText.Visibility = Visibility.Collapsed;
                         }
 
-                        // Cargar tiempo seleccionado
-                        if (combo.PrecioTiempoId.HasValue)
+                                                if (combo.PrecioTiempoId.HasValue)
                         {
                             for (int i = 0; i < TiempoComboBox.Items.Count; i++)
                             {
@@ -309,8 +301,7 @@ namespace POS.paginas.combos
                             TiempoComboBox.SelectedIndex = 0;
                         }
 
-                        // ⭐ CAMBIO: Cargar productos solo si existen
-                        var comboProductos = await _comboService.GetComboProductosAsync(combo.Id);
+                                                var comboProductos = await _comboService.GetComboProductosAsync(combo.Id);
 
                         if (comboProductos != null && comboProductos.Any())
                         {
@@ -332,8 +323,7 @@ namespace POS.paginas.combos
                         }
                         else
                         {
-                            // Si no hay productos, limpiar todas las selecciones
-                            foreach (var producto in productosDisponibles)
+                                                        foreach (var producto in productosDisponibles)
                             {
                                 producto.IsSelected = false;
                                 producto.Cantidad = 1;
@@ -379,8 +369,7 @@ namespace POS.paginas.combos
             NombreTextBox.Clear();
             PrecioTextBox.Clear();
             TiempoComboBox.SelectedIndex = 0;
-            EstadoCheckBox.IsChecked = true; // NUEVO
-
+            EstadoCheckBox.IsChecked = true; 
             foreach (var producto in productosDisponibles)
             {
                 producto.IsSelected = false;
@@ -397,13 +386,9 @@ namespace POS.paginas.combos
         private void ActualizarContadores()
         {
             int total = combos.Count;
-            int activos = combos.Count(c => c.Estado == "Activo"); // NUEVO
-            int inactivos = combos.Count(c => c.Estado == "Inactivo"); // NUEVO
-
+            int activos = combos.Count(c => c.Estado == "Activo");             int inactivos = combos.Count(c => c.Estado == "Inactivo"); 
             ContadorTextBlock.Text = $"Mostrando {total} de {total} combos";
-            ActiveCountText.Text = $"{activos} Activos"; // NUEVO
-            InactiveCountText.Text = $"{inactivos} Inactivo{(inactivos != 1 ? "s" : "")}"; // NUEVO
-        }
+            ActiveCountText.Text = $"{activos} Activos";             InactiveCountText.Text = $"{inactivos} Inactivo{(inactivos != 1 ? "s" : "")}";         }
 
         private void IncrementarCantidad_Click(object sender, RoutedEventArgs e)
         {
@@ -493,15 +478,13 @@ namespace POS.paginas.combos
                 ProductosSeleccionadosStack.Children.Add(border);
             }
 
-            // ⭐ CAMBIO: Mensaje más descriptivo
-            if (seleccionados.Count > 0)
+                        if (seleccionados.Count > 0)
             {
                 ProductosCountText.Text = $"{seleccionados.Count} producto(s) seleccionado(s)";
             }
             else
             {
-                // Verificar si hay tiempo seleccionado
-                bool tieneTiempo = TiempoComboBox.SelectedItem is ComboBoxItem item && Convert.ToInt32(item.Tag) > 0;
+                                bool tieneTiempo = TiempoComboBox.SelectedItem is ComboBoxItem item && Convert.ToInt32(item.Tag) > 0;
 
                 if (tieneTiempo)
                 {
@@ -589,6 +572,5 @@ namespace POS.paginas.combos
         public int ProductosCount { get; set; }
         public string TiempoInfo { get; set; } = "Sin tiempo";
         public int? PrecioTiempoId { get; set; }
-        public string Estado { get; set; } = "Activo"; // NUEVO
-    }
+        public string Estado { get; set; } = "Activo";     }
 }

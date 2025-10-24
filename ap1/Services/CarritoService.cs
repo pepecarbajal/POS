@@ -12,8 +12,7 @@ namespace POS.Services
 
         public ObservableCollection<ItemCarrito> Items { get; private set; }
 
-        // Evento para notificar cambios en el carrito
-        public event EventHandler? CarritoActualizado;
+                public event EventHandler? CarritoActualizado;
 
         private CarritoService()
         {
@@ -94,14 +93,12 @@ namespace POS.Services
             return Items.Any();
         }
 
-        // Método para verificar si un producto ya está en el carrito
-        public ItemCarrito? ObtenerItem(int productoId)
+                public ItemCarrito? ObtenerItem(int productoId)
         {
             return Items.FirstOrDefault(i => i.ProductoId == productoId);
         }
 
-        // Método para verificar stock disponible considerando lo que ya está en el carrito
-        public int ObtenerCantidadEnCarrito(int productoId)
+                public int ObtenerCantidadEnCarrito(int productoId)
         {
             var item = Items.FirstOrDefault(i => i.ProductoId == productoId);
             return item?.Cantidad ?? 0;

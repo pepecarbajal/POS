@@ -40,17 +40,14 @@ namespace POS.Services
         {
             if (id != categoria.Id)
             {
-                return false; // El ID no coincide
-            }
+                return false;             }
 
             var existingCategoria = await _context.Categorias.FindAsync(id);
             if (existingCategoria == null)
             {
-                return false; // No se encontró la categoría
-            }
+                return false;             }
 
-            // Actualiza las propiedades
-            _context.Entry(existingCategoria).CurrentValues.SetValues(categoria);
+                        _context.Entry(existingCategoria).CurrentValues.SetValues(categoria);
 
             try
             {
@@ -59,8 +56,7 @@ namespace POS.Services
             }
             catch (DbUpdateConcurrencyException)
             {
-                // Manejar excepciones de concurrencia si es necesario
-                return false;
+                                return false;
             }
         }
 
@@ -69,8 +65,7 @@ namespace POS.Services
             var categoria = await _context.Categorias.FindAsync(id);
             if (categoria == null)
             {
-                return false; // No se encontró
-            }
+                return false;             }
 
             _context.Categorias.Remove(categoria);
             await _context.SaveChangesAsync();

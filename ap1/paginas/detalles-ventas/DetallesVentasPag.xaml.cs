@@ -1,17 +1,14 @@
-﻿using POS.Interfaces;
-using POS.Models;
+﻿using Microsoft.Win32;
 using POS.Data;
+using POS.Interfaces;
+using POS.Models;
 using POS.Services;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
-using System;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using Microsoft.Win32;
 using System.Diagnostics;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace POS.paginas.detalles_ventas
 {
@@ -25,7 +22,6 @@ namespace POS.paginas.detalles_ventas
         {
             InitializeComponent();
 
-            // Configurar licencia de QuestPDF (Community/Gratuita)
             QuestPDF.Settings.License = LicenseType.Community;
 
             var context = new AppDbContext();
@@ -40,7 +36,6 @@ namespace POS.paginas.detalles_ventas
         {
             InitializeComponent();
 
-            // Configurar licencia de QuestPDF (Community/Gratuita)
             QuestPDF.Settings.License = LicenseType.Community;
 
             _ventaService = ventaService;
@@ -79,14 +74,12 @@ namespace POS.paginas.detalles_ventas
             TotalVentasTextBlock.Text = $"${total:N2}";
             NumeroVentasTextBlock.Text = ventas.Count.ToString();
 
-            // Contar cuántos items de cada tipo se vendieron
             int tiemposVendidos = 0;
 
             foreach (var venta in ventas)
             {
                 foreach (var detalle in venta.DetallesVenta)
                 {
-                    // Solo contar si el TipoItem es 3 (Tiempo)
                     if (detalle.TipoItem == (int)TipoItemVenta.Tiempo)
                     {
                         tiemposVendidos += detalle.Cantidad;
@@ -94,7 +87,6 @@ namespace POS.paginas.detalles_ventas
                 }
             }
 
-            // Actualizar el contador de tiempos vendidos
             TiemposVendidosTextBlock.Text = tiemposVendidos.ToString();
         }
 
@@ -146,7 +138,6 @@ namespace POS.paginas.detalles_ventas
             var fechaReporte = FechaFiltro.SelectedDate?.ToString("dd/MM/yyyy") ?? "Todas las fechas";
             var totalVentas = _ventasFiltradas.Sum(v => v.Total);
 
-            // Contar tiempos vendidos
             int tiemposVendidos = 0;
             foreach (var venta in _ventasFiltradas)
             {
@@ -168,316 +159,302 @@ namespace POS.paginas.detalles_ventas
                     page.PageColor(Colors.White);
                     page.DefaultTextStyle(x => x.FontSize(9).FontFamily("Arial").FontColor(Colors.Black));
 
-                    // Encabezado compacto y profesional
                     page.Header()
-                        .Column(column =>
+    .Column(column =>
+    {
+        column.Item()
+            .Row(row =>
+            {
+                row.ConstantItem(45)
+    .Column(logoCol =>
+    {
+                        try
                         {
-                            column.Item()
-                                .Row(row =>
-                                {
-                                    // Logo compacto
-                                    row.ConstantItem(45)
-                                        .Column(logoCol =>
-                                        {
-                                            try
-                                            {
-                                                logoCol.Item()
-                                                    .Width(40)
-                                                    .Height(40)
-                                                    .Image("logo/icono.png");
-                                            }
-                                            catch
-                                            {
-                                                logoCol.Item()
-                                                    .Width(40)
-                                                    .Height(40)
-                                                    .Border(1)
-                                                    .BorderColor(Colors.Grey.Darken2);
-                                            }
-                                        });
-
-                                    row.RelativeItem()
-                                        .PaddingLeft(10)
-                                        .AlignMiddle()
-                                        .Column(col =>
-                                        {
-                                            col.Item().Text("REPORTE DE VENTAS")
-                                                .FontSize(14)
-                                                .Bold();
-
-                                            col.Item().Row(infoRow =>
-                                            {
-                                                infoRow.AutoItem().Text($"Fecha: {fechaReporte}")
-                                                    .FontSize(8)
-                                                    .FontColor(Colors.Grey.Darken2);
-
-                                                infoRow.AutoItem().PaddingLeft(15).Text($"Generado: {DateTime.Now:dd/MM/yyyy HH:mm}")
-                                                    .FontSize(8)
-                                                    .FontColor(Colors.Grey.Darken2);
-                                            });
-                                        });
-                                });
-
-                            // Línea separadora fina
-                            column.Item()
-                                .PaddingTop(8)
-                                .BorderBottom(1.5f)
-                                .BorderColor(Colors.Black);
-                        });
-
-                    // Contenido
-                    page.Content()
-                        .PaddingTop(12)
-                        .Column(column =>
+                            logoCol.Item()
+                                .Width(40)
+                                .Height(40)
+                                .Image("logo/icono.png");
+                        }
+                        catch
                         {
-                            // Resumen compacto en tabla
-                            column.Item()
-                                .Table(table =>
-                                {
-                                    table.ColumnsDefinition(columns =>
-                                    {
-                                        columns.RelativeColumn();
-                                        columns.RelativeColumn();
-                                        columns.RelativeColumn();
-                                    });
-
-                                    // Encabezados compactos
-                                    table.Cell()
-                                        .Border(1)
-                                        .BorderColor(Colors.Black)
-                                        .Background(Colors.Grey.Lighten1)
-                                        .Padding(6)
-                                        .AlignCenter()
-                                        .Text("TOTAL DE VENTAS")
-                                        .Bold()
-                                        .FontSize(8);
-
-                                    table.Cell()
-                                        .Border(1)
-                                        .BorderColor(Colors.Black)
-                                        .Background(Colors.Grey.Lighten1)
-                                        .Padding(6)
-                                        .AlignCenter()
-                                        .Text("CANTIDAD DE VENTAS")
-                                        .Bold()
-                                        .FontSize(8);
-
-                                    table.Cell()
-                                        .Border(1)
-                                        .BorderColor(Colors.Black)
-                                        .Background(Colors.Grey.Lighten1)
-                                        .Padding(6)
-                                        .AlignCenter()
-                                        .Text("TIEMPOS VENDIDOS")
-                                        .Bold()
-                                        .FontSize(8);
-
-                                    // Valores
-                                    table.Cell()
-                                        .Border(1)
-                                        .BorderColor(Colors.Black)
-                                        .Padding(6)
-                                        .AlignCenter()
-                                        .Text($"${totalVentas:N2}")
-                                        .FontSize(11)
-                                        .Bold();
-
-                                    table.Cell()
-                                        .Border(1)
-                                        .BorderColor(Colors.Black)
-                                        .Padding(6)
-                                        .AlignCenter()
-                                        .Text(_ventasFiltradas.Count.ToString())
-                                        .FontSize(11)
-                                        .Bold();
-
-                                    table.Cell()
-                                        .Border(1)
-                                        .BorderColor(Colors.Black)
-                                        .Padding(6)
-                                        .AlignCenter()
-                                        .Text(tiemposVendidos.ToString())
-                                        .FontSize(11)
-                                        .Bold();
-                                });
-
-                            column.Item().PaddingVertical(10);
-
-                            // Título de detalle compacto
-                            column.Item()
-                                .Background(Colors.Grey.Lighten1)
+                            logoCol.Item()
+                                .Width(40)
+                                .Height(40)
                                 .Border(1)
-                                .BorderColor(Colors.Black)
-                                .Padding(5)
-                                .Text("DETALLE DE TRANSACCIONES")
+                                .BorderColor(Colors.Grey.Darken2);
+                        }
+                    });
+
+                row.RelativeItem()
+                    .PaddingLeft(10)
+                    .AlignMiddle()
+                    .Column(col =>
+                    {
+                        col.Item().Text("REPORTE DE VENTAS")
+                            .FontSize(14)
+                            .Bold();
+
+                        col.Item().Row(infoRow =>
+                        {
+                            infoRow.AutoItem().Text($"Fecha: {fechaReporte}")
+                                .FontSize(8)
+                                .FontColor(Colors.Grey.Darken2);
+
+                            infoRow.AutoItem().PaddingLeft(15).Text($"Generado: {DateTime.Now:dd/MM/yyyy HH:mm}")
+                                .FontSize(8)
+                                .FontColor(Colors.Grey.Darken2);
+                        });
+                    });
+            });
+
+        column.Item()
+    .PaddingTop(8)
+    .BorderBottom(1.5f)
+    .BorderColor(Colors.Black);
+    });
+
+                    page.Content()
+    .PaddingTop(12)
+    .Column(column =>
+    {
+        column.Item()
+    .Table(table =>
+    {
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                });
+
+                table.Cell()
+    .Border(1)
+    .BorderColor(Colors.Black)
+    .Background(Colors.Grey.Lighten1)
+    .Padding(6)
+    .AlignCenter()
+    .Text("TOTAL DE VENTAS")
+    .Bold()
+    .FontSize(8);
+
+                table.Cell()
+                    .Border(1)
+                    .BorderColor(Colors.Black)
+                    .Background(Colors.Grey.Lighten1)
+                    .Padding(6)
+                    .AlignCenter()
+                    .Text("CANTIDAD DE VENTAS")
+                    .Bold()
+                    .FontSize(8);
+
+                table.Cell()
+                    .Border(1)
+                    .BorderColor(Colors.Black)
+                    .Background(Colors.Grey.Lighten1)
+                    .Padding(6)
+                    .AlignCenter()
+                    .Text("TIEMPOS VENDIDOS")
+                    .Bold()
+                    .FontSize(8);
+
+                table.Cell()
+    .Border(1)
+    .BorderColor(Colors.Black)
+    .Padding(6)
+    .AlignCenter()
+    .Text($"${totalVentas:N2}")
+    .FontSize(11)
+    .Bold();
+
+                table.Cell()
+                    .Border(1)
+                    .BorderColor(Colors.Black)
+                    .Padding(6)
+                    .AlignCenter()
+                    .Text(_ventasFiltradas.Count.ToString())
+                    .FontSize(11)
+                    .Bold();
+
+                table.Cell()
+                    .Border(1)
+                    .BorderColor(Colors.Black)
+                    .Padding(6)
+                    .AlignCenter()
+                    .Text(tiemposVendidos.ToString())
+                    .FontSize(11)
+                    .Bold();
+            });
+
+        column.Item().PaddingVertical(10);
+
+        column.Item()
+    .Background(Colors.Grey.Lighten1)
+    .Border(1)
+    .BorderColor(Colors.Black)
+    .Padding(5)
+    .Text("DETALLE DE TRANSACCIONES")
+    .FontSize(9)
+    .Bold();
+
+        column.Item().PaddingTop(8);
+
+        foreach (var venta in _ventasFiltradas)
+        {
+            column.Item()
+                .Border(1)
+                .BorderColor(Colors.Black)
+                .Column(ventaCol =>
+                {
+                    ventaCol.Item()
+    .Background(Colors.Grey.Lighten2)
+    .Padding(5)
+    .Row(row =>
+    {
+                            row.AutoItem()
+                                .Text($"Venta #{venta.Id}")
                                 .FontSize(9)
                                 .Bold();
 
-                            column.Item().PaddingTop(8);
+                            row.AutoItem()
+                                .PaddingLeft(20)
+                                .Text($"{venta.Fecha:dd/MM/yyyy HH:mm}")
+                                .FontSize(8);
 
-                            // Lista de ventas compacta
-                            foreach (var venta in _ventasFiltradas)
+                            row.RelativeItem()
+                                .AlignRight()
+                                .Text($"Total: ${venta.Total:N2}")
+                                .FontSize(9)
+                                .Bold();
+                        });
+
+                    ventaCol.Item()
+    .Table(table =>
+    {
+                            table.ColumnsDefinition(columns =>
                             {
-                                column.Item()
-                                    .Border(1)
-                                    .BorderColor(Colors.Black)
-                                    .Column(ventaCol =>
-                                    {
-                                        // Encabezado de venta compacto
-                                        ventaCol.Item()
-                                            .Background(Colors.Grey.Lighten2)
-                                            .Padding(5)
-                                            .Row(row =>
-                                            {
-                                                row.AutoItem()
-                                                    .Text($"Venta #{venta.Id}")
-                                                    .FontSize(9)
-                                                    .Bold();
+                                columns.RelativeColumn(5);
+                                columns.RelativeColumn(1.2f);
+                                columns.RelativeColumn(1.8f);
+                                columns.RelativeColumn(1.8f);
+                            });
 
-                                                row.AutoItem()
-                                                    .PaddingLeft(20)
-                                                    .Text($"{venta.Fecha:dd/MM/yyyy HH:mm}")
-                                                    .FontSize(8);
+                            table.Header(header =>
+{
+                                header.Cell()
+                                    .Background(Colors.Grey.Lighten3)
+                                    .BorderBottom(1)
+                                    .BorderColor(Colors.Grey.Darken1)
+                                    .Padding(4)
+                                    .Text("Producto")
+                                    .Bold()
+                                    .FontSize(8);
 
-                                                row.RelativeItem()
-                                                    .AlignRight()
-                                                    .Text($"Total: ${venta.Total:N2}")
-                                                    .FontSize(9)
-                                                    .Bold();
-                                            });
+                                header.Cell()
+                                    .Background(Colors.Grey.Lighten3)
+                                    .BorderBottom(1)
+                                    .BorderColor(Colors.Grey.Darken1)
+                                    .Padding(4)
+                                    .AlignCenter()
+                                    .Text("Cant.")
+                                    .Bold()
+                                    .FontSize(8);
 
-                                        // Tabla de productos compacta
-                                        ventaCol.Item()
-                                            .Table(table =>
-                                            {
-                                                table.ColumnsDefinition(columns =>
-                                                {
-                                                    columns.RelativeColumn(5);
-                                                    columns.RelativeColumn(1.2f);
-                                                    columns.RelativeColumn(1.8f);
-                                                    columns.RelativeColumn(1.8f);
-                                                });
+                                header.Cell()
+                                    .Background(Colors.Grey.Lighten3)
+                                    .BorderBottom(1)
+                                    .BorderColor(Colors.Grey.Darken1)
+                                    .Padding(4)
+                                    .AlignRight()
+                                    .Text("P. Unit.")
+                                    .Bold()
+                                    .FontSize(8);
 
-                                                // Encabezado de tabla
-                                                table.Header(header =>
-                                                {
-                                                    header.Cell()
-                                                        .Background(Colors.Grey.Lighten3)
-                                                        .BorderBottom(1)
-                                                        .BorderColor(Colors.Grey.Darken1)
-                                                        .Padding(4)
-                                                        .Text("Producto")
-                                                        .Bold()
-                                                        .FontSize(8);
+                                header.Cell()
+                                    .Background(Colors.Grey.Lighten3)
+                                    .BorderBottom(1)
+                                    .BorderColor(Colors.Grey.Darken1)
+                                    .Padding(4)
+                                    .AlignRight()
+                                    .Text("Subtotal")
+                                    .Bold()
+                                    .FontSize(8);
+                            });
 
-                                                    header.Cell()
-                                                        .Background(Colors.Grey.Lighten3)
-                                                        .BorderBottom(1)
-                                                        .BorderColor(Colors.Grey.Darken1)
-                                                        .Padding(4)
-                                                        .AlignCenter()
-                                                        .Text("Cant.")
-                                                        .Bold()
-                                                        .FontSize(8);
+                            int rowIndex = 0;
+                            foreach (var detalle in venta.DetallesVenta)
+                            {
+                                string nombreItem = detalle.Producto?.Nombre ?? detalle.NombreItem ?? "Item desconocido";
+                                var bgColor = rowIndex % 2 == 0 ? Colors.White : Colors.Grey.Lighten4;
 
-                                                    header.Cell()
-                                                        .Background(Colors.Grey.Lighten3)
-                                                        .BorderBottom(1)
-                                                        .BorderColor(Colors.Grey.Darken1)
-                                                        .Padding(4)
-                                                        .AlignRight()
-                                                        .Text("P. Unit.")
-                                                        .Bold()
-                                                        .FontSize(8);
+                                table.Cell()
+                                    .Background(bgColor)
+                                    .Padding(4)
+                                    .Text(nombreItem)
+                                    .FontSize(8);
 
-                                                    header.Cell()
-                                                        .Background(Colors.Grey.Lighten3)
-                                                        .BorderBottom(1)
-                                                        .BorderColor(Colors.Grey.Darken1)
-                                                        .Padding(4)
-                                                        .AlignRight()
-                                                        .Text("Subtotal")
-                                                        .Bold()
-                                                        .FontSize(8);
-                                                });
+                                table.Cell()
+                                    .Background(bgColor)
+                                    .Padding(4)
+                                    .AlignCenter()
+                                    .Text(detalle.Cantidad.ToString())
+                                    .FontSize(8);
 
-                                                // Filas de productos con líneas alternas sutiles
-                                                int rowIndex = 0;
-                                                foreach (var detalle in venta.DetallesVenta)
-                                                {
-                                                    string nombreItem = detalle.Producto?.Nombre ?? detalle.NombreItem ?? "Item desconocido";
-                                                    var bgColor = rowIndex % 2 == 0 ? Colors.White : Colors.Grey.Lighten4;
+                                table.Cell()
+                                    .Background(bgColor)
+                                    .Padding(4)
+                                    .AlignRight()
+                                    .Text($"${detalle.PrecioUnitario:N2}")
+                                    .FontSize(8);
 
-                                                    table.Cell()
-                                                        .Background(bgColor)
-                                                        .Padding(4)
-                                                        .Text(nombreItem)
-                                                        .FontSize(8);
+                                table.Cell()
+                                    .Background(bgColor)
+                                    .Padding(4)
+                                    .AlignRight()
+                                    .Text($"${detalle.Subtotal:N2}")
+                                    .FontSize(8)
+                                    .Bold();
 
-                                                    table.Cell()
-                                                        .Background(bgColor)
-                                                        .Padding(4)
-                                                        .AlignCenter()
-                                                        .Text(detalle.Cantidad.ToString())
-                                                        .FontSize(8);
-
-                                                    table.Cell()
-                                                        .Background(bgColor)
-                                                        .Padding(4)
-                                                        .AlignRight()
-                                                        .Text($"${detalle.PrecioUnitario:N2}")
-                                                        .FontSize(8);
-
-                                                    table.Cell()
-                                                        .Background(bgColor)
-                                                        .Padding(4)
-                                                        .AlignRight()
-                                                        .Text($"${detalle.Subtotal:N2}")
-                                                        .FontSize(8)
-                                                        .Bold();
-
-                                                    rowIndex++;
-                                                }
-                                            });
-                                    });
-
-                                column.Item().PaddingVertical(4);
+                                rowIndex++;
                             }
                         });
+                });
 
-                    // Footer compacto
+            column.Item().PaddingVertical(4);
+        }
+    });
+
                     page.Footer()
-                        .Column(column =>
-                        {
-                            column.Item()
-                                .BorderTop(1)
-                                .BorderColor(Colors.Grey.Darken1)
-                                .PaddingTop(5)
-                                .Row(row =>
-                                {
-                                    row.RelativeItem()
-                                        .AlignLeft()
-                                        .Text("Sistema POS")
-                                        .FontSize(7)
-                                        .FontColor(Colors.Grey.Darken2);
+    .Column(column =>
+    {
+        column.Item()
+            .BorderTop(1)
+            .BorderColor(Colors.Grey.Darken1)
+            .PaddingTop(5)
+            .Row(row =>
+            {
+                row.RelativeItem()
+                    .AlignLeft()
+                    .Text("Sistema POS")
+                    .FontSize(7)
+                    .FontColor(Colors.Grey.Darken2);
 
-                                    row.RelativeItem()
-                                        .AlignCenter()
-                                        .Text(text =>
-                                        {
-                                            text.Span("Página ");
-                                            text.CurrentPageNumber();
-                                            text.Span(" de ");
-                                            text.TotalPages();
-                                        });
+                row.RelativeItem()
+                    .AlignCenter()
+                    .Text(text =>
+                    {
+                        text.Span("Página ");
+                        text.CurrentPageNumber();
+                        text.Span(" de ");
+                        text.TotalPages();
+                    });
 
-                                    row.RelativeItem()
-                                        .AlignRight()
-                                        .Text($"{DateTime.Now:dd/MM/yyyy}")
-                                        .FontSize(7)
-                                        .FontColor(Colors.Grey.Darken2);
-                                });
-                        });
+                row.RelativeItem()
+                    .AlignRight()
+                    .Text($"{DateTime.Now:dd/MM/yyyy}")
+                    .FontSize(7)
+                    .FontColor(Colors.Grey.Darken2);
+            });
+    });
                 });
             })
             .GeneratePdf(rutaArchivo);

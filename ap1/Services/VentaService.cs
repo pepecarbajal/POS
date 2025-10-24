@@ -36,8 +36,7 @@ namespace POS.Services
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
 
-        // NUEVO: Obtener venta pendiente por NFC
-        public async Task<Venta> GetVentaPendienteByIdNfcAsync(string idNfc)
+                public async Task<Venta> GetVentaPendienteByIdNfcAsync(string idNfc)
         {
             return await _context.Ventas
                 .Include(v => v.DetallesVenta)
@@ -47,8 +46,7 @@ namespace POS.Services
                 .FirstOrDefaultAsync();
         }
 
-        // NUEVO: Obtener todas las ventas pendientes
-        public async Task<IEnumerable<Venta>> GetVentasPendientesAsync()
+                public async Task<IEnumerable<Venta>> GetVentasPendientesAsync()
         {
             return await _context.Ventas
                 .Include(v => v.DetallesVenta)
@@ -59,8 +57,7 @@ namespace POS.Services
                 .ToListAsync();
         }
 
-        // NUEVO: Finalizar venta pendiente
-        public async Task<Venta> FinalizarVentaPendienteAsync(string idNfc, decimal excedente = 0)
+                public async Task<Venta> FinalizarVentaPendienteAsync(string idNfc, decimal excedente = 0)
         {
             var venta = await _context.Ventas
                 .Include(v => v.DetallesVenta)
@@ -71,14 +68,12 @@ namespace POS.Services
                 throw new InvalidOperationException($"No se encontró una venta pendiente para el NFC: {idNfc}");
             }
 
-            // Agregar excedente al total si existe
-            if (excedente > 0)
+                        if (excedente > 0)
             {
                 venta.Total += excedente;
             }
 
-            // Cambiar estado a finalizada
-            venta.Estado = (int)EstadoVenta.Finalizada;
+                        venta.Estado = (int)EstadoVenta.Finalizada;
 
             _context.Ventas.Update(venta);
             await _context.SaveChangesAsync();

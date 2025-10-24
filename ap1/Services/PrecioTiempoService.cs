@@ -33,11 +33,7 @@ namespace POS.Services
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        /// <summary>
-        /// Actualiza únicamente el precio de un PrecioTiempo existente.
-        /// No permite modificar Minutos, Orden, Estado u otros campos.
-        /// </summary>
-        public async Task<bool> UpdatePrecioAsync(int id, decimal nuevoPrecio)
+                                        public async Task<bool> UpdatePrecioAsync(int id, decimal nuevoPrecio)
         {
             if (nuevoPrecio <= 0)
             {
@@ -48,8 +44,7 @@ namespace POS.Services
             if (existingPrecio == null)
                 return false;
 
-            // Solo actualizar el precio
-            existingPrecio.Precio = nuevoPrecio;
+                        existingPrecio.Precio = nuevoPrecio;
 
             await _context.SaveChangesAsync();
             return true;

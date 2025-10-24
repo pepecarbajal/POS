@@ -47,8 +47,7 @@ namespace POS.Services
 
         public async Task<Tiempo> RegistrarEntradaAsync(string idNfc)
         {
-            // Verificar si ya existe una entrada activa para este IdNfc
-            var entradaActiva = await GetTiempoActivoByIdNfcAsync(idNfc);
+                        var entradaActiva = await GetTiempoActivoByIdNfcAsync(idNfc);
             if (entradaActiva != null)
             {
                 throw new InvalidOperationException($"Ya existe una entrada activa para el IdNfc: {idNfc}");
@@ -85,10 +84,8 @@ namespace POS.Services
 
             var horaSalida = DateTime.Now;
 
-            // Validar que haya pasado al menos 1 minuto
-            var diferenciaMinutos = (horaSalida - tiempo.HoraEntrada).TotalMinutes;
-            // if (diferenciaMinutos < 1){throw new InvalidOperationException("Debe transcurrir al menos 1 minuto desde la hora de entrada.");}
-
+                        var diferenciaMinutos = (horaSalida - tiempo.HoraEntrada).TotalMinutes;
+            
             tiempo.HoraSalida = horaSalida;
             tiempo.Total = await CalcularTotalAsync(tiempo.HoraEntrada, horaSalida, porcentajeDescuento);
             tiempo.Estado = "Finalizado";
@@ -116,20 +113,12 @@ namespace POS.Services
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Calcula el total a cobrar basado en el tiempo transcurrido y el porcentaje de descuento.
-        /// El cálculo se hace dividiendo el precio base entre los minutos del tramo,
-        /// obteniendo el precio por minuto, y multiplicándolo por los minutos usados.
-        /// Para tiempos que exceden un tramo, se calcula el excedente de la misma manera.
-        /// Los precios son obtenidos dinámicamente desde la base de datos.
-        /// </summary>
-        private async Task<decimal> CalcularTotalAsync(DateTime horaEntrada, DateTime horaSalida, decimal porcentajeDescuento)
+                                                                private async Task<decimal> CalcularTotalAsync(DateTime horaEntrada, DateTime horaSalida, decimal porcentajeDescuento)
         {
             var tiempoTranscurrido = horaSalida - horaEntrada;
             var minutosTotales = (int)Math.Ceiling(tiempoTranscurrido.TotalMinutes);
 
-            // Obtener los precios desde la base de datos ordenados por orden
-            var precios = await _precioTiempoService.GetPreciosTiempoActivosAsync();
+                        var precios = await _precioTiempoService.GetPreciosTiempoActivosAsync();
 
             if (precios == null || !precios.Any())
             {
@@ -146,20 +135,17 @@ namespace POS.Services
                 var minutosTramo = tramo.Minutos;
                 var precioTramo = tramo.Precio;
 
-                // Si es el primer tramo
-                if (i == 0)
+                                if (i == 0)
                 {
                     if (minutosRestantes <= minutosTramo)
                     {
-                        // Está dentro del primer tramo
-                        decimal precioPorMinuto = precioTramo / minutosTramo;
+                                                decimal precioPorMinuto = precioTramo / minutosTramo;
                         precioTotal = precioPorMinuto * minutosRestantes;
                         break;
                     }
                     else
                     {
-                        // Usa todo el primer tramo
-                        decimal precioPorMinuto = precioTramo / minutosTramo;
+                                                decimal precioPorMinuto = precioTramo / minutosTramo;
                         precioTotal += precioPorMinuto * minutosTramo;
                         minutosRestantes -= minutosTramo;
                         minutosAcumulados = minutosTramo;
@@ -167,22 +153,19 @@ namespace POS.Services
                 }
                 else
                 {
-                    // Tramos siguientes: calcular excedentes
-                    var tramoAnterior = precios[i - 1];
+                                        var tramoAnterior = precios[i - 1];
                     int minutosExcedenteTramo = minutosTramo - tramoAnterior.Minutos;
                     decimal precioExcedenteTramo = precioTramo - tramoAnterior.Precio;
 
                     if (minutosRestantes <= minutosExcedenteTramo)
                     {
-                        // Los minutos restantes están dentro de este tramo
-                        decimal precioPorMinutoExcedente = precioExcedenteTramo / minutosExcedenteTramo;
+                                                decimal precioPorMinutoExcedente = precioExcedenteTramo / minutosExcedenteTramo;
                         precioTotal += precioPorMinutoExcedente * minutosRestantes;
                         break;
                     }
                     else
                     {
-                        // Usa todo el excedente de este tramo
-                        decimal precioPorMinutoExcedente = precioExcedenteTramo / minutosExcedenteTramo;
+                                                decimal precioPorMinutoExcedente = precioExcedenteTramo / minutosExcedenteTramo;
                         precioTotal += precioPorMinutoExcedente * minutosExcedenteTramo;
                         minutosRestantes -= minutosExcedenteTramo;
                         minutosAcumulados += minutosExcedenteTramo;
@@ -190,8 +173,7 @@ namespace POS.Services
                 }
             }
 
-            // Si quedan minutos después del último tramo configurado, usar el precio por minuto del último tramo
-            if (minutosRestantes > 0 && precios.Count > 0)
+                        if (minutosRestantes > 0 && precios.Count > 0)
             {
                 var ultimoTramo = precios[precios.Count - 1];
 
@@ -205,14 +187,12 @@ namespace POS.Services
                 }
                 else
                 {
-                    // Solo hay un tramo configurado
-                    decimal precioPorMinuto = ultimoTramo.Precio / ultimoTramo.Minutos;
+                                        decimal precioPorMinuto = ultimoTramo.Precio / ultimoTramo.Minutos;
                     precioTotal += precioPorMinuto * minutosRestantes;
                 }
             }
 
-            // Aplicar descuento
-            if (porcentajeDescuento > 0)
+                        if (porcentajeDescuento > 0)
             {
                 decimal descuento = precioTotal * (porcentajeDescuento / 100m);
                 precioTotal -= descuento;

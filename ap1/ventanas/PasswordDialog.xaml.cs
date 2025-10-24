@@ -5,7 +5,7 @@ namespace POS.Ventanas
 {
     public partial class PasswordDialog : Window
     {
-        private const string ADMIN_PASSWORD = "1234";
+        private const string ADMIN_PASSWORD = "";
 
         public bool IsAuthenticated { get; private set; } = false;
 

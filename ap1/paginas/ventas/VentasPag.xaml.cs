@@ -14,8 +14,7 @@ using System.Collections.Generic;
 using POS.ventanas;
 using POS.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using System.Windows.Threading; // al inicio del archivo
-
+using System.Windows.Threading;
 namespace POS.paginas.ventas
 {
     public partial class VentasPag : Page
@@ -40,7 +39,6 @@ namespace POS.paginas.ventas
         private bool _esperandoTarjeta = false;
         private string _accionEsperada = "";
 
-        // NUEVO: Para manejar combos con tiempo
         private bool _carritoTieneComboConTiempo = false;
         private int? _comboConTiempoId = null;
         private int _minutosComboTiempo = 0;
@@ -64,10 +62,9 @@ namespace POS.paginas.ventas
             _nfcReaderService = App.ServiceProvider.GetService<INFCReaderService>()
                 ?? throw new InvalidOperationException("NFCReaderService no está registrado");
 
-            // 🔁 NUEVO: Verificación periódica del estado del lector NFC
             var nfcCheckTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(5) // cada 5 segundos
+                Interval = TimeSpan.FromSeconds(5)
             };
 
             nfcCheckTimer.Tick += (s, e) =>
@@ -76,7 +73,7 @@ namespace POS.paginas.ventas
                 {
                     if (!_nfcReaderService.IsConnected)
                     {
-                        _nfcReaderService.Initialize(); // ⚡ vuelve a intentar conexión
+                        _nfcReaderService.Initialize();
                     }
                 }
                 catch (Exception ex)
@@ -109,7 +106,6 @@ namespace POS.paginas.ventas
             {
                 if (!_esperandoTarjeta) return;
 
-                // ⭐ Ocultar indicador y restaurar botón
                 WaitingIndicator.Visibility = Visibility.Collapsed;
                 PendienteButton.Content = "Guardar Pendiente";
                 PendienteButton.IsEnabled = true;
@@ -146,7 +142,6 @@ namespace POS.paginas.ventas
         {
             try
             {
-                // ✅ Verificar si ya existe una venta pendiente con este NFC
                 var ventaExistente = await _ventaService.GetVentaPendienteByIdNfcAsync(idNfc);
                 if (ventaExistente != null)
                 {
@@ -155,7 +150,6 @@ namespace POS.paginas.ventas
                     return;
                 }
 
-                // ✅ Verificar si ya hay un tiempo individual activo con esta tarjeta
                 var tiempoActivo = await _tiempoService.GetTiempoActivoByIdNfcAsync(idNfc);
                 if (tiempoActivo != null)
                 {
@@ -164,7 +158,6 @@ namespace POS.paginas.ventas
                     return;
                 }
 
-                // Crear la venta pendiente
                 var venta = new Venta
                 {
                     Fecha = DateTime.Now,
@@ -176,7 +169,6 @@ namespace POS.paginas.ventas
                     DetallesVenta = new List<DetalleVenta>()
                 };
 
-                // Procesar items del carrito
                 foreach (var item in Carrito)
                 {
                     if (item.ProductoId > 0)
@@ -204,7 +196,6 @@ namespace POS.paginas.ventas
                     }
                     else if (item.ProductoId < 0 && !item.Nombre.StartsWith("Tiempo"))
                     {
-                        // Es un combo
                         int comboId = -item.ProductoId;
                         var combo = await _context.Combos
                             .Include(c => c.ComboProductos)
@@ -245,14 +236,12 @@ namespace POS.paginas.ventas
                     }
                 }
 
-                // Guardar la venta pendiente
                 await _ventaService.CreateVentaAsync(venta);
                 await _context.SaveChangesAsync();
 
                 MessageBox.Show($"Venta asociada a la tarjeta {idNfc}.\nHora de entrada: {venta.HoraEntrada:HH:mm}\nTiempo incluido: {_minutosComboTiempo} minutos",
                     "Venta Pendiente Registrada", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                // Limpiar carrito y estados
                 Carrito.Clear();
 
                 _carritoTieneComboConTiempo = false;
@@ -265,7 +254,7 @@ namespace POS.paginas.ventas
                 ActualizarTotales();
                 LoadProductosAsync();
 
-                await LoadTiemposActivosAsync(); // Refrescar lista
+                await LoadTiemposActivosAsync();
             }
             catch (Exception ex)
             {
@@ -274,8 +263,6 @@ namespace POS.paginas.ventas
         }
 
 
-        // NUEVO: Finalizar combo con tiempo
-        // MÉTODO ACTUALIZADO: Finalizar combo con tiempo
         private async Task FinalizarComboConTiempo(string idNfc)
         {
             try
@@ -376,7 +363,6 @@ namespace POS.paginas.ventas
                 var ticketWindow = new VentaTicketWindow(ventaFinalizada, itemsParaTicket, 0, 0);
                 ticketWindow.ShowDialog();
 
-                // ⭐ NUEVO: Recargar la lista de tiempos activos
                 await LoadTiemposActivosAsync();
             }
             catch (Exception ex)
@@ -403,10 +389,9 @@ namespace POS.paginas.ventas
             {
                 try
                 {
-                    // Reactivar tiempos individuales finalizados
                     var tiemposAReactivar = Carrito
-                        .Where(i => i.ProductoId < 0 && i.Nombre.StartsWith("Tiempo") && i.ProductoId != -999)
-                        .ToList();
+    .Where(i => i.ProductoId < 0 && i.Nombre.StartsWith("Tiempo") && i.ProductoId != -999)
+    .ToList();
 
                     foreach (var itemTiempo in tiemposAReactivar)
                     {
@@ -414,10 +399,8 @@ namespace POS.paginas.ventas
                         await ReactivarTiempo(tiempoId);
                     }
 
-                    // ⭐ NUEVO: Restaurar ventas/tiempos recuperables
                     await RestaurarItemsRecuperables();
 
-                    // Eliminar excedente de venta pendiente recuperada si existe
                     if (_ventaPendienteRecuperada != null)
                     {
                         var detalleExcedente = _ventaPendienteRecuperada.DetallesVenta
@@ -430,7 +413,6 @@ namespace POS.paginas.ventas
                         }
                     }
 
-                    // Limpiar el carrito y estados
                     Carrito.Clear();
                     RecibidoTextBox.Text = "0";
                     _montoRecibido = 0;
@@ -445,7 +427,6 @@ namespace POS.paginas.ventas
 
                     ActualizarTotales();
 
-                    // Refrescar vista de tiempos si está activa
                     if (_mostrandoTiempo)
                     {
                         await LoadTiemposActivosAsync();
@@ -462,7 +443,6 @@ namespace POS.paginas.ventas
 
         private void CancelarWaiting_Click(object sender, RoutedEventArgs e)
         {
-            // ⭐ Restaurar estado del botón al cancelar
             WaitingIndicator.Visibility = Visibility.Collapsed;
             PendienteButton.Content = "Guardar Pendiente";
             PendienteButton.IsEnabled = true;
@@ -479,7 +459,6 @@ namespace POS.paginas.ventas
                 return;
             }
 
-            // ✅ Verificar si la tarjeta ya tiene una venta pendiente con combo de tiempo
             var ventaPendienteCombo = await _ventaService.GetVentaPendienteByIdNfcAsync(idNfc);
             if (ventaPendienteCombo != null && ventaPendienteCombo.MinutosTiempoCombo.HasValue && ventaPendienteCombo.MinutosTiempoCombo > 0)
             {
@@ -488,7 +467,6 @@ namespace POS.paginas.ventas
                 return;
             }
 
-            // Verificar si ya existe un tiempo individual activo
             var entradaActiva = await _tiempoService.GetTiempoActivoByIdNfcAsync(idNfc);
             if (entradaActiva != null)
             {
@@ -496,14 +474,12 @@ namespace POS.paginas.ventas
                 return;
             }
 
-            // Registrar nueva entrada
             var tiempo = await _tiempoService.RegistrarEntradaAsync(idNfc);
 
             await LoadTiemposActivosAsync();
         }
 
 
-        // Método actualizado para finalizar tiempo (detectar si es combo o tiempo individual)
         private async Task FinalizarTiempoConNFC(string idNfc)
         {
             if (string.IsNullOrWhiteSpace(idNfc))
@@ -512,17 +488,13 @@ namespace POS.paginas.ventas
                 return;
             }
 
-            // ⭐ CAMBIO: Primero verificar si es una venta pendiente con combo
             var ventaPendiente = await _ventaService.GetVentaPendienteByIdNfcAsync(idNfc);
             if (ventaPendiente != null && ventaPendiente.MinutosTiempoCombo.HasValue && ventaPendiente.MinutosTiempoCombo > 0)
             {
-                // Es un combo con tiempo, usar el método de finalizar combo
                 await FinalizarComboConTiempo(idNfc);
-                await LoadTiemposActivosAsync(); // Recargar la lista
-                return;
+                await LoadTiemposActivosAsync(); return;
             }
 
-            // ⭐ NUEVO: Verificar si hay combo con tiempo en el carrito antes de agregar tiempo individual
             if (_carritoTieneComboConTiempo)
             {
                 MessageBox.Show("No puedes agregar tiempos individuales mientras tengas un combo con tiempo en el carrito.\n\nFinaliza el combo primero o cancela la venta.",
@@ -530,7 +502,6 @@ namespace POS.paginas.ventas
                 return;
             }
 
-            // Si no es venta pendiente, buscar como tiempo individual
             var entradaActiva = await _tiempoService.GetTiempoActivoByIdNfcAsync(idNfc);
             if (entradaActiva == null)
             {
@@ -664,7 +635,6 @@ namespace POS.paginas.ventas
 
                 TiemposActivos.Clear();
 
-                // 1. Cargar tiempos individuales activos
                 var tiemposActivos = await _tiempoService.GetTiemposActivosAsync();
 
                 foreach (var tiempo in tiemposActivos)
@@ -682,21 +652,19 @@ namespace POS.paginas.ventas
                     });
                 }
 
-                // 2. ⭐ NUEVO: Cargar ventas pendientes con combos de tiempo
                 var ventasPendientes = await _context.Ventas
-                    .Include(v => v.DetallesVenta)
-                    .Where(v => v.Estado == (int)EstadoVenta.Pendiente &&
-                               v.HoraEntrada.HasValue &&
-                               v.MinutosTiempoCombo.HasValue &&
-                               v.MinutosTiempoCombo > 0)
-                    .AsNoTracking()
-                    .ToListAsync();
+    .Include(v => v.DetallesVenta)
+    .Where(v => v.Estado == (int)EstadoVenta.Pendiente &&
+               v.HoraEntrada.HasValue &&
+               v.MinutosTiempoCombo.HasValue &&
+               v.MinutosTiempoCombo > 0)
+    .AsNoTracking()
+    .ToListAsync();
 
                 foreach (var venta in ventasPendientes)
                 {
-                    // Obtener el nombre del combo desde los detalles
                     var detalleCombo = venta.DetallesVenta
-                        .FirstOrDefault(d => d.TipoItem == (int)TipoItemVenta.Combo);
+    .FirstOrDefault(d => d.TipoItem == (int)TipoItemVenta.Combo);
 
                     string nombreCombo = detalleCombo?.NombreItem ?? "Combo";
 
@@ -713,7 +681,6 @@ namespace POS.paginas.ventas
                     });
                 }
 
-                // Ordenar por hora de entrada (más recientes primero)
                 var tiemposOrdenados = TiemposActivos.OrderByDescending(t => t.HoraEntrada).ToList();
                 TiemposActivos.Clear();
                 foreach (var tiempo in tiemposOrdenados)
@@ -1000,10 +967,8 @@ namespace POS.paginas.ventas
         {
             if (sender is Border border && border.DataContext is ProductoVenta producto)
             {
-                // ⭐ CAMBIO 1: Verificar si es un combo con tiempo
                 if (producto.EsCombo && producto.TieneTiempo)
                 {
-                    // Verificar si ya hay un combo con tiempo en el carrito
                     if (_carritoTieneComboConTiempo)
                     {
                         MessageBox.Show("Solo puedes tener un combo con tiempo en el carrito a la vez.",
@@ -1011,10 +976,9 @@ namespace POS.paginas.ventas
                         return;
                     }
 
-                    // ⭐ NUEVO: Verificar que no haya TIEMPOS INDIVIDUALES
                     var tiemposIndividuales = Carrito.Where(i =>
-                        i.ProductoId < 0 && i.Nombre.StartsWith("Tiempo") && i.ProductoId != -999
-                    ).ToList();
+    i.ProductoId < 0 && i.Nombre.StartsWith("Tiempo") && i.ProductoId != -999
+).ToList();
 
                     if (tiemposIndividuales.Any())
                     {
@@ -1025,7 +989,6 @@ namespace POS.paginas.ventas
 
                     await AgregarComboAlCarrito(producto.ComboId);
 
-                    // Marcar que hay un combo con tiempo
                     _carritoTieneComboConTiempo = true;
                     _comboConTiempoId = producto.ComboId;
                     _minutosComboTiempo = producto.MinutosTiempo;
@@ -1033,10 +996,8 @@ namespace POS.paginas.ventas
                     return;
                 }
 
-                // ⭐ CAMBIO 2: Permitir combos SIN tiempo siempre
                 if (producto.EsCombo && !producto.TieneTiempo)
                 {
-                    // Solo verificar que no haya tiempos individuales si hay combo con tiempo
                     if (_carritoTieneComboConTiempo)
                     {
                         var tiemposIndividuales = Carrito.Where(i =>
@@ -1055,12 +1016,10 @@ namespace POS.paginas.ventas
                     return;
                 }
 
-                // ⭐ CAMBIO 3: Permitir productos individuales SIEMPRE (excepto si hay tiempos individuales o combo con tiempo)
 
-                // Verificar si hay tiempos individuales en el carrito
                 var hayTiemposIndividuales = Carrito.Any(i =>
-                    i.ProductoId < 0 && i.Nombre.StartsWith("Tiempo") && i.ProductoId != -999
-                );
+    i.ProductoId < 0 && i.Nombre.StartsWith("Tiempo") && i.ProductoId != -999
+);
 
                 if (hayTiemposIndividuales)
                 {
@@ -1069,14 +1028,10 @@ namespace POS.paginas.ventas
                     return;
                 }
 
-                // ⭐ NUEVO: No permitir productos si hay combo con tiempo
                 if (_carritoTieneComboConTiempo)
                 {
-                    // Permitir agregar productos normalmente cuando hay combo con tiempo
-                    // (ya no hay restricción aquí)
                 }
 
-                // Lógica normal para productos individuales
                 var itemExistente = Carrito.FirstOrDefault(i => i.ProductoId == producto.Id);
 
                 if (itemExistente != null)
@@ -1119,14 +1074,12 @@ namespace POS.paginas.ventas
             {
                 try
                 {
-                    // Procesar items ADICIONALES del carrito que no estén en la venta original
                     var idsDetallesOriginales = _ventaPendienteRecuperada.DetallesVenta
-                        .Select(d => d.ProductoId ?? 0)
-                        .ToHashSet();
+    .Select(d => d.ProductoId ?? 0)
+    .ToHashSet();
 
                     foreach (var item in Carrito)
                     {
-                        // ⭐ NUEVO: Manejar cargo por tarjeta extraviada
                         if (item.ProductoId == -998)
                         {
                             var detalleTarjeta = new DetalleVenta
@@ -1146,19 +1099,16 @@ namespace POS.paginas.ventas
                             continue;
                         }
 
-                        // Verificar si es un item nuevo (no estaba en la venta original)
                         bool esItemNuevo = false;
 
                         if (item.ProductoId == -999)
                         {
-                            // Es el excedente, siempre es nuevo
                             esItemNuevo = true;
                         }
                         else if (item.ProductoId > 0)
                         {
-                            // Es un producto
                             var detalleExistente = _ventaPendienteRecuperada.DetallesVenta
-                                .FirstOrDefault(d => d.ProductoId == item.ProductoId && d.TipoItem == (int)TipoItemVenta.Producto);
+    .FirstOrDefault(d => d.ProductoId == item.ProductoId && d.TipoItem == (int)TipoItemVenta.Producto);
 
                             if (detalleExistente != null)
                             {
@@ -1176,7 +1126,6 @@ namespace POS.paginas.ventas
                         }
                         else if (item.ProductoId < 0 && !item.Nombre.StartsWith("Tiempo") && item.ProductoId != -999)
                         {
-                            // Es un combo
                             int comboId = -item.ProductoId;
                             var detalleExistente = _ventaPendienteRecuperada.DetallesVenta
                                 .FirstOrDefault(d => d.ItemReferenciaId == comboId && d.TipoItem == (int)TipoItemVenta.Combo);
@@ -1197,7 +1146,6 @@ namespace POS.paginas.ventas
                         }
                         else if (item.ProductoId < 0 && item.Nombre.StartsWith("Tiempo"))
                         {
-                            // Es un tiempo normal (no excedente)
                             int tiempoId = -item.ProductoId;
                             var detalleExistente = _ventaPendienteRecuperada.DetallesVenta
                                 .FirstOrDefault(d => d.ItemReferenciaId == tiempoId && d.TipoItem == (int)TipoItemVenta.Tiempo);
@@ -1208,12 +1156,10 @@ namespace POS.paginas.ventas
                             }
                         }
 
-                        // Si es un item nuevo, agregarlo
                         if (esItemNuevo)
                         {
                             if (item.ProductoId == -999)
                             {
-                                // Es el excedente
                                 var detalleExcedente = new DetalleVenta
                                 {
                                     VentaId = _ventaPendienteRecuperada.Id,
@@ -1231,7 +1177,6 @@ namespace POS.paginas.ventas
                             }
                             else if (item.ProductoId > 0)
                             {
-                                // Es un producto nuevo
                                 var producto = await _context.Productos.FindAsync(item.ProductoId);
                                 if (producto == null)
                                 {
@@ -1263,7 +1208,6 @@ namespace POS.paginas.ventas
                             }
                             else if (item.ProductoId < 0 && !item.Nombre.StartsWith("Tiempo"))
                             {
-                                // Es un combo nuevo
                                 int comboId = -item.ProductoId;
                                 var combo = await _context.Combos
                                     .Include(c => c.ComboProductos)
@@ -1317,7 +1261,6 @@ namespace POS.paginas.ventas
                             }
                             else if (item.ProductoId < 0 && item.Nombre.StartsWith("Tiempo"))
                             {
-                                // Es un tiempo normal nuevo
                                 int tiempoId = -item.ProductoId;
 
                                 var tiempo = await _context.Tiempos.FindAsync(tiempoId);
@@ -1381,8 +1324,7 @@ namespace POS.paginas.ventas
                     _carritoTieneComboConTiempo = false;
                     _comboConTiempoId = null;
                     _minutosComboTiempo = 0;
-                    _itemsRecuperables.Clear(); // ⭐ Limpiar recuperables al finalizar
-
+                    _itemsRecuperables.Clear();
                     FinalizarVentaButton.Visibility = Visibility.Visible;
                     PendienteButton.Visibility = Visibility.Collapsed;
 
@@ -1424,7 +1366,6 @@ namespace POS.paginas.ventas
 
                 foreach (var item in Carrito)
                 {
-                    // ⭐ NUEVO: Manejar cargo por tarjeta extraviada en venta nueva
                     if (item.ProductoId == -998)
                     {
                         venta.DetallesVenta.Add(new DetalleVenta
@@ -1578,8 +1519,7 @@ namespace POS.paginas.ventas
                 RecibidoTextBox.Text = "0";
                 _montoRecibido = 0;
                 _cambio = 0;
-                _itemsRecuperables.Clear(); // ⭐ Limpiar recuperables al finalizar
-
+                _itemsRecuperables.Clear();
                 ActualizarTotales();
                 LoadProductosAsync();
             }
@@ -1606,10 +1546,9 @@ namespace POS.paginas.ventas
                 return;
             }
 
-            // ⭐ Validar que NO haya tiempos individuales
             var tiemposIndividuales = Carrito.Where(i =>
-                i.ProductoId < 0 && i.Nombre.StartsWith("Tiempo") && i.ProductoId != -999
-            ).ToList();
+    i.ProductoId < 0 && i.Nombre.StartsWith("Tiempo") && i.ProductoId != -999
+).ToList();
 
             if (tiemposIndividuales.Any())
             {
@@ -1626,7 +1565,6 @@ namespace POS.paginas.ventas
                     return;
                 }
 
-                // ⭐ Cambiar texto del botón y deshabilitar
                 PendienteButton.Content = "⏳ Esperando tarjeta...";
                 PendienteButton.IsEnabled = false;
 
@@ -1639,7 +1577,6 @@ namespace POS.paginas.ventas
             }
             catch (Exception ex)
             {
-                // ⭐ Restaurar botón en caso de error
                 PendienteButton.Content = "Guardar Pendiente";
                 PendienteButton.IsEnabled = true;
                 MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -1675,7 +1612,6 @@ namespace POS.paginas.ventas
             decimal total = Carrito.Sum(i => i.Total);
             TotalTextBlock.Text = $"${total:N2}";
 
-            // Recalcular cambio cuando cambia el total
             if (_montoRecibido > 0)
             {
                 _cambio = Math.Max(0, _montoRecibido - total);
@@ -1695,23 +1631,19 @@ namespace POS.paginas.ventas
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    // Si es un ítem de tiempo, reactivarlo antes de eliminarlo
                     if (item.ProductoId < 0 && item.Nombre.StartsWith("Tiempo") && item.ProductoId != -999)
                     {
                         int tiempoId = -item.ProductoId;
                         await ReactivarTiempo(tiempoId);
                     }
 
-                    // ⭐ NUEVO: Verificar si este item pertenece a una venta/tiempo recuperable
                     var recuperable = _itemsRecuperables.FirstOrDefault(r =>
-                        r.Items.Any(i => i.ProductoId == item.ProductoId && i.Nombre == item.Nombre));
+    r.Items.Any(i => i.ProductoId == item.ProductoId && i.Nombre == item.Nombre));
 
                     if (recuperable != null)
                     {
-                        // Remover solo este item de la lista de items recuperables
                         recuperable.Items.RemoveAll(i => i.ProductoId == item.ProductoId && i.Nombre == item.Nombre);
 
-                        // Si ya no quedan items de este recuperable en el carrito, restaurarlo
                         if (!recuperable.Items.Any(i => Carrito.Contains(i)))
                         {
                             await RestaurarItemRecuperable(recuperable);
@@ -1830,7 +1762,6 @@ namespace POS.paginas.ventas
                         return;
                     }
 
-                    // Para combos SIN tiempo, verificar stock y permitir múltiples unidades
                     bool stockSuficiente = true;
                     foreach (var comboProducto in combo.ComboProductos)
                     {
@@ -1908,18 +1839,15 @@ namespace POS.paginas.ventas
 
         private void RecibidoTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            // Solo permitir números y un punto decimal
             var textBox = sender as TextBox;
             var fullText = textBox.Text.Insert(textBox.SelectionStart, e.Text);
 
-            // Permitir solo números y un punto
             if (!System.Text.RegularExpressions.Regex.IsMatch(e.Text, @"^[0-9.]$"))
             {
                 e.Handled = true;
                 return;
             }
 
-            // No permitir más de un punto
             if (e.Text == "." && textBox.Text.Contains("."))
             {
                 e.Handled = true;
@@ -1927,7 +1855,6 @@ namespace POS.paginas.ventas
         }
 
 
-        // Nuevo método LoadCombosAsync modificado para incluir PrecioTiempo
         private async void LoadCombosAsync()
         {
             try
@@ -1935,14 +1862,13 @@ namespace POS.paginas.ventas
                 _mostrandoCombos = true;
                 _mostrandoTiempo = false;
 
-                // ACTUALIZADO: Incluir PrecioTiempo para combos con tiempo
                 var combosDb = await _context.Combos
-                    .Include(c => c.ComboProductos)
-                    .ThenInclude(cp => cp.Producto)
-                    .Include(c => c.PrecioTiempo)
-                    .Where(c => c.Estado == "Activo")
-                    .AsNoTracking()
-                    .ToListAsync();
+    .Include(c => c.ComboProductos)
+    .ThenInclude(cp => cp.Producto)
+    .Include(c => c.PrecioTiempo)
+    .Where(c => c.Estado == "Activo")
+    .AsNoTracking()
+    .ToListAsync();
 
                 _todosLosProductos.Clear();
                 Productos.Clear();
@@ -2024,12 +1950,10 @@ namespace POS.paginas.ventas
                     {
                         if (tiempo.EsCombo)
                         {
-                            // Es una venta pendiente con combo
                             await MoverVentaPendienteACarrito(tiempo);
                         }
                         else
                         {
-                            // Es un tiempo individual
                             await MoverTiempoACarrito(tiempo);
                         }
 
@@ -2043,15 +1967,14 @@ namespace POS.paginas.ventas
                 }
                 else
                 {
-                    // ⭐ NUEVO: Si no se extravió, preguntar si quiere eliminar el registro
                     var resultEliminar = MessageBox.Show(
-                        $"¿Desea eliminar permanentemente este {(tiempo.EsCombo ? "combo" : "tiempo")} de los registros?\n\n" +
-                        $"Tarjeta: {tiempo.IdNfc}\n" +
-                        $"Hora entrada: {tiempo.HoraEntrada:HH:mm}\n\n" +
-                        "⚠ ADVERTENCIA: Esta acción eliminará el registro de la base de datos y no se podrá recuperar.",
-                        "Confirmar eliminación",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Warning);
+    $"¿Desea eliminar permanentemente este {(tiempo.EsCombo ? "combo" : "tiempo")} de los registros?\n\n" +
+    $"Tarjeta: {tiempo.IdNfc}\n" +
+    $"Hora entrada: {tiempo.HoraEntrada:HH:mm}\n\n" +
+    "⚠ ADVERTENCIA: Esta acción eliminará el registro de la base de datos y no se podrá recuperar.",
+    "Confirmar eliminación",
+    MessageBoxButton.YesNo,
+    MessageBoxImage.Warning);
 
                     if (resultEliminar == MessageBoxResult.Yes)
                     {
@@ -2059,12 +1982,10 @@ namespace POS.paginas.ventas
                         {
                             if (tiempo.EsCombo)
                             {
-                                // Eliminar venta pendiente
                                 await EliminarVentaPendiente(tiempo.Id);
                             }
                             else
                             {
-                                // Eliminar tiempo individual
                                 await EliminarTiempoIndividual(tiempo.Id);
                             }
 
@@ -2076,7 +1997,6 @@ namespace POS.paginas.ventas
                             MessageBox.Show($"Error al eliminar: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                         }
                     }
-                    // Si dice "No", no hacer nada
                 }
             }
         }
@@ -2091,10 +2011,8 @@ namespace POS.paginas.ventas
             if (venta == null)
                 throw new InvalidOperationException("No se encontró la venta pendiente");
 
-            // ⭐ IMPORTANTE: Marcar que estamos recuperando esta venta pendiente
             _ventaPendienteRecuperada = venta;
 
-            // Guardar información para restauración
             var recuperable = new VentaTiempoRecuperable
             {
                 Id = venta.Id,
@@ -2105,7 +2023,6 @@ namespace POS.paginas.ventas
                 Items = new List<ItemCarrito>()
             };
 
-            // Calcular excedente si aplica
             if (venta.HoraEntrada.HasValue)
             {
                 var tiempoTranscurrido = (DateTime.Now - venta.HoraEntrada.Value).TotalMinutes;
@@ -2153,7 +2070,6 @@ namespace POS.paginas.ventas
                 }
             }
 
-            // Mover detalles al carrito
             foreach (var detalle in venta.DetallesVenta)
             {
                 var itemCarrito = new ItemCarrito
@@ -2169,10 +2085,9 @@ namespace POS.paginas.ventas
                 Carrito.Add(itemCarrito);
             }
 
-            // ⭐ NUEVO: Agregar cargo por tarjeta extraviada
             var itemTarjetaPerdida = new ItemCarrito
             {
-                ProductoId = -998, // ID especial para identificar el cargo
+                ProductoId = -998,
                 Nombre = "Tarjeta extraviada/dañada",
                 PrecioUnitario = 50,
                 Cantidad = 1,
@@ -2184,19 +2099,16 @@ namespace POS.paginas.ventas
 
             _itemsRecuperables.Add(recuperable);
 
-            // ⭐ CORREGIDO: NO marcar como combo con tiempo para permitir finalización directa
             _carritoTieneComboConTiempo = false;
             _comboConTiempoId = null;
             _minutosComboTiempo = 0;
 
-            // ⭐ IMPORTANTE: Mostrar botón de Finalizar Venta, NO el de Guardar Pendiente
             CancelarButton.Visibility = Visibility.Visible;
             PendienteButton.Visibility = Visibility.Collapsed;
             FinalizarVentaButton.Visibility = Visibility.Visible;
 
             ActualizarTotales();
 
-            // Cambiar a vista de productos
             ProductosScrollViewer.Visibility = Visibility.Visible;
             TiempoPanel.Visibility = Visibility.Collapsed;
         }
@@ -2208,7 +2120,6 @@ namespace POS.paginas.ventas
             if (tiempoDb == null || tiempoDb.Estado != "Activo")
                 throw new InvalidOperationException("No se encontró el tiempo activo");
 
-            // Finalizar tiempo para calcular el total
             var tiempoFinalizado = await _tiempoService.RegistrarSalidaAsync(tiempoDb.Id);
 
             var tiempoTranscurrido = (tiempoFinalizado.HoraSalida!.Value - tiempoFinalizado.HoraEntrada).TotalMinutes;
@@ -2222,7 +2133,6 @@ namespace POS.paginas.ventas
                 Total = tiempoFinalizado.Total
             };
 
-            // ⭐ NUEVO: Agregar cargo por tarjeta extraviada
             var itemTarjetaPerdida = new ItemCarrito
             {
                 ProductoId = -998,
@@ -2232,7 +2142,6 @@ namespace POS.paginas.ventas
                 Total = 50
             };
 
-            // Guardar para restauración
             var recuperable = new VentaTiempoRecuperable
             {
                 Id = tiempoFinalizado.Id,
@@ -2248,7 +2157,6 @@ namespace POS.paginas.ventas
 
             ActualizarTotales();
 
-            // Cambiar a vista de productos
             ProductosScrollViewer.Visibility = Visibility.Visible;
             TiempoPanel.Visibility = Visibility.Collapsed;
         }
@@ -2266,10 +2174,9 @@ namespace POS.paginas.ventas
         {
             if (recuperable.EsCombo)
             {
-                // Restaurar venta pendiente: eliminar el cargo de tarjeta extraviada si existe
                 var venta = await _context.Ventas
-                    .Include(v => v.DetallesVenta)
-                    .FirstOrDefaultAsync(v => v.Id == recuperable.Id);
+    .Include(v => v.DetallesVenta)
+    .FirstOrDefaultAsync(v => v.Id == recuperable.Id);
 
                 if (venta != null)
                 {
@@ -2282,11 +2189,9 @@ namespace POS.paginas.ventas
                         await _context.SaveChangesAsync();
                     }
                 }
-                // La venta sigue como pendiente
             }
             else
             {
-                // Reactivar tiempo individual
                 await ReactivarTiempo(recuperable.Id);
             }
         }
@@ -2300,10 +2205,8 @@ namespace POS.paginas.ventas
             if (venta == null)
                 throw new InvalidOperationException("No se encontró la venta pendiente");
 
-            // Eliminar detalles primero (por la relación foreign key)
             _context.DetallesVenta.RemoveRange(venta.DetallesVenta);
 
-            // Eliminar la venta
             _context.Ventas.Remove(venta);
 
             await _context.SaveChangesAsync();
@@ -2316,9 +2219,8 @@ namespace POS.paginas.ventas
             if (tiempo == null)
                 throw new InvalidOperationException("No se encontró el tiempo");
 
-            // Verificar si el tiempo ya está asociado a alguna venta
             var tiempoEnVenta = await _context.DetallesVenta
-                .AnyAsync(d => d.TipoItem == (int)TipoItemVenta.Tiempo && d.ItemReferenciaId == tiempoId);
+    .AnyAsync(d => d.TipoItem == (int)TipoItemVenta.Tiempo && d.ItemReferenciaId == tiempoId);
 
             if (tiempoEnVenta)
             {
@@ -2339,9 +2241,8 @@ namespace POS.paginas.ventas
         public string? ImagenUrl { get; set; }
         public bool EsCombo { get; set; } = false;
         public int ComboId { get; set; } = 0;
-        public bool TieneTiempo { get; set; } = false; // NUEVO
-        public int? PrecioTiempoId { get; set; } // NUEVO
-        public int MinutosTiempo { get; set; } = 0; // NUEVO
+        public bool TieneTiempo { get; set; } = false; public int? PrecioTiempoId { get; set; }
+        public int MinutosTiempo { get; set; } = 0;
     }
 
     public class ItemCarrito : System.ComponentModel.INotifyPropertyChanged
@@ -2396,11 +2297,8 @@ namespace POS.paginas.ventas
         public required string IdNfc { get; set; }
         public required DateTime HoraEntrada { get; set; }
         public required string Estado { get; set; }
-        public bool EsCombo { get; set; } = false; // NUEVO
-        public string? NombreCombo { get; set; } // NUEVO
-        public int MinutosIncluidos { get; set; } = 0; // NUEVO
-        public decimal MontoTotal { get; set; } = 0; // NUEVO
-
+        public bool EsCombo { get; set; } = false; public string? NombreCombo { get; set; }
+        public int MinutosIncluidos { get; set; } = 0; public decimal MontoTotal { get; set; } = 0;
         public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName)

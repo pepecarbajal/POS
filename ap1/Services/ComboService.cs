@@ -17,8 +17,8 @@ namespace POS.Services
             _context = context;
         }
 
-        // --- Métodos CRUD para Combo ---
-
+        
+        
         public async Task<IEnumerable<Combo>> GetAllCombosAsync()
         {
             return await _context.Combos.AsNoTracking().ToListAsync();
@@ -26,11 +26,10 @@ namespace POS.Services
 
         public async Task<Combo> GetComboByIdAsync(int id)
         {
-            // Include carga los productos relacionados con este combo
             return await _context.Combos
-                                 .Include(c => c.Productos)
-                                 .AsNoTracking()
-                                 .FirstOrDefaultAsync(c => c.Id == id);
+                  .Include(c => c.Productos)
+                  .AsNoTracking()
+                  .FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task<Combo> CreateComboAsync(Combo combo)
@@ -62,8 +61,7 @@ namespace POS.Services
             return true;
         }
 
-        // --- Métodos para manejar productos en un combo ---
-
+        
         public async Task<bool> AddProductoToComboAsync(int comboId, int productoId, int cantidad = 1)
         {
             var combo = await _context.Combos.FindAsync(comboId);
@@ -74,19 +72,16 @@ namespace POS.Services
                 return false;
             }
 
-            // Check if the relationship already exists
-            var existingComboProducto = await _context.ComboProductos
+                        var existingComboProducto = await _context.ComboProductos
                 .FirstOrDefaultAsync(cp => cp.ComboId == comboId && cp.ProductoId == productoId);
 
             if (existingComboProducto != null)
             {
-                // Update existing cantidad
-                existingComboProducto.Cantidad = cantidad;
+                                existingComboProducto.Cantidad = cantidad;
             }
             else
             {
-                // Create new ComboProducto with cantidad
-                var comboProducto = new ComboProducto
+                                var comboProducto = new ComboProducto
                 {
                     ComboId = comboId,
                     ProductoId = productoId,
@@ -107,8 +102,7 @@ namespace POS.Services
             if (combo == null) return false;
 
             var producto = combo.Productos.FirstOrDefault(p => p.Id == productoId);
-            if (producto == null) return false; // El producto no estaba en el combo
-
+            if (producto == null) return false; 
             combo.Productos.Remove(producto);
             await _context.SaveChangesAsync();
             return true;
