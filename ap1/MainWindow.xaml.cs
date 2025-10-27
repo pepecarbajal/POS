@@ -1,7 +1,5 @@
 ﻿using System.Windows;
 using System.Windows.Threading;
-using System;
-using POS.Ventanas;
 
 namespace POS
 {
@@ -38,28 +36,6 @@ namespace POS
 
         private void ConfiguracionButton_Click(object sender, RoutedEventArgs e)
         {
-            // Si el submenú está abierto, solo cerrarlo
-            if (isSubmenuOpen)
-            {
-                isSubmenuOpen = false;
-                SubmenuPanel.Visibility = Visibility.Collapsed;
-                return;
-            }
-
-            // Si el submenú está cerrado, pedir contraseña antes de abrirlo
-            var passwordDialog = new PasswordDialog
-            {
-                Owner = this
-            };
-            passwordDialog.ShowDialog();
-
-            if (!passwordDialog.IsAuthenticated)
-            {
-                return; // Salir si la autenticación falló
-            }
-
-            // Si la autenticación fue exitosa, abrir el submenú
-            isSubmenuOpen = true;
             SubmenuPanel.Visibility = Visibility.Visible;
         }
 
@@ -91,6 +67,11 @@ namespace POS
         private void PrecioTiempoButton_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.Navigate(new Uri("paginas/precioTiempo/precioTiempoPag.xaml", UriKind.Relative));
+        }
+
+        private void AjustesButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.Navigate(new Uri("paginas/ajustes/AjustesPag.xaml", UriKind.Relative));
         }
     }
 }

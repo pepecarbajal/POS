@@ -1,0 +1,265 @@
+﻿<Page x:Class="POS.paginas.ajustes.AjustesPag"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      mc:Ignorable="d" 
+      d:DesignHeight="800" d:DesignWidth="1200"
+      Background="{StaticResource BackgroundGray}">
+
+    <Grid Margin="40">
+        <Border Style="{StaticResource CardStyle}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="800">
+                    <!-- Header -->
+                    <TextBlock Text="Configuración de Impresión" 
+                              Style="{StaticResource PageTitle}"/>
+
+                    <!-- Información -->
+                    <Border Background="{StaticResource BackgroundPurple}"
+                           CornerRadius="12"
+                           Padding="20"
+                           Margin="0,0,0,30">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="ℹ️" 
+                                     FontSize="28"
+                                     Margin="0,0,15,0"
+                                     VerticalAlignment="Center"/>
+                            <TextBlock TextWrapping="Wrap"
+                                     Foreground="{StaticResource HoverPurple}"
+                                     FontSize="14">
+                                <Run FontWeight="SemiBold">Importante:</Run>
+                                <Run>Configure su impresora de tickets y el ancho del papel para una correcta impresión. Esta configuración se aplicará automáticamente al imprimir tickets.</Run>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Selector de Impresora -->
+                    <Border Background="White"
+                           BorderBrush="{StaticResource BorderGray}"
+                           BorderThickness="1"
+                           CornerRadius="12"
+                           Padding="25"
+                           Margin="0,0,0,20">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                                <Border Background="{StaticResource BackgroundPurple}"
+                                       CornerRadius="10"
+                                       Width="50"
+                                       Height="50"
+                                       Margin="0,0,15,0">
+                                    <TextBlock Text="🖨️"
+                                             FontSize="28"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Impresora de Tickets"
+                                             FontSize="18"
+                                             FontWeight="Bold"
+                                             Foreground="{StaticResource TextDark}"/>
+                                    <TextBlock Text="Seleccione la impresora que desea usar para imprimir tickets"
+                                             FontSize="13"
+                                             Foreground="{StaticResource TextLight}"
+                                             Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <ComboBox x:Name="ImpresoraComboBox"
+                                     Style="{StaticResource ModernComboBoxStyle}"
+                                     SelectionChanged="ImpresoraComboBox_SelectionChanged">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" 
+                                                 FontSize="14"
+                                                 Padding="5"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+
+                            <!-- Estado de Sumatra -->
+                            <Border x:Name="SumatraEstadoBorder"
+                                   Margin="0,15,0,0"
+                                   Padding="15"
+                                   CornerRadius="8">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock x:Name="SumatraIcono"
+                                             FontSize="20"
+                                             Margin="0,0,10,0"
+                                             VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SumatraTexto"
+                                             FontSize="13"
+                                             VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Selector de Ancho -->
+                    <Border Background="White"
+                           BorderBrush="{StaticResource BorderGray}"
+                           BorderThickness="1"
+                           CornerRadius="12"
+                           Padding="25"
+                           Margin="0,0,0,20">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                                <Border Background="{StaticResource BackgroundPurple}"
+                                       CornerRadius="10"
+                                       Width="50"
+                                       Height="50"
+                                       Margin="0,0,15,0">
+                                    <TextBlock Text="📏"
+                                             FontSize="28"
+                                             HorizontalAlignment="Center"
+                                             VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Ancho del Ticket"
+                                             FontSize="18"
+                                             FontWeight="Bold"
+                                             Foreground="{StaticResource TextDark}"/>
+                                    <TextBlock Text="Seleccione el ancho del papel de su impresora de tickets"
+                                             FontSize="13"
+                                             Foreground="{StaticResource TextLight}"
+                                             Margin="0,4,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Opciones de ancho con diseño moderno -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="15"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="15"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 50mm -->
+                                <Border Grid.Column="0"
+                                       x:Name="Ancho50Border"
+                                       BorderThickness="2"
+                                       CornerRadius="12"
+                                       Padding="20"
+                                       Cursor="Hand"
+                                       Background="White"
+                                       BorderBrush="{StaticResource BorderGray}"
+                                       MouseLeftButtonDown="Ancho50_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="50mm"
+                                                 FontSize="24"
+                                                 FontWeight="Bold"
+                                                 Foreground="{StaticResource TextDark}"
+                                                 HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Compacto"
+                                                 FontSize="12"
+                                                 Foreground="{StaticResource TextLight}"
+                                                 HorizontalAlignment="Center"
+                                                 Margin="0,5,0,0"/>
+                                        <Border x:Name="Check50"
+                                               Background="{StaticResource SuccessGreen}"
+                                               CornerRadius="12"
+                                               Padding="8,4"
+                                               Margin="0,10,0,0"
+                                               HorizontalAlignment="Center"
+                                               Visibility="Collapsed">
+                                            <TextBlock Text="✓ Seleccionado"
+                                                     FontSize="11"
+                                                     FontWeight="Bold"
+                                                     Foreground="White"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- 58mm -->
+                                <Border Grid.Column="2"
+                                       x:Name="Ancho58Border"
+                                       BorderThickness="2"
+                                       CornerRadius="12"
+                                       Padding="20"
+                                       Cursor="Hand"
+                                       Background="White"
+                                       BorderBrush="{StaticResource BorderGray}"
+                                       MouseLeftButtonDown="Ancho58_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="58mm"
+                                                 FontSize="24"
+                                                 FontWeight="Bold"
+                                                 Foreground="{StaticResource TextDark}"
+                                                 HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Estándar"
+                                                 FontSize="12"
+                                                 Foreground="{StaticResource TextLight}"
+                                                 HorizontalAlignment="Center"
+                                                 Margin="0,5,0,0"/>
+                                        <Border x:Name="Check58"
+                                               Background="{StaticResource SuccessGreen}"
+                                               CornerRadius="12"
+                                               Padding="8,4"
+                                               Margin="0,10,0,0"
+                                               HorizontalAlignment="Center"
+                                               Visibility="Collapsed">
+                                            <TextBlock Text="✓ Seleccionado"
+                                                     FontSize="11"
+                                                     FontWeight="Bold"
+                                                     Foreground="White"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- 80mm -->
+                                <Border Grid.Column="4"
+                                       x:Name="Ancho80Border"
+                                       BorderThickness="2"
+                                       CornerRadius="12"
+                                       Padding="20"
+                                       Cursor="Hand"
+                                       Background="White"
+                                       BorderBrush="{StaticResource BorderGray}"
+                                       MouseLeftButtonDown="Ancho80_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="80mm"
+                                                 FontSize="24"
+                                                 FontWeight="Bold"
+                                                 Foreground="{StaticResource TextDark}"
+                                                 HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Grande"
+                                                 FontSize="12"
+                                                 Foreground="{StaticResource TextLight}"
+                                                 HorizontalAlignment="Center"
+                                                 Margin="0,5,0,0"/>
+                                        <Border x:Name="Check80"
+                                               Background="{StaticResource SuccessGreen}"
+                                               CornerRadius="12"
+                                               Padding="8,4"
+                                               Margin="0,10,0,0"
+                                               HorizontalAlignment="Center"
+                                               Visibility="Visible">
+                                            <TextBlock Text="✓ Seleccionado"
+                                                     FontSize="11"
+                                                     FontWeight="Bold"
+                                                     Foreground="White"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Botones de acción -->
+                    <StackPanel Orientation="Horizontal" 
+                               HorizontalAlignment="Right">
+                        <Button Content="Probar Impresión"
+                               Style="{StaticResource SecondaryButtonStyle}"
+                               Margin="0,0,15,0"
+                               Click="ProbarImpresion_Click"/>
+                        <Button Content="Guardar Configuración"
+                               Style="{StaticResource PrimaryButtonStyle}"
+                               Click="GuardarConfiguracion_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Page>

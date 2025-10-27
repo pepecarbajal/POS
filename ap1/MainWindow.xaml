@@ -191,6 +191,14 @@
                                     <TextBlock Text="⏱️" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Tiempo" VerticalAlignment="Center"/>
                                 </StackPanel>
+                                
+                            </Button>
+                            <Button Style="{StaticResource SubmenuButton}"
+                                    Click="AjustesButton_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⚙️" FontSize="16" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Ajustes" VerticalAlignment="Center"/>
+                                </StackPanel>
                             </Button>
 
                             <Border Height="1" 
