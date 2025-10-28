@@ -95,8 +95,6 @@ namespace POS.paginas.ventas.Managers
         {
             return accion switch
             {
-                "iniciar" => "Esperando tarjeta para iniciar tiempo...",
-                "finalizar" => "Esperando tarjeta para finalizar tiempo...",
                 "combo_tiempo" => "Esperando tarjeta NFC para registrar combo con tiempo...",
                 "finalizar_combo_tiempo" => "Esperando tarjeta NFC para finalizar venta...",
                 "recuperar_venta" => "Esperando tarjeta NFC para recuperar venta pendiente...",

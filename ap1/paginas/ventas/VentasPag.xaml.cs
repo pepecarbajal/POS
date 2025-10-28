@@ -64,7 +64,7 @@ namespace POS.paginas.ventas
 
             // Inicializar managers
             _carritoManager = new CarritoManager(_context, comboService);
-            _tiempoManager = new TiempoManager(_context, tiempoService, ventaService, precioTiempoService);
+            _tiempoManager = new TiempoManager(_context, ventaService, precioTiempoService);
             _ventaManager = new VentaManager(_context, ventaService, precioTiempoService);
             _nfcManager = new NFCManager(_nfcReaderService);
             _productoManager = new ProductoManager(_context);
@@ -132,12 +132,6 @@ namespace POS.paginas.ventas
 
                 switch (accion)
                 {
-                    case "iniciar":
-                        await IniciarTiempoConNFC(cardId);
-                        break;
-                    case "finalizar":
-                        await FinalizarTiempoConNFC(cardId);
-                        break;
                     case "combo_tiempo":
                         await AsignarNFCaComboTiempo(cardId);
                         break;
@@ -238,45 +232,6 @@ namespace POS.paginas.ventas
             catch (Exception ex)
             {
                 MessageBox.Show($"Error al cargar tiempos activos: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        #endregion
-
-        #region Operaciones con Tiempo
-
-        private async Task IniciarTiempoConNFC(string idNfc)
-        {
-            if (_carritoManager.TieneComboConTiempo)
-            {
-                MessageBox.Show("No puedes iniciar tiempos individuales mientras tengas un combo con tiempo en el carrito.\n\nFinaliza el combo primero o cancela la venta.",
-                    "Restricción", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var tiempo = await _tiempoManager.IniciarTiempoAsync(idNfc);
-            if (tiempo != null)
-            {
-                await LoadTiemposActivosAsync();
-            }
-        }
-
-        private async Task FinalizarTiempoConNFC(string idNfc)
-        {
-            if (_carritoManager.TieneComboConTiempo)
-            {
-                MessageBox.Show("No puedes finalizar tiempos individuales mientras tengas un combo con tiempo en el carrito.\n\nFinaliza el combo primero o cancela la venta.",
-                    "Restricción", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var resultado = await _tiempoManager.FinalizarTiempoAsync(idNfc);
-            if (resultado.HasValue)
-            {
-                var (tiempo, nombreDisplay) = resultado.Value;
-                _carritoManager.AgregarTiempo(tiempo.Id, nombreDisplay, tiempo.Total);
-                ActualizarTotales();
-                await LoadTiemposActivosAsync();
             }
         }
 
@@ -426,13 +381,6 @@ namespace POS.paginas.ventas
                     return;
                 }
 
-                if (_carritoManager.HayTiemposIndividuales())
-                {
-                    MessageBox.Show("Para agregar un combo con tiempo, el carrito no puede tener tiempos individuales.\n\nPuedes tener productos y otros combos.",
-                        "Restricción", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
                 agregado = await _carritoManager.AgregarComboAsync(producto.ComboId);
 
                 if (agregado)
@@ -444,25 +392,11 @@ namespace POS.paginas.ventas
             // Combo sin tiempo
             else if (producto.EsCombo && !producto.TieneTiempo)
             {
-                if (_carritoManager.TieneComboConTiempo && _carritoManager.HayTiemposIndividuales())
-                {
-                    MessageBox.Show("No puedes agregar combos mientras haya tiempos individuales en el carrito.",
-                        "Restricción", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
                 agregado = await _carritoManager.AgregarComboAsync(producto.ComboId);
             }
             // Producto individual
             else
             {
-                if (_carritoManager.HayTiemposIndividuales())
-                {
-                    MessageBox.Show("No puedes agregar productos mientras haya tiempos individuales en el carrito.\n\nPuede finalizar los tiempos primero o eliminarlos del carrito.",
-                        "Restricción", MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
-
                 agregado = await _carritoManager.AgregarProductoAsync(producto);
             }
 
@@ -484,13 +418,6 @@ namespace POS.paginas.ventas
 
             if (result == MessageBoxResult.Yes)
             {
-                // Si es un tiempo, reactivarlo
-                if (item.ProductoId < 0 && item.Nombre.StartsWith("Tiempo") && item.ProductoId != -999)
-                {
-                    int tiempoId = -item.ProductoId;
-                    await _tiempoManager.ReactivarTiempoAsync(tiempoId);
-                }
-
                 // Eliminar del carrito
                 await _carritoManager.EliminarItemAsync(item);
 
@@ -524,7 +451,7 @@ namespace POS.paginas.ventas
             }
 
             var result = MessageBox.Show(
-                "¿Está seguro que desea vaciar el carrito?\n\nLos tiempos se reactivarán y las ventas pendientes se mantendrán como pendientes.",
+                "¿Está seguro que desea vaciar el carrito?\n\nLas ventas pendientes se mantendrán como pendientes.",
                 "Confirmar cancelación",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
@@ -533,17 +460,6 @@ namespace POS.paginas.ventas
             {
                 try
                 {
-                    // Reactivar tiempos individuales
-                    var tiemposAReactivar = _carritoManager.Items
-                        .Where(i => i.ProductoId < 0 && i.Nombre.StartsWith("Tiempo") && i.ProductoId != -999)
-                        .ToList();
-
-                    foreach (var itemTiempo in tiemposAReactivar)
-                    {
-                        int tiempoId = -itemTiempo.ProductoId;
-                        await _tiempoManager.ReactivarTiempoAsync(tiempoId);
-                    }
-
                     // Restaurar items recuperables
                     foreach (var recuperable in _carritoManager.ObtenerItemsRecuperables())
                     {
@@ -711,13 +627,6 @@ namespace POS.paginas.ventas
                 return;
             }
 
-            if (_carritoManager.HayTiemposIndividuales())
-            {
-                MessageBox.Show("No puedes guardar una venta pendiente con tiempos individuales.\n\nPuedes tener combos y productos individuales.",
-                    "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
             _nfcManager.IniciarEsperaTarjeta("combo_tiempo", "");
         }
 
@@ -739,16 +648,7 @@ namespace POS.paginas.ventas
             {
                 try
                 {
-                    VentaTiempoRecuperable? recuperable;
-
-                    if (tiempo.EsCombo)
-                    {
-                        recuperable = await _recuperacionManager.MoverVentaPendienteACarritoAsync(tiempo);
-                    }
-                    else
-                    {
-                        recuperable = await _recuperacionManager.MoverTiempoACarritoAsync(tiempo);
-                    }
+                    VentaTiempoRecuperable? recuperable = await _recuperacionManager.MoverVentaPendienteACarritoAsync(tiempo);
 
                     if (recuperable != null)
                     {
@@ -781,7 +681,7 @@ namespace POS.paginas.ventas
             else
             {
                 var resultEliminar = MessageBox.Show(
-                    $"¿Desea eliminar permanentemente este {(tiempo.EsCombo ? "combo" : "tiempo")} de los registros?\n\n" +
+                    $"¿Desea eliminar permanentemente este combo de los registros?\n\n" +
                     $"Tarjeta: {tiempo.IdNfc}\n" +
                     $"Hora entrada: {tiempo.HoraEntrada:HH:mm}\n\n" +
                     "⚠ ADVERTENCIA: Esta acción eliminará el registro de la base de datos y no se podrá recuperar.",
@@ -793,16 +693,7 @@ namespace POS.paginas.ventas
                 {
                     try
                     {
-                        bool eliminado;
-
-                        if (tiempo.EsCombo)
-                        {
-                            eliminado = await _ventaManager.EliminarVentaPendienteAsync(tiempo.Id);
-                        }
-                        else
-                        {
-                            eliminado = await _tiempoManager.EliminarTiempoAsync(tiempo.Id);
-                        }
+                        bool eliminado = await _ventaManager.EliminarVentaPendienteAsync(tiempo.Id);
 
                         if (eliminado)
                         {
@@ -839,30 +730,6 @@ namespace POS.paginas.ventas
         private void TiempoButton_Click(object sender, RoutedEventArgs e)
         {
             _ = LoadTiemposActivosAsync();
-        }
-
-        private void IniciarTiempo_Click(object sender, RoutedEventArgs e)
-        {
-            if (_carritoManager.TieneComboConTiempo)
-            {
-                MessageBox.Show("No puedes iniciar tiempos individuales mientras tengas un combo con tiempo en el carrito.\n\nFinaliza el combo primero o cancela la venta.",
-                    "Restricción", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            _nfcManager.IniciarEsperaTarjeta("iniciar", "");
-        }
-
-        private void FinalizarTiempo_Click(object sender, RoutedEventArgs e)
-        {
-            if (_carritoManager.TieneComboConTiempo)
-            {
-                MessageBox.Show("No puedes finalizar tiempos individuales mientras tengas un combo con tiempo en el carrito.\n\nFinaliza el combo primero o cancela la venta.",
-                    "Restricción", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            _nfcManager.IniciarEsperaTarjeta("finalizar", "");
         }
 
         private void RecuperarVenta_Click(object sender, RoutedEventArgs e)

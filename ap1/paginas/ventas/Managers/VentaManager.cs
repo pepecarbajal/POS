@@ -375,15 +375,8 @@ namespace POS.paginas.ventas.Managers
                 return;
             }
 
-            // Tiempo individual
-            if (item.ProductoId < 0 && item.Nombre.StartsWith("Tiempo"))
-            {
-                await ProcesarTiempo(venta, item);
-                return;
-            }
-
             // Combo
-            if (item.ProductoId < 0 && !item.Nombre.StartsWith("Tiempo"))
+            if (item.ProductoId < 0)
             {
                 await ProcesarCombo(venta, item);
             }
@@ -415,28 +408,6 @@ namespace POS.paginas.ventas.Managers
 
             producto.Stock -= item.Cantidad;
             _context.Entry(producto).State = EntityState.Modified;
-        }
-
-        private async Task ProcesarTiempo(Venta venta, ItemCarrito item)
-        {
-            int tiempoId = -item.ProductoId;
-            var tiempo = await _context.Tiempos.FindAsync(tiempoId);
-
-            if (tiempo == null)
-            {
-                throw new InvalidOperationException($"Registro de tiempo con ID {tiempoId} no encontrado");
-            }
-
-            venta.DetallesVenta.Add(new DetalleVenta
-            {
-                TipoItem = (int)TipoItemVenta.Tiempo,
-                ProductoId = null,
-                ItemReferenciaId = tiempo.Id,
-                NombreItem = item.Nombre,
-                Cantidad = item.Cantidad,
-                PrecioUnitario = item.PrecioUnitario,
-                Subtotal = item.Total
-            });
         }
 
         private async Task ProcesarCombo(Venta venta, ItemCarrito item)
@@ -496,19 +467,11 @@ namespace POS.paginas.ventas.Managers
                 return detalleExistente == null;
             }
 
-            if (item.ProductoId < 0 && !item.Nombre.StartsWith("Tiempo"))
+            if (item.ProductoId < 0)
             {
                 int comboId = -item.ProductoId;
                 var detalleExistente = venta.DetallesVenta
                     .FirstOrDefault(d => d.ItemReferenciaId == comboId && d.TipoItem == (int)TipoItemVenta.Combo);
-                return detalleExistente == null;
-            }
-
-            if (item.ProductoId < 0 && item.Nombre.StartsWith("Tiempo"))
-            {
-                int tiempoId = -item.ProductoId;
-                var detalleExistente = venta.DetallesVenta
-                    .FirstOrDefault(d => d.ItemReferenciaId == tiempoId && d.TipoItem == (int)TipoItemVenta.Tiempo);
                 return detalleExistente == null;
             }
 
@@ -524,7 +487,7 @@ namespace POS.paginas.ventas.Managers
                 detalle = venta.DetallesVenta
                     .FirstOrDefault(d => d.ProductoId == item.ProductoId && d.TipoItem == (int)TipoItemVenta.Producto);
             }
-            else if (item.ProductoId < 0 && !item.Nombre.StartsWith("Tiempo"))
+            else if (item.ProductoId < 0)
             {
                 int comboId = -item.ProductoId;
                 detalle = venta.DetallesVenta
@@ -601,29 +564,6 @@ namespace POS.paginas.ventas.Managers
                     ProductoId = producto.Id,
                     ItemReferenciaId = null,
                     NombreItem = producto.Nombre,
-                    Cantidad = item.Cantidad,
-                    PrecioUnitario = item.PrecioUnitario,
-                    Subtotal = item.Total
-                };
-            }
-
-            if (item.ProductoId < 0 && item.Nombre.StartsWith("Tiempo"))
-            {
-                int tiempoId = -item.ProductoId;
-                var tiempo = await _context.Tiempos.FindAsync(tiempoId);
-
-                if (tiempo == null)
-                {
-                    throw new InvalidOperationException($"Registro de tiempo con ID {tiempoId} no encontrado");
-                }
-
-                return new DetalleVenta
-                {
-                    VentaId = ventaId,
-                    TipoItem = (int)TipoItemVenta.Tiempo,
-                    ProductoId = null,
-                    ItemReferenciaId = tiempo.Id,
-                    NombreItem = item.Nombre,
                     Cantidad = item.Cantidad,
                     PrecioUnitario = item.PrecioUnitario,
                     Subtotal = item.Total

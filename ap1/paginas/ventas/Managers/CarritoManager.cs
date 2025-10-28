@@ -46,14 +46,6 @@ namespace POS.paginas.ventas.Managers
         /// </summary>
         public async Task<bool> AgregarProductoAsync(ProductoVenta producto)
         {
-            // Validar si hay tiempos individuales en el carrito
-            if (HayTiemposIndividuales())
-            {
-                MessageBox.Show("No puedes agregar productos mientras haya tiempos individuales en el carrito.\n\nPuede finalizar los tiempos primero o eliminarlos del carrito.",
-                    "Restricción", MessageBoxButton.OK, MessageBoxImage.Information);
-                return false;
-            }
-
             var itemExistente = Items.FirstOrDefault(i => i.ProductoId == producto.Id);
 
             if (itemExistente != null)
@@ -117,13 +109,6 @@ namespace POS.paginas.ventas.Managers
                     if (_carritoTieneComboConTiempo)
                     {
                         MessageBox.Show("Solo puedes tener un combo con tiempo en el carrito a la vez.",
-                            "Restricción", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return false;
-                    }
-
-                    if (HayTiemposIndividuales())
-                    {
-                        MessageBox.Show("Para agregar un combo con tiempo, el carrito no puede tener tiempos individuales.\n\nPuedes tener productos y otros combos.",
                             "Restricción", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return false;
                     }
@@ -192,21 +177,6 @@ namespace POS.paginas.ventas.Managers
         }
 
         /// <summary>
-        /// Agrega un tiempo finalizado al carrito
-        /// </summary>
-        public void AgregarTiempo(int tiempoId, string nombreTiempo, decimal total)
-        {
-            Items.Add(new ItemCarrito
-            {
-                ProductoId = -tiempoId,
-                Nombre = nombreTiempo,
-                PrecioUnitario = total,
-                Cantidad = 1,
-                Total = total
-            });
-        }
-
-        /// <summary>
         /// Elimina un item del carrito
         /// </summary>
         public async Task<bool> EliminarItemAsync(ItemCarrito item)
@@ -242,14 +212,6 @@ namespace POS.paginas.ventas.Managers
         public decimal ObtenerTotal()
         {
             return Items.Sum(i => i.Total);
-        }
-
-        /// <summary>
-        /// Verifica si hay tiempos individuales en el carrito
-        /// </summary>
-        public bool HayTiemposIndividuales()
-        {
-            return Items.Any(i => i.ProductoId < 0 && i.Nombre.StartsWith("Tiempo") && i.ProductoId != -999);
         }
 
         /// <summary>
