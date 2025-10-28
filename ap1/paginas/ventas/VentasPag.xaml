@@ -280,7 +280,6 @@
                         </ItemsControl>
                     </ScrollViewer>
 
-                    <!-- Vista de Tiempo -->
                     <Grid x:Name="TiempoPanel" Visibility="Collapsed" Margin="20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -289,8 +288,7 @@
                         </Grid.ColumnDefinitions>
 
                         <!-- Lista de tiempos activos (IZQUIERDA) -->
-                        <Border Grid.Column="0"
-                                Background="White"
+                        <Border Background="White"
                                 BorderBrush="{StaticResource LightBorder}"
                                 BorderThickness="1"
                                 CornerRadius="8"
@@ -476,52 +474,14 @@
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                 </ScrollViewer>
-                            </Grid>
-                        </Border>
 
-                        <!-- Panel de controles (DERECHA) -->
-                        <Border Grid.Column="2"
-                                Background="White"
-                                BorderBrush="{StaticResource LightBorder}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="20">
-                            <StackPanel>
-                                <!-- Header -->
-                                <Border Background="{StaticResource PrimaryPurple}"
-                                        CornerRadius="6"
-                                        Padding="15,12"
-                                        Margin="0,0,0,25">
-                                    <TextBlock Text="⚙ CONTROLES"
-                                               FontSize="18"
-                                               FontWeight="Bold"
-                                               Foreground="White"
-                                               HorizontalAlignment="Center"/>
-                                </Border>
-
-                                <!-- Botones de acción -->
-                                <Button x:Name="IniciarTiempoButton"
-                                        Content="▶ Iniciar Tiempo"
-                                        Style="{StaticResource GreenButtonStyle}"
-                                        FontSize="18"
-                                        Padding="0,20"
-                                        Margin="0,0,0,15"
-                                        Click="IniciarTiempo_Click"/>
-
-                                <Button x:Name="FinalizarTiempoButton"
-                                        Content="⏹ Finalizar Tiempo"
-                                        Style="{StaticResource DangerButtonStyle}"
-                                        FontSize="18"
-                                        Padding="0,20"
-                                        Margin="0,0,0,15"
-                                        Click="FinalizarTiempo_Click"/>
-
-                                <!-- Agregado botón para recuperar venta pendiente -->
+                                <!-- Botón Recuperar Venta Pendiente -->
                                 <Button x:Name="RecuperarVentaButton"
                                         Content="🔍 Recuperar Venta Pendiente"
                                         Style="{StaticResource SecondaryButtonStyle}"
                                         FontSize="18"
                                         Padding="0,20"
+                                        Margin="0,20,0,0"
                                         Click="RecuperarVenta_Click"/>
 
                                 <!-- Indicador de espera -->
@@ -531,7 +491,7 @@
                                         BorderThickness="2"
                                         CornerRadius="8"
                                         Padding="20"
-                                        Margin="0,25,0,0"
+                                        Margin="0,15,0,0"
                                         Visibility="Collapsed">
                                     <StackPanel>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,15">
@@ -554,7 +514,7 @@
                                                 Click="CancelarWaiting_Click"/>
                                     </StackPanel>
                                 </Border>
-                            </StackPanel>
+                            </Grid>
                         </Border>
                     </Grid>
                 </Grid>
