@@ -1,0 +1,238 @@
+﻿<Page x:Class="POS.paginas.devoluciones.DevolucionesPag"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      mc:Ignorable="d" 
+      d:DesignHeight="800" d:DesignWidth="1400"
+      Background="{StaticResource BackgroundGray}">
+
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Page.Resources>
+
+    <Grid Margin="30">
+        <Border Style="{StaticResource CardStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                    <TextBlock Text="Devoluciones" 
+                              Style="{StaticResource PageTitle}"/>
+                </StackPanel>
+
+                <!-- Filtros -->
+                <Border Grid.Row="1"
+                       Background="White"
+                       BorderBrush="{StaticResource BorderGray}"
+                       BorderThickness="1"
+                       CornerRadius="12"
+                       Padding="20"
+                       Margin="0,0,0,20">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="200"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Información -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Información de Devoluciones"
+                                     Style="{StaticResource FormLabel}"
+                                     FontSize="16"
+                                     Margin="0,0,0,10"/>
+                            <TextBlock Text="• Puedes devolver productos, combos y tiempo de cualquier venta finalizada"
+                                     FontSize="13"
+                                     Foreground="{StaticResource TextLight}"
+                                     Margin="0,0,0,5"/>
+                            <TextBlock Text="• Los combos se devuelven completos (no se pueden devolver productos individuales de un combo)"
+                                     FontSize="13"
+                                     Foreground="{StaticResource TextLight}"
+                                     Margin="0,0,0,5"/>
+                            <TextBlock Text="• Solo productos y combos restauran stock al devolverse"
+                                     FontSize="13"
+                                     Foreground="{StaticResource TextLight}"/>
+                        </StackPanel>
+
+                        <!-- Botón mostrar todas -->
+                        <Button Grid.Column="2"
+                               x:Name="MostrarTodasButton"
+                               Content="📅 Mostrar Todas"
+                               Style="{StaticResource SecondaryButtonStyle}"
+                               VerticalAlignment="Bottom"
+                               Click="MostrarTodas_Click">
+                            <Button.ToolTip>
+                                <ToolTip Content="Mostrar ventas de todas las fechas"/>
+                            </Button.ToolTip>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Lista de ventas -->
+                <Border Grid.Row="2"
+                       Background="White"
+                       BorderBrush="{StaticResource BorderGray}"
+                       BorderThickness="1"
+                       CornerRadius="12"
+                       Padding="20">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="VentasItemsControl">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White"
+                                           BorderBrush="{StaticResource BorderGray}"
+                                           BorderThickness="1"
+                                           CornerRadius="12"
+                                           Padding="20"
+                                           Margin="0,0,0,15">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#000000" Opacity="0.05" BlurRadius="10" ShadowDepth="0"/>
+                                        </Border.Effect>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Icono -->
+                                            <Border Grid.Column="0"
+                                                   Background="{StaticResource BackgroundPurple}"
+                                                   CornerRadius="12"
+                                                   Width="60"
+                                                   Height="60"
+                                                   Margin="0,0,20,0">
+                                                <TextBlock Text="🧾" 
+                                                          FontSize="32"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <!-- Información de la venta -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextDark}">
+                                                    <Run Text="Venta #"/>
+                                                    <Run Text="{Binding Id}"/>
+                                                </TextBlock>
+                                                <TextBlock FontSize="14" Foreground="{StaticResource TextLight}" Margin="0,4,0,0">
+                                                    <Run Text="📅"/>
+                                                    <Run Text="{Binding Fecha, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}"/>
+                                                </TextBlock>
+                                                <TextBlock FontSize="14" Foreground="{StaticResource TextLight}" Margin="0,2,0,0">
+                                                    <Run Text="🛍️"/>
+                                                    <Run Text="{Binding CantidadItems}"/>
+                                                    <Run Text=" item(s)"/>
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <!-- Total -->
+                                            <Border Grid.Column="2"
+                                                   Background="{StaticResource BackgroundPurple}"
+                                                   CornerRadius="10"
+                                                   Padding="20,12"
+                                                   Margin="0,0,15,0">
+                                                <StackPanel>
+                                                    <TextBlock Text="Total" 
+                                                              FontSize="11" 
+                                                              Foreground="{StaticResource HoverPurple}"
+                                                              HorizontalAlignment="Center"
+                                                              Margin="0,0,0,2"/>
+                                                    <TextBlock Text="{Binding Total, StringFormat='${0:N2}'}" 
+                                                              FontSize="22" 
+                                                              FontWeight="Bold"
+                                                              Foreground="{StaticResource PrimaryPurple}"
+                                                              HorizontalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Botón Devolución Parcial -->
+                                            <Button Grid.Column="3"
+                                                   Content="Devolución Parcial"
+                                                   Style="{StaticResource SecondaryButtonStyle}"
+                                                   Padding="20,12"
+                                                   Margin="0,0,10,0"
+                                                   Click="DevolucionParcial_Click"
+                                                   Tag="{Binding}"
+                                                   Visibility="{Binding TieneProductosDevolvibles, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <Button.ToolTip>
+                                                    <ToolTip Content="Devolver uno o más items de esta venta"/>
+                                                </Button.ToolTip>
+                                            </Button>
+
+                                            <!-- Botón Devolución Completa -->
+                                            <Button Grid.Column="4"
+                                                   Content="Devolución Completa"
+                                                   Style="{StaticResource DangerButtonStyle}"
+                                                   Padding="20,12"
+                                                   Click="DevolucionCompleta_Click"
+                                                   Tag="{Binding}"
+                                                   Visibility="{Binding PuedeSerDevuelta, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <Button.ToolTip>
+                                                    <ToolTip Content="Devolver todos los items y eliminar la venta"/>
+                                                </Button.ToolTip>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Footer con contador -->
+                <Border Grid.Row="3"
+                       Background="White"
+                       BorderBrush="{StaticResource BorderGray}"
+                       BorderThickness="1"
+                       CornerRadius="12"
+                       Padding="20"
+                       Margin="0,20,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" 
+                                  x:Name="ContadorTextBlock"
+                                  Text="Mostrando 0 ventas"
+                                  FontSize="14"
+                                  Foreground="{StaticResource TextLight}"
+                                  FontWeight="SemiBold"
+                                  VerticalAlignment="Center"/>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Border Background="{StaticResource LightGreen}" 
+                                   CornerRadius="8" 
+                                   Padding="15,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="8" 
+                                            Height="8" 
+                                            Fill="{StaticResource DarkGreen}"
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,8,0"/>
+                                    <TextBlock x:Name="DevolviblesCountText"
+                                              Text="0 Devolvibles" 
+                                              FontSize="13" 
+                                              FontWeight="Bold"
+                                              Foreground="{StaticResource DarkGreen}"
+                                              VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>
