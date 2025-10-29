@@ -43,6 +43,7 @@ namespace POS
             services.AddScoped<ITiempoService, TiempoService>();
             services.AddScoped<IPrecioTiempoService, PrecioTiempoService>();
             services.AddScoped<IVentaService, VentaService>();
+            services.AddScoped<IDevolucionService, DevolucionService>();
 
             services.AddSingleton<INFCReaderService, NFCReaderService>();
 

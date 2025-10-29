@@ -1,13 +1,11 @@
 ﻿using System.Windows;
 using System.Windows.Threading;
-
 namespace POS
 {
     public partial class MainWindow : Window
     {
         private DispatcherTimer clockTimer = new DispatcherTimer();
         private bool isSubmenuOpen = false;
-        private bool isAdminAuthenticated = false;
 
         public MainWindow()
         {
@@ -20,7 +18,6 @@ namespace POS
             clockTimer.Interval = TimeSpan.FromSeconds(1);
             clockTimer.Tick += ClockTimer_Tick;
             clockTimer.Start();
-
             UpdateClock();
         }
 
@@ -36,7 +33,15 @@ namespace POS
 
         private void ConfiguracionButton_Click(object sender, RoutedEventArgs e)
         {
-            SubmenuPanel.Visibility = Visibility.Visible;
+            // Toggle del submenú
+            isSubmenuOpen = !isSubmenuOpen;
+            SubmenuPanel.Visibility = isSubmenuOpen ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void HideSubmenu()
+        {
+            SubmenuPanel.Visibility = Visibility.Collapsed;
+            isSubmenuOpen = false;
         }
 
         private void ProductosButton_Click(object sender, RoutedEventArgs e)
@@ -51,6 +56,7 @@ namespace POS
 
         private void VentasButton_Click(object sender, RoutedEventArgs e)
         {
+            HideSubmenu();
             MainFrame.Navigate(new Uri("paginas/ventas/VentasPag.xaml", UriKind.Relative));
         }
 
@@ -61,12 +67,18 @@ namespace POS
 
         private void DetallesVentasButton_Click(object sender, RoutedEventArgs e)
         {
+            HideSubmenu();
             MainFrame.Navigate(new Uri("paginas/detalles-ventas/DetallesVentasPag.xaml", UriKind.Relative));
         }
 
         private void PrecioTiempoButton_Click(object sender, RoutedEventArgs e)
         {
             MainFrame.Navigate(new Uri("paginas/precioTiempo/precioTiempoPag.xaml", UriKind.Relative));
+        }
+
+        private void DevolucionesButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainFrame.Navigate(new Uri("paginas/devoluciones/DevolucionesPag.xaml", UriKind.Relative));
         }
 
         private void AjustesButton_Click(object sender, RoutedEventArgs e)
