@@ -31,9 +31,9 @@ namespace POS.paginas.ventas.Managers
         }
 
         /// <summary>
-        /// Crea una venta pendiente (combo con tiempo) CON NOMBRE DE CLIENTE
+        /// Crea una venta pendiente (combo con tiempo) CON NOMBRE DE CLIENTE Y TIPO DE PAGO
         /// </summary>
-        public async Task<Venta?> CrearVentaPendienteAsync(string idNfc, string nombreCliente, List<ItemCarrito> items, int minutosComboTiempo)
+        public async Task<Venta?> CrearVentaPendienteAsync(string idNfc, string nombreCliente, List<ItemCarrito> items, int minutosComboTiempo, TipoPago tipoPago = TipoPago.Efectivo)
         {
             try
             {
@@ -51,10 +51,11 @@ namespace POS.paginas.ventas.Managers
                     Fecha = DateTime.Now,
                     Total = items.Sum(i => i.Total),
                     Estado = (int)EstadoVenta.Pendiente,
+                    TipoPago = (int)tipoPago, // NUEVO: Asignar tipo de pago
                     IdNfc = idNfc,
                     HoraEntrada = DateTime.Now,
                     MinutosTiempoCombo = minutosComboTiempo,
-                    NombreCliente = nombreCliente, // NUEVO: Guardar nombre del cliente
+                    NombreCliente = nombreCliente,
                     DetallesVenta = new List<DetalleVenta>()
                 };
 
@@ -75,7 +76,6 @@ namespace POS.paginas.ventas.Managers
                 return null;
             }
         }
-
         /// <summary>
         /// Finaliza una venta pendiente (combo con tiempo)
         /// </summary>
@@ -169,9 +169,9 @@ namespace POS.paginas.ventas.Managers
         }
 
         /// <summary>
-        /// Crea una venta finalizada normal
+        /// Crea una venta finalizada normal con tipo de pago
         /// </summary>
-        public async Task<Venta?> CrearVentaFinalizadaAsync(List<ItemCarrito> items)
+        public async Task<Venta?> CrearVentaFinalizadaAsync(List<ItemCarrito> items, TipoPago tipoPago = TipoPago.Efectivo)
         {
             try
             {
@@ -180,6 +180,7 @@ namespace POS.paginas.ventas.Managers
                     Fecha = DateTime.Now,
                     Total = items.Sum(i => i.Total),
                     Estado = (int)EstadoVenta.Finalizada,
+                    TipoPago = (int)tipoPago, // NUEVO: Asignar tipo de pago
                     DetallesVenta = new List<DetalleVenta>()
                 };
 

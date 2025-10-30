@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 
 namespace POS.ventanas
 {
@@ -13,10 +15,28 @@ namespace POS.ventanas
             NombreTextBox.Focus();
         }
 
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var fadeIn = new DoubleAnimation
+            {
+                From = 0,
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(200),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            this.BeginAnimation(Window.OpacityProperty, fadeIn);
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                NombreTextBox.Focus();
+                NombreTextBox.SelectAll();
+            }), System.Windows.Threading.DispatcherPriority.Render);
+        }
+
         private void AceptarButton_Click(object sender, RoutedEventArgs e)
         {
             string nombre = NombreTextBox.Text.Trim();
-
             if (string.IsNullOrWhiteSpace(nombre))
             {
                 MessageBox.Show(
@@ -27,7 +47,6 @@ namespace POS.ventanas
                 NombreTextBox.Focus();
                 return;
             }
-
             NombreCliente = nombre;
             DialogResult = true;
             Close();
