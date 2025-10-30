@@ -87,6 +87,64 @@ namespace POS.Migrations
                     b.ToTable("ComboProductos");
                 });
 
+            modelBuilder.Entity("POS.Models.CorteCaja", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Diferencia")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("EfectivoEsperado")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("EfectivoFinal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("EfectivoInicial")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("EstaCerrado")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaApertura")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaCierre")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TotalDepositos")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalRetiros")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalVentasEfectivo")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalVentasTarjeta")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UsuarioCierre")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EstaCerrado");
+
+                    b.HasIndex("FechaApertura");
+
+                    b.HasIndex("FechaCierre");
+
+                    b.ToTable("CorteCajas");
+                });
+
             modelBuilder.Entity("POS.Models.DetalleVenta", b =>
                 {
                     b.Property<int>("Id")
@@ -130,6 +188,48 @@ namespace POS.Migrations
                     b.HasIndex("VentaId");
 
                     b.ToTable("DetallesVenta");
+                });
+
+            modelBuilder.Entity("POS.Models.MovimientoCaja", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Concepto")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CorteCajaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TipoMovimiento")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Usuario")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorteCajaId");
+
+                    b.HasIndex("Fecha");
+
+                    b.HasIndex("TipoMovimiento");
+
+                    b.ToTable("MovimientosCaja");
                 });
 
             modelBuilder.Entity("POS.Models.PrecioTiempo", b =>
@@ -371,6 +471,17 @@ namespace POS.Migrations
                     b.Navigation("Producto");
 
                     b.Navigation("Venta");
+                });
+
+            modelBuilder.Entity("POS.Models.MovimientoCaja", b =>
+                {
+                    b.HasOne("POS.Models.CorteCaja", "CorteCaja")
+                        .WithMany()
+                        .HasForeignKey("CorteCajaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CorteCaja");
                 });
 
             modelBuilder.Entity("POS.Models.Producto", b =>

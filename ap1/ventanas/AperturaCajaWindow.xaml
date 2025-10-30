@@ -1,0 +1,52 @@
+﻿<Window x:Class="POS.ventanas.AperturaCajaWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Apertura de Caja" Height="300" Width="400"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Apertura de Caja" 
+                   FontSize="20" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,20"/>
+
+        <StackPanel Grid.Row="1" Margin="0,0,0,10">
+            <TextBlock Text="Efectivo Inicial:" Margin="0,0,0,5"/>
+            <TextBox x:Name="txtEfectivoInicial" 
+                     FontSize="16" 
+                     Padding="5"
+                     Text="0.00"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Margin="0,0,0,10">
+            <TextBlock Text="Observaciones:" Margin="0,0,0,5"/>
+            <TextBox x:Name="txtObservaciones" 
+                     Height="60" 
+                     TextWrapping="Wrap" 
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="4" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button Content="Aceptar" 
+                    Width="100" 
+                    Margin="0,0,10,0"
+                    Click="BtnAceptar_Click"
+                    IsDefault="True"/>
+            <Button Content="Cancelar" 
+                    Width="100"
+                    Click="BtnCancelar_Click"
+                    IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

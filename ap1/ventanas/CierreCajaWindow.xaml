@@ -1,0 +1,98 @@
+﻿<Window x:Class="POS.ventanas.CierreCajaWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Cierre de Caja" Height="400" Width="450"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Cierre de Caja" 
+                   FontSize="20" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,20"/>
+
+        <Border Grid.Row="1" 
+                Background="#ECF0F1" 
+                Padding="10" 
+                Margin="0,0,0,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Efectivo Esperado:" FontWeight="SemiBold"/>
+                <TextBlock x:Name="txtEfectivoEsperado" 
+                          Text="$0.00" 
+                          Grid.Column="1"
+                          FontWeight="Bold"
+                          FontSize="16"
+                          Foreground="Green"/>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="2" Margin="0,0,0,10">
+            <TextBlock Text="Efectivo Final (contado):" Margin="0,0,0,5"/>
+            <TextBox x:Name="txtEfectivoFinal" 
+                     FontSize="16" 
+                     Padding="5"
+                     Text="0.00"
+                     TextChanged="TxtEfectivoFinal_TextChanged"/>
+        </StackPanel>
+
+        <Border Grid.Row="3" 
+                Background="#FFF3CD" 
+                Padding="10" 
+                Margin="0,0,0,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Diferencia:" FontWeight="SemiBold"/>
+                <TextBlock x:Name="txtDiferencia" 
+                          Text="$0.00" 
+                          Grid.Column="1"
+                          FontWeight="Bold"
+                          FontSize="16"/>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="4" Margin="0,0,0,10">
+            <TextBlock Text="Usuario:" Margin="0,0,0,5"/>
+            <TextBox x:Name="txtUsuario" Padding="5"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="5" Margin="0,0,0,10">
+            <TextBlock Text="Observaciones:" Margin="0,0,0,5"/>
+            <TextBox x:Name="txtObservaciones" 
+                     Height="60" 
+                     TextWrapping="Wrap" 
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="7" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button Content="Cerrar Caja" 
+                    Width="100" 
+                    Margin="0,0,10,0"
+                    Click="BtnAceptar_Click"
+                    IsDefault="True"/>
+            <Button Content="Cancelar" 
+                    Width="100"
+                    Click="BtnCancelar_Click"
+                    IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

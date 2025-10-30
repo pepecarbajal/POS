@@ -142,6 +142,15 @@
                             </StackPanel>
                         </Button>
 
+                        <!-- ⭐ NUEVO: Botón de Caja -->
+                        <Button Style="{StaticResource SidebarMenuButton}"
+                                Click="CajaButton_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="💰" FontSize="18" Margin="0,0,14,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Caja" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
                         <TextBlock Text="ADMINISTRACIÓN"
                                    Style="{StaticResource SectionHeader}"/>
 
