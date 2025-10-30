@@ -668,70 +668,145 @@
                 Background="{StaticResource LightBorder}" 
                 Margin="0,0,0,15"/>
 
-                        <!-- Calculadora de Cambio -->
                         <StackPanel>
-                            <TextBlock Text="Calculadora de Cambio"
-                                       FontSize="14" 
-                       FontWeight="SemiBold"
-                       Foreground="{StaticResource TextMedium}"
-                       Margin="0,0,0,10"/>
-
-                            <!-- Recibido -->
-                            <Grid Margin="0,0,0,10">
+                            <!-- Tipo de Pago Compacto -->
+                            <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0"
-                           Text="Recibido:"
-                           FontSize="13"
-                           Foreground="{StaticResource TextLight}"
-                           VerticalAlignment="Center"
-                           Margin="0,0,10,0"/>
+                                <!-- Efectivo -->
+                                <Border Grid.Column="0"
+            x:Name="EfectivoBorder"
+            Background="White"
+            BorderBrush="{StaticResource PrimaryPurple}"
+            BorderThickness="2"
+            CornerRadius="6"
+            Padding="8,6"
+            Cursor="Hand"
+            MouseLeftButtonDown="EfectivoCheckBox_Click">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
 
-                                <Border Grid.Column="1"
-                        BorderBrush="{StaticResource LightBorder}"
-                        BorderThickness="1"
-                        CornerRadius="6"
-                        Background="White">
-                                    <TextBox x:Name="RecibidoTextBox"
-                             FontSize="16"
-                             FontWeight="SemiBold"
-                             Foreground="{StaticResource TextDark}"
-                             Padding="10,8"
-                             BorderThickness="0"
-                             Background="Transparent"
-                             TextAlignment="Right"
-                             TextChanged="RecibidoTextBox_TextChanged"
-                             PreviewTextInput="RecibidoTextBox_PreviewTextInput"/>
+                                        <Ellipse Grid.Column="0"
+                     x:Name="EfectivoIndicador"
+                     Width="16"
+                     Height="16"
+                     Fill="{StaticResource PrimaryPurple}"
+                     Margin="0,0,6,0"
+                     VerticalAlignment="Center"/>
+
+                                        <TextBlock Grid.Column="1"
+                       Text="💵 Efectivo"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextDark}"
+                       VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Tarjeta -->
+                                <Border Grid.Column="2"
+            x:Name="TarjetaBorder"
+            Background="White"
+            BorderBrush="{StaticResource LightBorder}"
+            BorderThickness="2"
+            CornerRadius="6"
+            Padding="8,6"
+            Cursor="Hand"
+            MouseLeftButtonDown="TarjetaCheckBox_Click">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Ellipse Grid.Column="0"
+                     x:Name="TarjetaIndicador"
+                     Width="16"
+                     Height="16"
+                     Stroke="{StaticResource LightBorder}"
+                     StrokeThickness="2"
+                     Fill="Transparent"
+                     Margin="0,0,6,0"
+                     VerticalAlignment="Center"/>
+
+                                        <TextBlock Grid.Column="1"
+                       Text="💳 Tarjeta"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="{StaticResource TextDark}"
+                       VerticalAlignment="Center"/>
+                                    </Grid>
                                 </Border>
                             </Grid>
 
-                            <!-- Cambio -->
-                            <Grid>
+                            <!-- Recibido y Cambio en línea -->
+                            <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="0.45*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="0.55*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0"
-                           Text="Cambio:"
-                           FontSize="13"
-                           Foreground="{StaticResource TextLight}"
-                           VerticalAlignment="Center"
-                           Margin="0,0,10,0"/>
+                                <!-- Recibido -->
+                                <Border Grid.Column="0"
+    BorderBrush="{StaticResource LightBorder}"
+    BorderThickness="1"
+    CornerRadius="6"
+    Background="White"
+    Padding="8,8" Grid.ColumnSpan="3" Margin="0,0,214,0">
+                                    <Grid>
+                                        <TextBox x:Name="RecibidoTextBox"
+         FontSize="16"
+         FontWeight="SemiBold"
+         Foreground="{StaticResource TextDark}"
+         Padding="0"
+         BorderThickness="0"
+         Background="Transparent"
+         TextAlignment="Right"
+         VerticalAlignment="Center"
+         TextChanged="RecibidoTextBox_TextChanged"
+         PreviewTextInput="RecibidoTextBox_PreviewTextInput"/>
+                                        <TextBlock Text="Recibido"
+               FontSize="16"
+               FontWeight="Medium"
+               Foreground="{StaticResource TextLight}"
+               Margin="0,0,0,0"
+               VerticalAlignment="Center"
+               HorizontalAlignment="Left"
+               IsHitTestVisible="False"/>
+                                    </Grid>
+                                </Border>
 
-                                <Border Grid.Column="1"
-                        Background="{StaticResource SuccessGreen}"
-                        CornerRadius="6"
-                        Padding="10,8">
-                                    <TextBlock x:Name="CambioTextBlock"
-                               Text="$0.00"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Foreground="White"
-                               TextAlignment="Right"/>
+                                <!-- Cambio -->
+                                <Border Grid.Column="2"
+    Background="{StaticResource SuccessGreen}"
+    CornerRadius="6"
+    Padding="10,8" Margin="22,0,0,0">
+                                    <Grid>
+                                        <TextBlock x:Name="CambioTextBlock"
+           Text="$0.00"
+           FontSize="20"
+           FontWeight="Bold"
+           Foreground="White"
+           TextAlignment="Right"
+           VerticalAlignment="Center"/>
+                                        <TextBlock Text="Cambio"
+               FontSize="16"
+               FontWeight="Medium"
+               Foreground="White"
+               Opacity="0.95"
+               Margin="0,0,0,0"
+               VerticalAlignment="Center"
+               HorizontalAlignment="Left"
+               IsHitTestVisible="False"/>
+                                    </Grid>
                                 </Border>
                             </Grid>
                         </StackPanel>

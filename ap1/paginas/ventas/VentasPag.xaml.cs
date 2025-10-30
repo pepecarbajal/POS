@@ -45,6 +45,9 @@ namespace POS.paginas.ventas
         private decimal _montoRecibido = 0;
         private decimal _cambio = 0;
 
+        // NUEVA PROPIEDAD: Tipo de pago seleccionado
+        private TipoPago _tipoPagoSeleccionado = TipoPago.Efectivo;
+
         public VentasPag()
         {
             InitializeComponent();
@@ -91,6 +94,9 @@ namespace POS.paginas.ventas
             LoadCategoriasAsync();
             LoadProductosAsync();
             ActualizarTotales();
+
+            // NUEVO: Inicializar estilo de tipo de pago
+            ActualizarEstiloTipoPago();
         }
 
         #region Configuración Inicial
@@ -265,7 +271,8 @@ namespace POS.paginas.ventas
                 idNfc,
                 nombreCliente,
                 _carritoManager.Items.ToList(),
-                _carritoManager.MinutosComboTiempo
+                _carritoManager.MinutosComboTiempo,
+                _tipoPagoSeleccionado // NUEVO: Pasar tipo de pago
             );
 
             if (venta != null)
@@ -274,7 +281,8 @@ namespace POS.paginas.ventas
                     $"Venta asociada a: {nombreCliente}\n" +
                     $"Tarjeta: {idNfc}\n" +
                     $"Hora de entrada: {venta.HoraEntrada:HH:mm}\n" +
-                    $"Tiempo incluido: {_carritoManager.MinutosComboTiempo} minutos",
+                    $"Tiempo incluido: {_carritoManager.MinutosComboTiempo} minutos\n" +
+                    $"Tipo de pago: {venta.TipoPagoTexto}",
                     "Venta Pendiente Registrada",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
@@ -282,6 +290,8 @@ namespace POS.paginas.ventas
                 _carritoManager.Limpiar();
                 CancelarButton.Visibility = Visibility.Visible;
                 PendienteButton.Visibility = Visibility.Collapsed;
+                _tipoPagoSeleccionado = TipoPago.Efectivo; // Reset tipo de pago
+                ActualizarEstiloTipoPago();
                 ActualizarTotales();
                 LoadProductosAsync();
                 await LoadTiemposActivosAsync();
@@ -499,6 +509,8 @@ namespace POS.paginas.ventas
                     _montoRecibido = 0;
                     _cambio = 0;
                     _ventaPendienteRecuperada = null;
+                    _tipoPagoSeleccionado = TipoPago.Efectivo; // NUEVO: Reset tipo de pago
+                    ActualizarEstiloTipoPago(); // NUEVO: Actualizar UI
 
                     CancelarButton.Visibility = Visibility.Visible;
                     PendienteButton.Visibility = Visibility.Collapsed;
@@ -557,7 +569,10 @@ namespace POS.paginas.ventas
         {
             try
             {
-                var venta = await _ventaManager.CrearVentaFinalizadaAsync(_carritoManager.Items.ToList());
+                var venta = await _ventaManager.CrearVentaFinalizadaAsync(
+                    _carritoManager.Items.ToList(),
+                    _tipoPagoSeleccionado // NUEVO: Pasar tipo de pago
+                );
 
                 if (venta != null)
                 {
@@ -577,6 +592,8 @@ namespace POS.paginas.ventas
                     RecibidoTextBox.Text = "0";
                     _montoRecibido = 0;
                     _cambio = 0;
+                    _tipoPagoSeleccionado = TipoPago.Efectivo; // NUEVO: Reset tipo de pago
+                    ActualizarEstiloTipoPago(); // NUEVO: Actualizar UI
                     ActualizarTotales();
                     LoadProductosAsync();
                 }
@@ -622,6 +639,8 @@ namespace POS.paginas.ventas
                         _montoRecibido = 0;
                         _cambio = 0;
                         _ventaPendienteRecuperada = null;
+                        _tipoPagoSeleccionado = TipoPago.Efectivo; // NUEVO: Reset tipo de pago
+                        ActualizarEstiloTipoPago(); // NUEVO: Actualizar UI
 
                         FinalizarVentaButton.Visibility = Visibility.Visible;
                         PendienteButton.Visibility = Visibility.Collapsed;
@@ -792,6 +811,66 @@ namespace POS.paginas.ventas
             if (CategoriasComboBox.SelectedItem is CategoriaItem categoria)
             {
                 LoadProductosAsync(categoria.Id == 0 ? null : categoria.Id);
+            }
+        }
+
+        #endregion
+
+        #region Tipo de Pago
+
+        private void EfectivoCheckBox_Click(object sender, MouseButtonEventArgs e)
+        {
+            _tipoPagoSeleccionado = TipoPago.Efectivo;
+            ActualizarEstiloTipoPago();
+        }
+
+        private void TarjetaCheckBox_Click(object sender, MouseButtonEventArgs e)
+        {
+            _tipoPagoSeleccionado = TipoPago.Tarjeta;
+            ActualizarEstiloTipoPago();
+
+            // Si es tarjeta, limpiar calculadora de cambio
+            RecibidoTextBox.Text = "";
+            _montoRecibido = 0;
+            _cambio = 0;
+            CambioTextBlock.Text = "$0.00";
+        }
+
+        private void ActualizarEstiloTipoPago()
+        {
+            if (_tipoPagoSeleccionado == TipoPago.Efectivo)
+            {
+                // Efectivo seleccionado
+                EfectivoBorder.BorderBrush = (System.Windows.Media.Brush)FindResource("PrimaryPurple");
+                EfectivoBorder.Background = (System.Windows.Media.Brush)FindResource("BackgroundPurple");
+                EfectivoIndicador.Fill = (System.Windows.Media.Brush)FindResource("PrimaryPurple");
+                EfectivoIndicador.Stroke = (System.Windows.Media.Brush)FindResource("PrimaryPurple");
+
+                // Tarjeta no seleccionada
+                TarjetaBorder.BorderBrush = (System.Windows.Media.Brush)FindResource("LightBorder");
+                TarjetaBorder.Background = System.Windows.Media.Brushes.White;
+                TarjetaIndicador.Fill = System.Windows.Media.Brushes.Transparent;
+                TarjetaIndicador.Stroke = (System.Windows.Media.Brush)FindResource("LightBorder");
+
+                // Habilitar calculadora de cambio
+                RecibidoTextBox.IsEnabled = true;
+            }
+            else
+            {
+                // Tarjeta seleccionada
+                TarjetaBorder.BorderBrush = (System.Windows.Media.Brush)FindResource("PrimaryPurple");
+                TarjetaBorder.Background = (System.Windows.Media.Brush)FindResource("BackgroundPurple");
+                TarjetaIndicador.Fill = (System.Windows.Media.Brush)FindResource("PrimaryPurple");
+                TarjetaIndicador.Stroke = (System.Windows.Media.Brush)FindResource("PrimaryPurple");
+
+                // Efectivo no seleccionado
+                EfectivoBorder.BorderBrush = (System.Windows.Media.Brush)FindResource("LightBorder");
+                EfectivoBorder.Background = System.Windows.Media.Brushes.White;
+                EfectivoIndicador.Fill = System.Windows.Media.Brushes.Transparent;
+                EfectivoIndicador.Stroke = (System.Windows.Media.Brush)FindResource("LightBorder");
+
+                // Deshabilitar calculadora de cambio para tarjeta
+                RecibidoTextBox.IsEnabled = false;
             }
         }
 

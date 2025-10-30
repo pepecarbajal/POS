@@ -71,6 +71,7 @@ namespace POS.Migrations
                     Fecha = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Estado = table.Column<int>(type: "INTEGER", nullable: false),
+                    TipoPago = table.Column<int>(type: "INTEGER", nullable: false, defaultValue: 1),
                     IdNfc = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
                     HoraEntrada = table.Column<DateTime>(type: "TEXT", nullable: true),
                     MinutosTiempoCombo = table.Column<int>(type: "INTEGER", nullable: true),
@@ -260,6 +261,11 @@ namespace POS.Migrations
                 name: "IX_Ventas_IdNfc",
                 table: "Ventas",
                 column: "IdNfc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ventas_TipoPago",
+                table: "Ventas",
+                column: "TipoPago");
         }
 
         /// <inheritdoc />

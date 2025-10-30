@@ -307,6 +307,11 @@ namespace POS.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("TipoPago")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18,2)");
 
@@ -315,6 +320,8 @@ namespace POS.Migrations
                     b.HasIndex("Estado");
 
                     b.HasIndex("IdNfc");
+
+                    b.HasIndex("TipoPago");
 
                     b.ToTable("Ventas");
                 });

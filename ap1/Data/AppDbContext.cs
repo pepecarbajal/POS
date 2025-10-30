@@ -214,6 +214,15 @@ namespace POS.Data
                 .Property(pt => pt.Precio)
                 .HasColumnType("decimal(18,2)");
 
+            // Configurar valor por defecto para TipoPago
+            modelBuilder.Entity<Venta>()
+                .Property(v => v.TipoPago)
+                .HasDefaultValue(1); // 1 = Efectivo por defecto
+
+            // Índice para mejorar consultas por tipo de pago
+            modelBuilder.Entity<Venta>()
+                .HasIndex(v => v.TipoPago);
+
             // ========== SEED DATA: PRECIOS DE TIEMPO PREDEFINIDOS ==========
 
             modelBuilder.Entity<PrecioTiempo>().HasData(
