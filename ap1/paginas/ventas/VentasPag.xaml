@@ -281,241 +281,222 @@
                     </ScrollViewer>
 
                     <Grid x:Name="TiempoPanel" Visibility="Collapsed" Margin="20">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="20"/>
-                            <ColumnDefinition Width="400"/>
-                        </Grid.ColumnDefinitions>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
 
-                        <!-- Lista de tiempos activos (IZQUIERDA) -->
-                        <Border Background="White"
-                                BorderBrush="{StaticResource LightBorder}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Padding="20">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
+                            <Button Grid.Row="1"
+                x:Name="RecuperarVentaButton"
+                Content="🔍 Recuperar Venta Pendiente"
+                Style="{StaticResource SecondaryButtonStyle}"
+                FontSize="18"
+                Padding="0,20"
+                Margin="0,0,0,20"
+                Click="RecuperarVenta_Click"/>
 
-                                <Border Grid.Row="0"
+                            <!-- Lista de tiempos activos -->
+                            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="TiemposActivosItemsControl">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="White"
+                                BorderBrush="{StaticResource PrimaryPurple}"
+                                BorderThickness="2"
+                                CornerRadius="12"
+                                Padding="25"
+                                Margin="0,0,0,20">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+
+                                                    <!-- Icono grande -->
+                                                    <Border Grid.Row="0" Grid.Column="0" Grid.RowSpan="3"
                                         Background="{StaticResource PrimaryPurple}"
-                                        CornerRadius="6"
-                                        Padding="15,12"
-                                        Margin="0,0,0,20">
-                                    <TextBlock Text="⏱ TIEMPOS ACTIVOS"
-                                               FontSize="18"
-                                               FontWeight="Bold"
-                                               Foreground="White"
-                                               HorizontalAlignment="Center"/>
-                                </Border>
-
-                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl x:Name="TiemposActivosItemsControl">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border BorderThickness="2"
-                CornerRadius="8"
-                Padding="20"
-                Margin="0,0,0,15">
-                                                    <Border.Style>
-                                                        <Style TargetType="Border">
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding EsCombo}" Value="True">
-                                                                    <Setter Property="Background" Value="{StaticResource BackgroundPurple}"/>
-                                                                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryPurple}"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding EsCombo}" Value="False">
-                                                                    <Setter Property="Background" Value="{StaticResource CardGray}"/>
-                                                                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryPurple}"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Border.Style>
-
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition Height="Auto"/>
-                                                            <RowDefinition Height="Auto"/>
-                                                            <RowDefinition Height="Auto"/>
-                                                        </Grid.RowDefinitions>
-
-                                                        <!-- Icono -->
-                                                        <Border Grid.Row="0" Grid.Column="0" Grid.RowSpan="3"
-                        Background="{StaticResource PrimaryPurple}"
-                        CornerRadius="6"
-                        Width="50"
-                        Height="50"
-                        Margin="0,0,15,0">
-                                                            <TextBlock FontSize="28"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center">
-                                                                <TextBlock.Style>
-                                                                    <Style TargetType="TextBlock">
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding EsCombo}" Value="True">
-                                                                                <Setter Property="Text" Value="🎁"/>
-                                                                            </DataTrigger>
-                                                                            <DataTrigger Binding="{Binding EsCombo}" Value="False">
-                                                                                <Setter Property="Text" Value="🎮"/>
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </TextBlock.Style>
-                                                            </TextBlock>
-                                                        </Border>
-
-                                                        <!-- NFC -->
-                                                        <TextBlock Grid.Row="0" Grid.Column="1"
-                           FontSize="18"
-                           FontWeight="Bold"
-                           Foreground="{StaticResource TextMedium}">
-                    <Run Text="NFC: "/>
-                    <Run Text="{Binding IdNfc}" Foreground="{StaticResource PrimaryPurple}"/>
-                                                        </TextBlock>
-
-                                                        <!-- Hora de entrada -->
-                                                        <TextBlock Grid.Row="1" Grid.Column="1"
-                           FontSize="15"
-                           Foreground="#666"
-                           Margin="0,8,0,0">
-                    <Run Text="⏰ Entrada: "/>
-                    <Run Text="{Binding HoraEntrada, StringFormat='hh:mm tt'}" 
-                         FontWeight="Bold" 
-                         Foreground="{StaticResource TextMedium}"/>
-                                                        </TextBlock>
-
-                                                        <!-- Información adicional -->
-                                                        <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,8,0,0">
-                                                            <TextBlock FontSize="14" Foreground="#666">
-                                                                <TextBlock.Style>
-                                                                    <Style TargetType="TextBlock">
-                                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding EsCombo}" Value="True">
-                                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </TextBlock.Style>
-                        <Run Text="📦 "/>
-                        <Run Text="{Binding NombreCombo}" FontWeight="SemiBold"/>
-                        <LineBreak/>
-                        <Run Text="⏱ "/>
-                        <Run Text="{Binding MinutosIncluidos}"/>
-                        <Run Text=" min incluidos"/>
-                        <Run Text=" • Total: $"/>
-                        <Run Text="{Binding MontoTotal, StringFormat='F2'}" FontWeight="Bold"/>
-                                                            </TextBlock>
-                                                        </StackPanel>
-
-                                                        <!-- Badge de estado -->
-                                                        <Border Grid.Row="0" Grid.Column="2" Grid.RowSpan="3"
-                        Background="{StaticResource SuccessGreen}"
-                        CornerRadius="6"
-                        Padding="15,8"
-                        VerticalAlignment="Center"
-                        Margin="0,0,10,0">
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <TextBlock Text="●" FontSize="16" Margin="0,0,8,0" Foreground="White"/>
-                                                                <TextBlock Text="ACTIVO"
-                                   FontSize="14"
-                                   FontWeight="Bold"
-                                   Foreground="White"/>
-                                                            </StackPanel>
-                                                        </Border>
-
-                                                        <!-- Botón Cancelar (NUEVO) -->
-                                                        <Button Grid.Row="0" Grid.Column="3" Grid.RowSpan="3"
-                        Content="✕"
-                        FontSize="20"
-                        FontWeight="Bold"
-                        Width="40"
-                        Height="40"
-                        Background="#ef4444"
-                        Foreground="White"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        VerticalAlignment="Center"
-                        Tag="{Binding}"
-                        Click="CancelarVentaTiempo_Click"
-                        ToolTip="Cancelar y mover al carrito">
-                                                            <Button.Template>
-                                                                <ControlTemplate TargetType="Button">
-                                                                    <Border Background="{TemplateBinding Background}"
-                                    CornerRadius="6"
-                                    Padding="0">
-                                                                        <ContentPresenter HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"/>
-                                                                    </Border>
-                                                                </ControlTemplate>
-                                                            </Button.Template>
-                                                            <Button.Style>
-                                                                <Style TargetType="Button">
-                                                                    <Setter Property="Background" Value="#ef4444"/>
+                                        CornerRadius="10"
+                                        Width="80"
+                                        Height="80"
+                                        Margin="0,0,25,0"
+                                        VerticalAlignment="Center">
+                                                        <TextBlock FontSize="48"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
                                                                     <Style.Triggers>
-                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter Property="Background" Value="#dc2626"/>
-                                                                        </Trigger>
+                                                                        <DataTrigger Binding="{Binding EsCombo}" Value="True">
+                                                                            <Setter Property="Text" Value="🎮"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding EsCombo}" Value="False">
+                                                                            <Setter Property="Text" Value="🎮"/>
+                                                                        </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
-                                                            </Button.Style>
-                                                        </Button>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Border>
 
-                                <!-- Botón Recuperar Venta Pendiente -->
-                                <Button x:Name="RecuperarVentaButton"
-                                        Content="🔍 Recuperar Venta Pendiente"
-                                        Style="{StaticResource SecondaryButtonStyle}"
-                                        FontSize="18"
-                                        Padding="0,20"
-                                        Margin="0,20,0,0"
-                                        Click="RecuperarVenta_Click"/>
+                                                    <!-- Nombre del Cliente (GRANDE) -->
+                                                    <TextBlock Grid.Row="0" Grid.Column="1"
+                                           FontSize="28"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource TextDark}"
+                                           Margin="0,0,0,10">
+                                    <Run Text="👤 "/>
+                                    <Run Text="{Binding NombreCliente}"/>
+                                                    </TextBlock>
 
-                                <!-- Indicador de espera -->
-                                <Border x:Name="WaitingIndicator"
-                                        Background="{StaticResource WarningYellow}"
-                                        BorderBrush="#f59e0b"
-                                        BorderThickness="2"
-                                        CornerRadius="8"
-                                        Padding="20"
-                                        Margin="0,15,0,0"
-                                        Visibility="Collapsed">
-                                    <StackPanel>
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,15">
-                                            <TextBlock Text="⏳" FontSize="32" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                            <TextBlock x:Name="WaitingText"
-                                                       Text="Esperando tarjeta NFC..."
+                                                    <!-- Información detallada -->
+                                                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
+                                                        <!-- Tarjeta NFC -->
+                                                        <Border Background="{StaticResource BackgroundPurple}"
+                                            BorderBrush="{StaticResource PrimaryPurple}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="12,8"
+                                            Margin="0,0,15,0">
+                                                            <TextBlock FontSize="16" FontWeight="SemiBold">
+                                            <Run Text="🎫 NFC: " Foreground="{StaticResource TextMedium}"/>
+                                            <Run Text="{Binding IdNfc}" 
+                                                 Foreground="{StaticResource PrimaryPurple}"
+                                                 FontWeight="Bold"/>
+                                                            </TextBlock>
+                                                        </Border>
+
+                                                        <!-- Hora de Entrada -->
+                                                        <Border Background="{StaticResource CardGray}"
+                                            BorderBrush="{StaticResource LightBorder}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="12,8"
+                                            Margin="0,0,15,0">
+                                                            <TextBlock FontSize="16" FontWeight="SemiBold">
+                                            <Run Text="⏰ Entrada: " Foreground="{StaticResource TextMedium}"/>
+                                            <Run Text="{Binding HoraEntrada, StringFormat='hh:mm tt'}" 
+                                                 Foreground="{StaticResource TextDark}"
+                                                 FontWeight="Bold"/>
+                                                            </TextBlock>
+                                                        </Border>
+
+                                                        <!-- Hora de Salida Estimada -->
+                                                        <Border Background="{StaticResource CardGray}"
+                                            BorderBrush="{StaticResource LightBorder}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="12,8">
+                                                            <TextBlock FontSize="16" FontWeight="SemiBold">
+                                            <Run Text="🏁 Salida estimada: " Foreground="{StaticResource TextMedium}"/>
+                                            <TextBlock Text="{Binding HoraSalidaEstimada, StringFormat='hh:mm tt'}"
+                                                                Foreground="{StaticResource TextDark}"
+                                                                FontWeight="Bold"/>
+                                                            </TextBlock>
+                                                        </Border>
+                                                    </StackPanel>
+
+                                                    <!-- Tiempo transcurrido / restante -->
+                                                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                                                        
+
+                                                        <!-- Badge de ACTIVO -->
+                                                        <Border Background="{StaticResource SuccessGreen}"
+                                            CornerRadius="6"
+                                            Padding="15,8">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="●" FontSize="18" Margin="0,0,10,0" Foreground="White"/>
+                                                                <TextBlock Text="ACTIVO"
                                                        FontSize="16"
                                                        FontWeight="Bold"
-                                                       Foreground="#92400e"
-                                                       TextWrapping="Wrap"
-                                                       TextAlignment="Center"
-                                                       VerticalAlignment="Center"/>
-                                        </StackPanel>
+                                                       Foreground="White"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </StackPanel>
 
-                                        <Button x:Name="CancelWaitingButton"
-                                                Content="✕ Cancelar"
-                                                Style="{StaticResource DangerButtonStyle}"
-                                                FontSize="16"
-                                                Padding="15,12"
-                                                Click="CancelarWaiting_Click"/>
+                                                    <!-- Botón Cancelar -->
+                                                    <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="3"
+                                        Content="✕"
+                                        FontSize="24"
+                                        FontWeight="Bold"
+                                        Width="60"
+                                        Height="60"
+                                        Background="#ef4444"
+                                        Foreground="White"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        VerticalAlignment="Center"
+                                        Tag="{Binding}"
+                                        Click="CancelarVentaTiempo_Click"
+                                        ToolTip="Cancelar y mover al carrito">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                    CornerRadius="10"
+                                                    Padding="0">
+                                                                    <ContentPresenter HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Background" Value="#ef4444"/>
+                                                                <Style.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#dc2626"/>
+                                                                    </Trigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Button.Style>
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- Indicador de espera -->
+                            <Border x:Name="WaitingIndicator"
+                Grid.Row="2"
+                Background="{StaticResource WarningYellow}"
+                BorderBrush="#f59e0b"
+                BorderThickness="2"
+                CornerRadius="8"
+                Padding="20"
+                Margin="0,0,0,20"
+                VerticalAlignment="Top"
+                Visibility="Collapsed">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,15">
+                                        <TextBlock Text="⏳" FontSize="32" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="WaitingText"
+                               Text="Esperando tarjeta NFC..."
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="#92400e"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
+                               VerticalAlignment="Center"/>
                                     </StackPanel>
-                                </Border>
-                            </Grid>
-                        </Border>
+
+                                    <Button x:Name="CancelWaitingButton"
+                        Content="✕ Cancelar"
+                        Style="{StaticResource DangerButtonStyle}"
+                        FontSize="16"
+                        Padding="15,12"
+                        Click="CancelarWaiting_Click"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                     </Grid>
                 </Grid>
             </Border>

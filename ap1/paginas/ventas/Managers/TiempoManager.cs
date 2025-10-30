@@ -53,16 +53,18 @@ namespace POS.paginas.ventas.Managers
                     .FirstOrDefault(d => d.TipoItem == (int)TipoItemVenta.Combo);
 
                 string nombreCombo = detalleCombo?.NombreItem ?? "Combo";
+                int minutosIncluidos = venta.MinutosTiempoCombo ?? 0;
 
                 tiemposActivos.Add(new TiempoActivo
                 {
                     Id = venta.Id,
                     IdNfc = venta.IdNfc ?? "N/A",
+                    NombreCliente = venta.NombreCliente ?? "Cliente",
                     HoraEntrada = venta.HoraEntrada!.Value,
                     Estado = "Activo",
                     EsCombo = true,
                     NombreCombo = nombreCombo,
-                    MinutosIncluidos = venta.MinutosTiempoCombo ?? 0,
+                    MinutosIncluidos = minutosIncluidos,
                     MontoTotal = venta.Total
                 });
             }

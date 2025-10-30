@@ -31,9 +31,9 @@ namespace POS.paginas.ventas.Managers
         }
 
         /// <summary>
-        /// Crea una venta pendiente (combo con tiempo)
+        /// Crea una venta pendiente (combo con tiempo) CON NOMBRE DE CLIENTE
         /// </summary>
-        public async Task<Venta?> CrearVentaPendienteAsync(string idNfc, List<ItemCarrito> items, int minutosComboTiempo)
+        public async Task<Venta?> CrearVentaPendienteAsync(string idNfc, string nombreCliente, List<ItemCarrito> items, int minutosComboTiempo)
         {
             try
             {
@@ -54,6 +54,7 @@ namespace POS.paginas.ventas.Managers
                     IdNfc = idNfc,
                     HoraEntrada = DateTime.Now,
                     MinutosTiempoCombo = minutosComboTiempo,
+                    NombreCliente = nombreCliente, // NUEVO: Guardar nombre del cliente
                     DetallesVenta = new List<DetalleVenta>()
                 };
 

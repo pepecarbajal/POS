@@ -86,6 +86,7 @@ namespace POS.paginas.ventas
         public string? NombreCombo { get; set; }
         public int MinutosIncluidos { get; set; } = 0;
         public decimal MontoTotal { get; set; } = 0;
+        public string? NombreCliente { get; set; }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -93,7 +94,10 @@ namespace POS.paginas.ventas
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public DateTime HoraSalidaEstimada => HoraEntrada.AddMinutes(MinutosIncluidos);
     }
+
 
     /// <summary>
     /// Modelo para almacenar items recuperables cuando se cancela una venta/tiempo

@@ -241,16 +241,43 @@ namespace POS.paginas.ventas
 
         private async Task AsignarNFCaComboTiempo(string idNfc)
         {
+            // Abrir diálogo para capturar nombre del cliente
+            var dialogoNombre = new NombreClienteDialog();
+            bool? resultado = dialogoNombre.ShowDialog();
+
+            // Si el usuario canceló el diálogo, cancelar la operación
+            if (resultado != true || string.IsNullOrWhiteSpace(dialogoNombre.NombreCliente))
+            {
+                MessageBox.Show(
+                    "Se canceló el registro de la venta pendiente.",
+                    "Operación cancelada",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                // Cancelar la espera de tarjeta NFC
+                _nfcManager.CancelarEsperaTarjeta();
+                return;
+            }
+
+            string nombreCliente = dialogoNombre.NombreCliente;
+
             var venta = await _ventaManager.CrearVentaPendienteAsync(
                 idNfc,
+                nombreCliente,
                 _carritoManager.Items.ToList(),
                 _carritoManager.MinutosComboTiempo
             );
 
             if (venta != null)
             {
-                MessageBox.Show($"Venta asociada a la tarjeta {idNfc}.\nHora de entrada: {venta.HoraEntrada:HH:mm}\nTiempo incluido: {_carritoManager.MinutosComboTiempo} minutos",
-                    "Venta Pendiente Registrada", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    $"Venta asociada a: {nombreCliente}\n" +
+                    $"Tarjeta: {idNfc}\n" +
+                    $"Hora de entrada: {venta.HoraEntrada:HH:mm}\n" +
+                    $"Tiempo incluido: {_carritoManager.MinutosComboTiempo} minutos",
+                    "Venta Pendiente Registrada",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
 
                 _carritoManager.Limpiar();
                 CancelarButton.Visibility = Visibility.Visible;
