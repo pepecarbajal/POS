@@ -27,6 +27,31 @@ namespace POS.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CorteCajas",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    FechaApertura = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    FechaCierre = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    EfectivoInicial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    EfectivoFinal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalVentasEfectivo = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalVentasTarjeta = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalDepositos = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalRetiros = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Diferencia = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    EfectivoEsperado = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Observaciones = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    UsuarioCierre = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    EstaCerrado = table.Column<bool>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CorteCajas", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PrecioTiempo",
                 columns: table => new
                 {
@@ -102,6 +127,31 @@ namespace POS.Migrations
                         name: "FK_Productos_Categorias_CategoriaId",
                         column: x => x.CategoriaId,
                         principalTable: "Categorias",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MovimientosCaja",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    CorteCajaId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Fecha = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    TipoMovimiento = table.Column<int>(type: "INTEGER", nullable: false),
+                    Monto = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Concepto = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Observaciones = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    Usuario = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MovimientosCaja", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MovimientosCaja_CorteCajas_CorteCajaId",
+                        column: x => x.CorteCajaId,
+                        principalTable: "CorteCajas",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -213,6 +263,21 @@ namespace POS.Migrations
                 column: "PrecioTiempoId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CorteCajas_EstaCerrado",
+                table: "CorteCajas",
+                column: "EstaCerrado");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CorteCajas_FechaApertura",
+                table: "CorteCajas",
+                column: "FechaApertura");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CorteCajas_FechaCierre",
+                table: "CorteCajas",
+                column: "FechaCierre");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DetallesVenta_ItemReferenciaId",
                 table: "DetallesVenta",
                 column: "ItemReferenciaId");
@@ -231,6 +296,21 @@ namespace POS.Migrations
                 name: "IX_DetallesVenta_VentaId",
                 table: "DetallesVenta",
                 column: "VentaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MovimientosCaja_CorteCajaId",
+                table: "MovimientosCaja",
+                column: "CorteCajaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MovimientosCaja_Fecha",
+                table: "MovimientosCaja",
+                column: "Fecha");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MovimientosCaja_TipoMovimiento",
+                table: "MovimientosCaja",
+                column: "TipoMovimiento");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Productos_CategoriaId",
@@ -278,6 +358,9 @@ namespace POS.Migrations
                 name: "DetallesVenta");
 
             migrationBuilder.DropTable(
+                name: "MovimientosCaja");
+
+            migrationBuilder.DropTable(
                 name: "Tiempo");
 
             migrationBuilder.DropTable(
@@ -288,6 +371,9 @@ namespace POS.Migrations
 
             migrationBuilder.DropTable(
                 name: "Ventas");
+
+            migrationBuilder.DropTable(
+                name: "CorteCajas");
 
             migrationBuilder.DropTable(
                 name: "PrecioTiempo");

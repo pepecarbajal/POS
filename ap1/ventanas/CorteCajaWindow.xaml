@@ -1,0 +1,366 @@
+﻿<Window x:Class="POS.ventanas.CorteCajaWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Corte de Caja" 
+        Height="700" 
+        Width="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5">
+
+    <Window.Resources>
+        <!-- Estilos -->
+        <Style TargetType="TextBlock" x:Key="TituloStyle">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="SubtituloStyle">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#34495E"/>
+            <Setter Property="Margin" Value="0,10,0,10"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="LabelStyle">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="ValorStyle">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="Button" x:Key="BotonPrimarioStyle">
+            <Setter Property="Background" Value="#3498DB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="5" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2980B9"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Button" x:Key="BotonSuccessStyle" BasedOn="{StaticResource BotonPrimarioStyle}">
+            <Setter Property="Background" Value="#27AE60"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#229954"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Button" x:Key="BotonDangerStyle" BasedOn="{StaticResource BotonPrimarioStyle}">
+            <Setter Property="Background" Value="#E74C3C"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#C0392B"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Height" Value="35"/>
+            <Setter Property="BorderBrush" Value="#BDC3C7"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserDeleteRows" Value="False"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="AlternatingRowBackground" Value="#F8F9FA"/>
+            <Setter Property="RowBackground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#DEE2E6"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Encabezado -->
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Corte de Caja" Style="{StaticResource TituloStyle}"/>
+            <TextBlock x:Name="txtFecha" 
+                       Text="Fecha: --/--/----" 
+                       Style="{StaticResource LabelStyle}"/>
+        </StackPanel>
+
+        <!-- Contenido Principal -->
+        <TabControl Grid.Row="1" Margin="0,20,0,0">
+            <!-- Tab: Resumen -->
+            <TabItem Header="Resumen del Corte">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="20">
+                        <!-- Sección: Efectivo Inicial -->
+                        <Border Background="White" 
+                                BorderBrush="#DEE2E6" 
+                                BorderThickness="1" 
+                                CornerRadius="5" 
+                                Padding="15" 
+                                Margin="0,0,0,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Efectivo Inicial" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock x:Name="txtEfectivoInicial" 
+                                          Text="$0.00" 
+                                          Grid.Column="1"
+                                          Style="{StaticResource ValorStyle}"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Sección: Ventas -->
+                        <TextBlock Text="Ventas del Día" Style="{StaticResource SubtituloStyle}"/>
+                        <Border Background="White" 
+                                BorderBrush="#DEE2E6" 
+                                BorderThickness="1" 
+                                CornerRadius="5" 
+                                Padding="15" 
+                                Margin="0,0,0,15">
+                            <StackPanel>
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Ventas en Efectivo" Style="{StaticResource LabelStyle}"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <TextBlock x:Name="txtCantidadVentasEfectivo" 
+                                                  Text="(0)" 
+                                                  Margin="0,0,10,0"
+                                                  Style="{StaticResource LabelStyle}"/>
+                                        <TextBlock x:Name="txtTotalVentasEfectivo" 
+                                                  Text="$0.00" 
+                                                  Foreground="#27AE60"
+                                                  Style="{StaticResource ValorStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Ventas con Tarjeta" Style="{StaticResource LabelStyle}"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <TextBlock x:Name="txtCantidadVentasTarjeta" 
+                                                  Text="(0)" 
+                                                  Margin="0,0,10,0"
+                                                  Style="{StaticResource LabelStyle}"/>
+                                        <TextBlock x:Name="txtTotalVentasTarjeta" 
+                                                  Text="$0.00" 
+                                                  Foreground="#3498DB"
+                                                  Style="{StaticResource ValorStyle}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Separator Margin="0,10"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Total Ventas" 
+                                              FontWeight="Bold"
+                                              Style="{StaticResource LabelStyle}"/>
+                                    <TextBlock x:Name="txtTotalVentas" 
+                                              Text="$0.00" 
+                                              FontWeight="Bold"
+                                              Style="{StaticResource ValorStyle}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Sección: Movimientos -->
+                        <TextBlock Text="Movimientos de Caja" Style="{StaticResource SubtituloStyle}"/>
+                        <Border Background="White" 
+                                BorderBrush="#DEE2E6" 
+                                BorderThickness="1" 
+                                CornerRadius="5" 
+                                Padding="15" 
+                                Margin="0,0,0,15">
+                            <StackPanel>
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Depósitos" Style="{StaticResource LabelStyle}"/>
+                                    <TextBlock x:Name="txtTotalDepositos" 
+                                              Text="$0.00" 
+                                              Foreground="#27AE60"
+                                              Style="{StaticResource ValorStyle}"/>
+                                </Grid>
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Retiros" Style="{StaticResource LabelStyle}"/>
+                                    <TextBlock x:Name="txtTotalRetiros" 
+                                              Text="$0.00" 
+                                              Foreground="#E74C3C"
+                                              Style="{StaticResource ValorStyle}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Sección: Totales -->
+                        <Border Background="#ECF0F1" 
+                                BorderBrush="#BDC3C7" 
+                                BorderThickness="2" 
+                                CornerRadius="5" 
+                                Padding="15" 
+                                Margin="0,0,0,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Efectivo Esperado en Caja" 
+                                          FontSize="18"
+                                          FontWeight="Bold"
+                                          Foreground="#2C3E50"/>
+                                <TextBlock x:Name="txtEfectivoEsperado" 
+                                          Text="$0.00" 
+                                          Grid.Column="1"
+                                          FontSize="20"
+                                          FontWeight="Bold"
+                                          Foreground="#27AE60"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Sección: Cierre -->
+                        <TextBlock Text="Cierre de Caja" Style="{StaticResource SubtituloStyle}"/>
+                        <Border Background="White" 
+                                BorderBrush="#DEE2E6" 
+                                BorderThickness="1" 
+                                CornerRadius="5" 
+                                Padding="15">
+                            <StackPanel>
+                                <Grid Margin="0,5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Efectivo Final (contado)" Style="{StaticResource LabelStyle}"/>
+                                    <TextBlock x:Name="txtEfectivoFinal" 
+                                              Text="$0.00" 
+                                              Style="{StaticResource ValorStyle}"/>
+                                </Grid>
+                                <Separator Margin="0,10"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="txtLabelDiferencia" 
+                                              Text="Diferencia" 
+                                              FontWeight="Bold"
+                                              FontSize="16"
+                                              Style="{StaticResource LabelStyle}"/>
+                                    <TextBlock x:Name="txtDiferencia" 
+                                              Text="$0.00" 
+                                              FontWeight="Bold"
+                                              FontSize="18"
+                                              Style="{StaticResource ValorStyle}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Tab: Movimientos -->
+            <TabItem Header="Movimientos">
+                <Grid Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                        <Button Content="➕ Depósito" 
+                                Click="BtnDeposito_Click"
+                                Style="{StaticResource BotonSuccessStyle}"/>
+                        <Button Content="➖ Retiro" 
+                                Click="BtnRetiro_Click"
+                                Style="{StaticResource BotonDangerStyle}"/>
+                    </StackPanel>
+
+                    <DataGrid x:Name="dgMovimientos" 
+                              Grid.Row="1">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Fecha" 
+                                              Binding="{Binding Fecha, StringFormat={}{0:dd/MM/yyyy HH:mm}}" 
+                                              Width="150"/>
+                            <DataGridTextColumn Header="Tipo" 
+                                              Binding="{Binding TipoMovimientoTexto}" 
+                                              Width="100"/>
+                            <DataGridTextColumn Header="Monto" 
+                                              Binding="{Binding Monto, StringFormat=C2}" 
+                                              Width="120"/>
+                            <DataGridTextColumn Header="Concepto" 
+                                              Binding="{Binding Concepto}" 
+                                              Width="*"/>
+                            <DataGridTextColumn Header="Usuario" 
+                                              Binding="{Binding Usuario}" 
+                                              Width="150"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <!-- Botones de acción -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    Margin="0,20,0,0">
+            <Button x:Name="btnCerrarCorte" 
+                    Content="💾 Cerrar Corte de Caja" 
+                    Click="BtnCerrarCorte_Click"
+                    Style="{StaticResource BotonSuccessStyle}"/>
+            <Button Content="🖨️ Imprimir Ticket" 
+                    Click="BtnImprimir_Click"
+                    Style="{StaticResource BotonPrimarioStyle}"/>
+            <Button Content="Cancelar" 
+                    Click="BtnCancelar_Click"
+                    Style="{StaticResource BotonPrimarioStyle}"/>
+        </StackPanel>
+    </Grid>
+</Window>

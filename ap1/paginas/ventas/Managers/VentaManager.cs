@@ -6,6 +6,7 @@ using System.Windows;
 using POS.Data;
 using POS.Models;
 using POS.Services;
+using POS.Helpers;
 using Microsoft.EntityFrameworkCore;
 using POS.paginas.ventas;
 
@@ -13,12 +14,14 @@ namespace POS.paginas.ventas.Managers
 {
     /// <summary>
     /// Manager para gestionar operaciones de ventas
+    /// Incluye funcionalidad de tickets de pedido agrupados por categoría
     /// </summary>
     public class VentaManager
     {
         private readonly AppDbContext _context;
         private readonly VentaService _ventaService;
         private readonly PrecioTiempoService _precioTiempoService;
+        private TicketPedidoPdfGenerator? _ticketPedidoGenerator;
 
         public VentaManager(
             AppDbContext context,
@@ -29,6 +32,8 @@ namespace POS.paginas.ventas.Managers
             _ventaService = ventaService;
             _precioTiempoService = precioTiempoService;
         }
+
+        #region Ventas Pendientes (Combos con Tiempo)
 
         /// <summary>
         /// Crea una venta pendiente (combo con tiempo) CON NOMBRE DE CLIENTE Y TIPO DE PAGO
@@ -51,7 +56,7 @@ namespace POS.paginas.ventas.Managers
                     Fecha = DateTime.Now,
                     Total = items.Sum(i => i.Total),
                     Estado = (int)EstadoVenta.Pendiente,
-                    TipoPago = (int)tipoPago, // NUEVO: Asignar tipo de pago
+                    TipoPago = (int)tipoPago,
                     IdNfc = idNfc,
                     HoraEntrada = DateTime.Now,
                     MinutosTiempoCombo = minutosComboTiempo,
@@ -76,6 +81,7 @@ namespace POS.paginas.ventas.Managers
                 return null;
             }
         }
+
         /// <summary>
         /// Finaliza una venta pendiente (combo con tiempo)
         /// </summary>
@@ -168,6 +174,10 @@ namespace POS.paginas.ventas.Managers
             }
         }
 
+        #endregion
+
+        #region Ventas Finalizadas Normales
+
         /// <summary>
         /// Crea una venta finalizada normal con tipo de pago
         /// </summary>
@@ -180,7 +190,7 @@ namespace POS.paginas.ventas.Managers
                     Fecha = DateTime.Now,
                     Total = items.Sum(i => i.Total),
                     Estado = (int)EstadoVenta.Finalizada,
-                    TipoPago = (int)tipoPago, // NUEVO: Asignar tipo de pago
+                    TipoPago = (int)tipoPago,
                     DetallesVenta = new List<DetalleVenta>()
                 };
 
@@ -202,10 +212,14 @@ namespace POS.paginas.ventas.Managers
             }
         }
 
+        #endregion
+
+        #region Recuperación de Ventas
+
         /// <summary>
         /// Recupera una venta pendiente y calcula excedente si aplica
         /// </summary>
-        public async Task<(Venta? venta, decimal excedente, int minutosExtra)?> RecuperarVentaPendienteAsync(string idNfc)
+        public async Task<List<ItemCarrito>?> RecuperarVentaPendienteAsync(string idNfc)
         {
             try
             {
@@ -214,18 +228,17 @@ namespace POS.paginas.ventas.Managers
                 if (ventaPendiente == null)
                 {
                     MessageBox.Show($"No se encontró una venta pendiente para la tarjeta {idNfc}",
-                        "Sin venta pendiente", MessageBoxButton.OK, MessageBoxImage.Information);
+                        "Información", MessageBoxButton.OK, MessageBoxImage.Information);
                     return null;
                 }
 
-                decimal excedente = 0;
-                int minutosExtra = 0;
+                var itemsRecuperados = new List<ItemCarrito>();
 
-                // Calcular excedente si hay tiempo incluido
-                if (ventaPendiente.HoraEntrada.HasValue && ventaPendiente.MinutosTiempoCombo.HasValue)
+                // Calcular excedente si aplica
+                if (ventaPendiente.HoraEntrada.HasValue)
                 {
                     var tiempoTranscurrido = (DateTime.Now - ventaPendiente.HoraEntrada.Value).TotalMinutes;
-                    var minutosIncluidos = ventaPendiente.MinutosTiempoCombo.Value;
+                    var minutosIncluidos = ventaPendiente.MinutosTiempoCombo ?? 0;
 
                     if (tiempoTranscurrido > minutosIncluidos)
                     {
@@ -248,37 +261,161 @@ namespace POS.paginas.ventas.Managers
                                 precioPorMinuto = ultimoTramo.Precio / ultimoTramo.Minutos;
                             }
 
-                            minutosExtra = (int)Math.Ceiling(tiempoTranscurrido - minutosIncluidos);
-                            excedente = minutosExtra * precioPorMinuto;
+                            int minutosExtra = (int)Math.Ceiling(tiempoTranscurrido - minutosIncluidos);
+                            decimal excedente = minutosExtra * precioPorMinuto;
+
+                            if (excedente > 0)
+                            {
+                                itemsRecuperados.Add(new ItemCarrito
+                                {
+                                    ProductoId = -999,
+                                    Nombre = $"Excedente de tiempo ({minutosExtra} min extra)",
+                                    PrecioUnitario = excedente,
+                                    Cantidad = 1,
+                                    Total = excedente
+                                });
+                            }
                         }
                     }
                 }
 
-                return (ventaPendiente, excedente, minutosExtra);
+                // Cargar detalles de venta
+                var detalles = await _context.DetallesVenta
+                    .Where(d => d.VentaId == ventaPendiente.Id)
+                    .Include(d => d.Producto)
+                    .ToListAsync();
+
+                foreach (var detalle in detalles)
+                {
+                    itemsRecuperados.Add(new ItemCarrito
+                    {
+                        ProductoId = detalle.TipoItem == (int)TipoItemVenta.Producto
+                            ? detalle.ProductoId ?? 0
+                            : -detalle.ItemReferenciaId ?? 0,
+                        Nombre = detalle.NombreParaMostrar,
+                        PrecioUnitario = detalle.PrecioUnitario,
+                        Cantidad = detalle.Cantidad,
+                        Total = detalle.Subtotal
+                    });
+                }
+
+                // Agregar cargo por tarjeta perdida
+                itemsRecuperados.Add(new ItemCarrito
+                {
+                    ProductoId = -998,
+                    Nombre = "Tarjeta extraviada/dañada",
+                    PrecioUnitario = 50,
+                    Cantidad = 1,
+                    Total = 50
+                });
+
+                return itemsRecuperados;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al recuperar venta pendiente: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error al recuperar venta: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return null;
             }
         }
 
         /// <summary>
-        /// Actualiza una venta pendiente recuperada (agrega nuevos items)
+        /// Cancela una venta pendiente sin cobrar
         /// </summary>
-        public async Task<bool> ActualizarVentaPendienteAsync(Venta ventaPendiente, List<ItemCarrito> itemsActuales)
+        public async Task<bool> CancelarVentaPendienteAsync(string idNfc)
         {
             try
             {
-                var idsDetallesOriginales = ventaPendiente.DetallesVenta
-                    .Select(d => d.ProductoId ?? 0)
-                    .ToHashSet();
+                var ventaPendiente = await _ventaService.GetVentaPendienteByIdNfcAsync(idNfc);
 
-                foreach (var item in itemsActuales)
+                if (ventaPendiente == null)
                 {
-                    bool esItemNuevo = VerificarSiEsNuevoItem(ventaPendiente, item);
+                    MessageBox.Show($"No se encontró una venta pendiente para la tarjeta {idNfc}",
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
 
-                    if (esItemNuevo)
+                // Restaurar stock de productos
+                var detalles = await _context.DetallesVenta
+                    .Include(d => d.Producto)
+                    .Where(d => d.VentaId == ventaPendiente.Id)
+                    .ToListAsync();
+
+                foreach (var detalle in detalles)
+                {
+                    if (detalle.TipoItem == (int)TipoItemVenta.Producto && detalle.Producto != null)
+                    {
+                        detalle.Producto.Stock += detalle.Cantidad;
+                        _context.Entry(detalle.Producto).State = EntityState.Modified;
+                    }
+                    else if (detalle.TipoItem == (int)TipoItemVenta.Combo && detalle.ItemReferenciaId.HasValue)
+                    {
+                        var combo = await _context.Combos
+                            .Include(c => c.ComboProductos)
+                            .ThenInclude(cp => cp.Producto)
+                            .FirstOrDefaultAsync(c => c.Id == detalle.ItemReferenciaId.Value);
+
+                        if (combo != null)
+                        {
+                            foreach (var comboProducto in combo.ComboProductos)
+                            {
+                                if (comboProducto.Producto != null)
+                                {
+                                    int cantidadTotal = comboProducto.Cantidad * detalle.Cantidad;
+                                    comboProducto.Producto.Stock += cantidadTotal;
+                                    _context.Entry(comboProducto.Producto).State = EntityState.Modified;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Eliminar la venta
+                _context.DetallesVenta.RemoveRange(detalles);
+                _context.Ventas.Remove(ventaPendiente);
+
+                await _context.SaveChangesAsync();
+
+                MessageBox.Show("Venta pendiente cancelada correctamente. El stock ha sido restaurado.",
+                    "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cancelar venta: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Actualización de Ventas Pendientes
+
+        /// <summary>
+        /// Actualiza una venta pendiente con items adicionales
+        /// </summary>
+        public async Task<bool> ActualizarVentaPendienteAsync(string idNfc, List<ItemCarrito> nuevosItems)
+        {
+            try
+            {
+                var ventaPendiente = await _ventaService.GetVentaPendienteByIdNfcAsync(idNfc);
+
+                if (ventaPendiente == null)
+                {
+                    MessageBox.Show($"No se encontró una venta pendiente para la tarjeta {idNfc}",
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+
+                // Cargar detalles actuales
+                await _context.Entry(ventaPendiente)
+                    .Collection(v => v.DetallesVenta)
+                    .LoadAsync();
+
+                // Procesar cada item
+                foreach (var item in nuevosItems)
+                {
+                    if (VerificarSiEsNuevoItem(ventaPendiente, item))
                     {
                         await AgregarNuevoDetalleAVenta(ventaPendiente, item);
                     }
@@ -288,73 +425,172 @@ namespace POS.paginas.ventas.Managers
                     }
                 }
 
-                decimal totalFinal = itemsActuales.Sum(i => i.Total);
-                ventaPendiente.Total = totalFinal;
-                ventaPendiente.Estado = (int)EstadoVenta.Finalizada;
+                // Recalcular total
+                ventaPendiente.Total = ventaPendiente.DetallesVenta.Sum(d => d.Subtotal);
 
                 _context.Entry(ventaPendiente).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
 
+                MessageBox.Show("Venta actualizada correctamente",
+                    "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+
                 return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al finalizar venta: {ex.Message}\n\nDetalles: {ex.InnerException?.Message}",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error al actualizar venta: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
+            }
+        }
+
+        #endregion
+
+        #region Tickets de Pedido (NUEVO)
+
+        /// <summary>
+        /// Genera un ticket de pedido para la cocina/barra
+        /// Este ticket agrupa los productos por categoría para facilitar la preparación
+        /// </summary>
+        /// <param name="venta">Venta registrada</param>
+        /// <param name="itemsCarrito">Items del carrito</param>
+        /// <param name="numeroMesa">Número de mesa o identificador</param>
+        /// <param name="nombreMesero">Nombre del mesero o cajero</param>
+        /// <param name="generarAutomaticamente">Si es true, genera y abre el ticket automáticamente</param>
+        /// <returns>Ruta del archivo generado o null si falló</returns>
+        public async Task<string?> GenerarTicketPedidoAsync(
+            Venta venta,
+            List<ItemCarrito> itemsCarrito,
+            string numeroMesa = "01",
+            string nombreMesero = "Cajero",
+            bool generarAutomaticamente = true)
+        {
+            try
+            {
+                // Inicializar el generador si no existe
+                if (_ticketPedidoGenerator == null)
+                {
+                    _ticketPedidoGenerator = new TicketPedidoPdfGenerator(_context);
+                }
+
+                // Filtrar items que deben aparecer en el ticket de pedido
+                // (Excluir items especiales como tarjeta perdida o excedentes)
+                var itemsParaTicket = itemsCarrito
+                    .Where(i => i.ProductoId != -998 && i.ProductoId != -999)
+                    .ToList();
+
+                if (!itemsParaTicket.Any())
+                {
+                    // No hay items para mostrar en el ticket de pedido
+                    return null;
+                }
+
+                // Generar el PDF
+                byte[] pdfBytes = await _ticketPedidoGenerator.GenerarTicketPedidoAsync(
+                    venta: venta,
+                    items: itemsParaTicket,
+                    nombreMesero: nombreMesero,
+                    numeroMesa: numeroMesa,
+                    anchoMm: 80  // Puedes hacer esto configurable
+                );
+
+                if (generarAutomaticamente)
+                {
+                    // Guardar y abrir automáticamente
+                    string rutaArchivo = TicketPedidoPdfGenerator.GuardarYAbrirTicketPedido(
+                        pdfBytes,
+                        venta.Id,
+                        numeroMesa
+                    );
+
+                    return rutaArchivo;
+                }
+                else
+                {
+                    // Solo guardar sin abrir
+                    var nombreArchivo = $"Pedido_Mesa{numeroMesa}_{venta.Id}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                    TicketPedidoPdfGenerator.GuardarTicketPedido(pdfBytes, nombreArchivo);
+
+                    var carpetaTickets = System.IO.Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "POS",
+                        "tickets_pedidos"
+                    );
+
+                    return System.IO.Path.Combine(carpetaTickets, nombreArchivo);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al generar ticket de pedido: {ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                // Log del error (puedes implementar un logger aquí)
+                System.Diagnostics.Debug.WriteLine($"Error generando ticket de pedido: {ex}");
+
+                return null;
             }
         }
 
         /// <summary>
-        /// Elimina una venta pendiente
+        /// Regenera un ticket de pedido para una venta existente
+        /// Útil si se perdió el ticket original
         /// </summary>
-        public async Task<bool> EliminarVentaPendienteAsync(int ventaId)
+        public async Task<string?> RegenerarTicketPedidoAsync(
+            int ventaId,
+            string numeroMesa = "01",
+            string nombreMesero = "Cajero")
         {
             try
             {
+                // Buscar la venta en la BD
                 var venta = await _context.Ventas
                     .Include(v => v.DetallesVenta)
-                    .FirstOrDefaultAsync(v => v.Id == ventaId && v.Estado == (int)EstadoVenta.Pendiente);
+                        .ThenInclude(d => d.Producto)
+                    .FirstOrDefaultAsync(v => v.Id == ventaId);
 
                 if (venta == null)
                 {
-                    throw new InvalidOperationException("No se encontró la venta pendiente");
+                    MessageBox.Show("No se encontró la venta especificada.",
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return null;
                 }
 
-                _context.DetallesVenta.RemoveRange(venta.DetallesVenta);
-                _context.Ventas.Remove(venta);
-                await _context.SaveChangesAsync();
+                // Convertir DetalleVenta a ItemCarrito
+                var itemsCarrito = venta.DetallesVenta
+                    .Where(d => d.TipoItem != (int)TipoItemVenta.Tiempo) // Excluir tiempos
+                    .Select(d => new ItemCarrito
+                    {
+                        ProductoId = d.ProductoId ?? (d.TipoItem == (int)TipoItemVenta.Combo ? -d.ItemReferenciaId ?? 0 : 0),
+                        Nombre = d.NombreParaMostrar,
+                        PrecioUnitario = d.PrecioUnitario,
+                        Cantidad = d.Cantidad,
+                        Total = d.Subtotal
+                    })
+                    .ToList();
 
-                return true;
+                // Generar el ticket
+                return await GenerarTicketPedidoAsync(
+                    venta: venta,
+                    itemsCarrito: itemsCarrito,
+                    numeroMesa: numeroMesa,
+                    nombreMesero: nombreMesero,
+                    generarAutomaticamente: true
+                );
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al eliminar venta: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return false;
+                MessageBox.Show($"Error al regenerar ticket de pedido: {ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
             }
         }
 
-        // Métodos privados auxiliares
+        #endregion
+
+        #region Métodos Privados de Procesamiento
 
         private async Task ProcesarItemParaVenta(Venta venta, ItemCarrito item)
         {
-            // Tarjeta extraviada
-            if (item.ProductoId == -998)
-            {
-                venta.DetallesVenta.Add(new DetalleVenta
-                {
-                    TipoItem = (int)TipoItemVenta.Producto,
-                    ProductoId = null,
-                    ItemReferenciaId = null,
-                    NombreItem = "Tarjeta extraviada/dañada",
-                    Cantidad = 1,
-                    PrecioUnitario = 50,
-                    Subtotal = 50
-                });
-                return;
-            }
-
-            // Excedente de tiempo
             if (item.ProductoId == -999)
             {
                 venta.DetallesVenta.Add(new DetalleVenta
@@ -367,18 +603,25 @@ namespace POS.paginas.ventas.Managers
                     PrecioUnitario = item.PrecioUnitario,
                     Subtotal = item.Total
                 });
-                return;
             }
-
-            // Producto individual
-            if (item.ProductoId > 0)
+            else if (item.ProductoId == -998)
+            {
+                venta.DetallesVenta.Add(new DetalleVenta
+                {
+                    TipoItem = (int)TipoItemVenta.Producto,
+                    ProductoId = null,
+                    ItemReferenciaId = null,
+                    NombreItem = "Tarjeta extraviada/dañada",
+                    Cantidad = 1,
+                    PrecioUnitario = 50,
+                    Subtotal = 50
+                });
+            }
+            else if (item.ProductoId > 0)
             {
                 await ProcesarProducto(venta, item);
-                return;
             }
-
-            // Combo
-            if (item.ProductoId < 0)
+            else
             {
                 await ProcesarCombo(venta, item);
             }
@@ -387,6 +630,7 @@ namespace POS.paginas.ventas.Managers
         private async Task ProcesarProducto(Venta venta, ItemCarrito item)
         {
             var producto = await _context.Productos.FindAsync(item.ProductoId);
+
             if (producto == null)
             {
                 throw new InvalidOperationException($"Producto con ID {item.ProductoId} no encontrado");
@@ -396,6 +640,8 @@ namespace POS.paginas.ventas.Managers
             {
                 throw new InvalidOperationException($"Stock insuficiente para {producto.Nombre}");
             }
+
+            producto.Stock -= item.Cantidad;
 
             venta.DetallesVenta.Add(new DetalleVenta
             {
@@ -408,7 +654,6 @@ namespace POS.paginas.ventas.Managers
                 Subtotal = item.Total
             });
 
-            producto.Stock -= item.Cantidad;
             _context.Entry(producto).State = EntityState.Modified;
         }
 
@@ -613,5 +858,7 @@ namespace POS.paginas.ventas.Managers
                 Subtotal = item.Total
             };
         }
+
+        #endregion
     }
 }

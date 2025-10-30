@@ -39,7 +39,9 @@ namespace POS.paginas.ventas
         public ObservableCollection<TiempoActivo> TiemposActivos { get; set; }
 
         // Estado de venta recuperada
+        // Estado de venta recuperada
         private Venta? _ventaPendienteRecuperada = null;
+        private string? _idNfcVentaRecuperada = null;  // ← AGREGAR ESTA LÍNEA
 
         // Control de pagos
         private decimal _montoRecibido = 0;
@@ -326,11 +328,13 @@ namespace POS.paginas.ventas
 
         private async Task RecuperarVentaPendiente(string idNfc)
         {
-            var resultado = await _ventaManager.RecuperarVentaPendienteAsync(idNfc);
+            // El nuevo método retorna List<ItemCarrito>? directamente
+            var itemsRecuperados = await _ventaManager.RecuperarVentaPendienteAsync(idNfc);
 
-            if (!resultado.HasValue) return;
-
-            var (ventaPendiente, excedente, minutosExtra) = resultado.Value;
+            if (itemsRecuperados == null || !itemsRecuperados.Any())
+            {
+                return;
+            }
 
             if (_carritoManager.Items.Any())
             {
@@ -345,55 +349,39 @@ namespace POS.paginas.ventas
                 _carritoManager.Limpiar();
             }
 
-            _ventaPendienteRecuperada = ventaPendiente;
+            // Guardar el IdNfc para poder finalizar la venta después
+            _idNfcVentaRecuperada = idNfc;
 
-            // Agregar items al carrito
-            foreach (var detalle in ventaPendiente.DetallesVenta)
+            // Agregar todos los items recuperados al carrito
+            foreach (var item in itemsRecuperados)
             {
-                var itemCarrito = new ItemCarrito
-                {
-                    ProductoId = detalle.TipoItem == (int)TipoItemVenta.Producto
-                        ? detalle.ProductoId ?? 0
-                        : -detalle.ItemReferenciaId ?? 0,
-                    Nombre = detalle.NombreParaMostrar,
-                    PrecioUnitario = detalle.PrecioUnitario,
-                    Cantidad = detalle.Cantidad,
-                    Total = detalle.Subtotal
-                };
-
-                _carritoManager.Items.Add(itemCarrito);
+                _carritoManager.Items.Add(item);
             }
 
-            // Agregar excedente si existe
-            if (excedente > 0)
+            // Verificar si hay items especiales
+            var itemExcedente = itemsRecuperados.FirstOrDefault(i => i.ProductoId == -999);
+            var itemTarjetaPerdida = itemsRecuperados.FirstOrDefault(i => i.ProductoId == -998);
+
+            string mensajeAdicional = "";
+
+            if (itemExcedente != null)
             {
-                _carritoManager.Items.Add(new ItemCarrito
-                {
-                    ProductoId = -999,
-                    Nombre = $"Excedente de tiempo ({minutosExtra} min extra)",
-                    PrecioUnitario = excedente,
-                    Cantidad = 1,
-                    Total = excedente
-                });
+                mensajeAdicional += $"\n\n⚠ Excedente de tiempo: ${itemExcedente.Total:F2}";
             }
 
-            string mensajeExcedente = excedente > 0 ? $"\n\n⚠ Se agregó excedente de ${excedente:F2} por {minutosExtra} minutos extra" : "";
+            if (itemTarjetaPerdida != null)
+            {
+                mensajeAdicional += $"\n⚠ Cargo por tarjeta extraviada: ${itemTarjetaPerdida.Total:F2}";
+            }
 
             MessageBox.Show(
-                $"Venta recuperada exitosamente\n\n" +
-                $"Tarjeta: {idNfc}\n" +
-                $"Hora de entrada: {ventaPendiente.HoraEntrada:HH:mm}\n" +
-                $"Total: ${ventaPendiente.Total:F2}" +
-                mensajeExcedente +
-                "\n\nPuede agregar más productos o finalizar la venta directamente.",
+                $"Venta pendiente recuperada correctamente." +
+                $"\n\nTotal items: {itemsRecuperados.Count}" +
+                $"\nTotal: ${itemsRecuperados.Sum(i => i.Total):F2}" +
+                mensajeAdicional,
                 "Venta Recuperada",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
-
-            CancelarButton.Visibility = Visibility.Visible;
-            PendienteButton.Visibility = Visibility.Collapsed;
-            ProductosScrollViewer.Visibility = Visibility.Visible;
-            TiempoPanel.Visibility = Visibility.Collapsed;
 
             ActualizarTotales();
         }
@@ -608,53 +596,46 @@ namespace POS.paginas.ventas
         {
             try
             {
+                if (string.IsNullOrEmpty(_idNfcVentaRecuperada))
+                {
+                    MessageBox.Show("No hay una venta pendiente recuperada para finalizar.",
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 var exitoso = await _ventaManager.ActualizarVentaPendienteAsync(
-                    _ventaPendienteRecuperada!,
+                    _idNfcVentaRecuperada!,  // ✅ CORRECCIÓN: Usar IdNfc en vez de objeto Venta
                     _carritoManager.Items.ToList()
                 );
 
                 if (exitoso)
                 {
+                    // Buscar la venta actualizada
                     var ventaCompleta = await _context.Ventas
                         .Include(v => v.DetallesVenta)
                             .ThenInclude(d => d.Producto)
-                        .FirstOrDefaultAsync(v => v.Id == _ventaPendienteRecuperada!.Id);
+                        .FirstOrDefaultAsync(v => v.IdNfc == _idNfcVentaRecuperada && v.Estado == (int)EstadoVenta.Pendiente);
 
                     if (ventaCompleta != null)
                     {
-                        var itemsParaTicket = ventaCompleta.DetallesVenta.Select(detalle => new ItemCarrito
-                        {
-                            ProductoId = detalle.ProductoId ?? 0,
-                            Nombre = detalle.NombreParaMostrar,
-                            PrecioUnitario = detalle.PrecioUnitario,
-                            Cantidad = detalle.Cantidad,
-                            Total = detalle.Subtotal
-                        }).ToList();
-
-                        var ticketWindow = new VentaTicketWindow(ventaCompleta, itemsParaTicket, _montoRecibido, _cambio);
-                        ticketWindow.ShowDialog();
-
-                        _carritoManager.Limpiar();
-                        RecibidoTextBox.Text = "0";
-                        _montoRecibido = 0;
-                        _cambio = 0;
-                        _ventaPendienteRecuperada = null;
-                        _tipoPagoSeleccionado = TipoPago.Efectivo; // NUEVO: Reset tipo de pago
-                        ActualizarEstiloTipoPago(); // NUEVO: Actualizar UI
-
-                        FinalizarVentaButton.Visibility = Visibility.Visible;
-                        PendienteButton.Visibility = Visibility.Collapsed;
-
-                        ActualizarTotales();
-                        LoadProductosAsync();
-
-                        MessageBox.Show("Venta finalizada exitosamente", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+                        // Imprimir ticket si tienes ese método implementado
+                        // await ImprimirTicketAsync(ventaCompleta);
                     }
+
+                    _carritoManager.Limpiar();
+                    _idNfcVentaRecuperada = null;
+                    _ventaPendienteRecuperada = null;
+
+                    MessageBox.Show("Venta pendiente actualizada correctamente",
+                        "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    await LoadTiemposActivosAsync();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al finalizar venta: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error al finalizar venta recuperada: {ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -739,7 +720,7 @@ namespace POS.paginas.ventas
                 {
                     try
                     {
-                        bool eliminado = await _ventaManager.EliminarVentaPendienteAsync(tiempo.Id);
+                        bool eliminado = await _ventaManager.CancelarVentaPendienteAsync(tiempo.IdNfc);
 
                         if (eliminado)
                         {

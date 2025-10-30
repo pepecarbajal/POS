@@ -85,5 +85,19 @@ namespace POS
         {
             MainFrame.Navigate(new Uri("paginas/ajustes/AjustesPag.xaml", UriKind.Relative));
         }
+
+        private void CajaButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Navegar a la página de Caja
+                MainFrame.Navigate(new Uri("paginas/caja/CajaPag.xaml", UriKind.Relative));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al abrir Caja: {ex.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
     }
 }

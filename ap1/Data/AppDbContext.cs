@@ -16,6 +16,9 @@ namespace POS.Data
         public DbSet<Tiempo> Tiempos { get; set; }
         public DbSet<PrecioTiempo> PreciosTiempo { get; set; }
 
+        public DbSet<CorteCaja> CorteCajas { get; set; }
+        public DbSet<MovimientoCaja> MovimientosCaja { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             // 1. Obtener la ruta a AppData
@@ -222,6 +225,79 @@ namespace POS.Data
             // Índice para mejorar consultas por tipo de pago
             modelBuilder.Entity<Venta>()
                 .HasIndex(v => v.TipoPago);
+            // Configuración de CorteCaja
+            modelBuilder.Entity<CorteCaja>()
+                .Property(c => c.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<CorteCaja>()
+                .Property(c => c.EfectivoInicial)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<CorteCaja>()
+                .Property(c => c.EfectivoFinal)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<CorteCaja>()
+                .Property(c => c.TotalVentasEfectivo)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<CorteCaja>()
+                .Property(c => c.TotalVentasTarjeta)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<CorteCaja>()
+                .Property(c => c.TotalDepositos)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<CorteCaja>()
+                .Property(c => c.TotalRetiros)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<CorteCaja>()
+                .Property(c => c.Diferencia)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<CorteCaja>()
+                .Property(c => c.EfectivoEsperado)
+                .HasColumnType("decimal(18,2)");
+
+            // Índices para CorteCaja
+            modelBuilder.Entity<CorteCaja>()
+                .HasIndex(c => c.FechaApertura);
+
+            modelBuilder.Entity<CorteCaja>()
+                .HasIndex(c => c.FechaCierre);
+
+            modelBuilder.Entity<CorteCaja>()
+                .HasIndex(c => c.EstaCerrado);
+
+            // Configuración de MovimientoCaja
+            modelBuilder.Entity<MovimientoCaja>()
+                .Property(m => m.Id)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<MovimientoCaja>()
+                .Property(m => m.Monto)
+                .HasColumnType("decimal(18,2)");
+
+            // Relación CorteCaja -> MovimientoCaja
+            modelBuilder.Entity<MovimientoCaja>()
+                .HasOne(m => m.CorteCaja)
+                .WithMany()
+                .HasForeignKey(m => m.CorteCajaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Índices para MovimientoCaja
+            modelBuilder.Entity<MovimientoCaja>()
+                .HasIndex(m => m.CorteCajaId);
+
+            modelBuilder.Entity<MovimientoCaja>()
+                .HasIndex(m => m.Fecha);
+
+            modelBuilder.Entity<MovimientoCaja>()
+                .HasIndex(m => m.TipoMovimiento);
+
 
             // ========== SEED DATA: PRECIOS DE TIEMPO PREDEFINIDOS ==========
 
