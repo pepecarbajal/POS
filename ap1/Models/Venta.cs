@@ -25,19 +25,23 @@ namespace POS.Models
         [Range(0.01, double.MaxValue, ErrorMessage = "El total debe ser mayor que cero.")]
         public decimal Total { get; set; }
 
-        // NUEVO: Estado de la venta
+        // Estado de la venta
         [Required]
         public int Estado { get; set; } = (int)EstadoVenta.Finalizada;
 
-        // NUEVO: ID de la tarjeta NFC asociada (solo para ventas pendientes con tiempo)
+        // ID de la tarjeta NFC asociada (solo para ventas pendientes con tiempo)
         [StringLength(50)]
         public string? IdNfc { get; set; }
 
-        // NUEVO: Hora de entrada (para combos con tiempo)
+        // Hora de entrada (para combos con tiempo)
         public DateTime? HoraEntrada { get; set; }
 
-        // NUEVO: Minutos de tiempo incluidos en el combo
+        // Minutos de tiempo incluidos en el combo
         public int? MinutosTiempoCombo { get; set; }
+
+        // NUEVO: Nombre del cliente/referencia
+        [StringLength(100)]
+        public string? NombreCliente { get; set; }
 
         public ICollection<DetalleVenta> DetallesVenta { get; set; } = new List<DetalleVenta>();
 
