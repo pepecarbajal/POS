@@ -351,48 +351,6 @@ namespace POS.paginas.caja
             }
         }
 
-        private void BtnVerMovimientos_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var corteCajaWindow = new CorteCajaWindow();
-                corteCajaWindow.ShowDialog();
-
-                // Recargar datos después de cerrar la ventana
-                _ = CargarDatos();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al abrir la ventana: {ex.Message}",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private async void BtnImprimirCorte_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (_corteActual == null)
-                {
-                    MessageBox.Show("No hay un corte de caja para imprimir.",
-                        "Advertencia", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                var resumen = await _service.CalcularResumenCorte();
-                var ticketService = new TicketService();
-                ticketService.ImprimirCorteCaja(_corteActual, resumen);
-
-                MessageBox.Show("Ticket enviado a la impresora.",
-                    "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al imprimir: {ex.Message}",
-                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
         private async void BtnActualizar_Click(object sender, RoutedEventArgs e)
         {
             await CargarDatos();

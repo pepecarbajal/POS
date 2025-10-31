@@ -36,13 +36,15 @@ namespace POS.Helpers
 
             var itemsConCategoria = await ObtenerItemsConCategoriaAsync(items);
 
-            // Ajuste de ancho según tamaño de ticket
+            // Convertir mm a puntos (1 mm = 2.83465 puntos)
             float anchoPuntos = anchoMm * 2.83465f;
 
             var document = Document.Create(container =>
             {
                 container.Page(page =>
                 {
+                    // CORRECCIÓN: ContinuousSize con ancho fijo = orientación vertical
+                    // El ancho determina la orientación: ancho pequeño = vertical
                     page.ContinuousSize(anchoPuntos);
                     page.Margin(10);
                     page.DefaultTextStyle(x => x.FontFamily("Courier New").FontSize(9));
@@ -50,70 +52,111 @@ namespace POS.Helpers
                     page.Content()
                         .Column(column =>
                         {
-                            // Encabezado con número de mesa
-                            column.Item().AlignCenter().Text($"Cafeteria ☕").FontSize(16).Bold();
+                            // Encabezado principal
+                            column.Item().AlignCenter().Text("CAFETERÍA").FontSize(12).Bold();
+                            column.Item().AlignCenter().Text("Sistema POS").FontSize(8);
 
-                            // Info de comanda y mesero
-                            column.Item().PaddingTop(2).Row(row =>
-                            {
-                                row.RelativeItem(1).AlignLeft().Text($"Comanda: #{venta.Id:D4}").FontSize(9);
-                                row.RelativeItem(1).AlignRight().Text(nombreMesero).FontSize(9);
-                            });
-
-                            // Fecha y hora
-                            column.Item().AlignCenter().Text($"{venta.Fecha:dd/MM/yyyy HH:mm}").FontSize(9);
-
-                            // Línea separadora
-                            column.Item().PaddingTop(2).AlignCenter()
+                            column.Item().PaddingVertical(3).AlignCenter()
                                 .Text(new string('=', GetLineLength(anchoMm))).FontSize(7);
 
+                            // Información de la comanda
+                            column.Item().PaddingTop(2).AlignCenter()
+                                .Text($"COMANDA #{venta.Id:D4}").FontSize(10).Bold();
+
+                            column.Item().PaddingTop(3).Row(row =>
+                            {
+                                row.RelativeItem().Text($"Mesa: {numeroMesa}").FontSize(8);
+                                row.RelativeItem().AlignRight().Text($"Mesero: {nombreMesero}").FontSize(8);
+                            });
+
+                            column.Item().PaddingTop(2).Text($"Fecha: {venta.Fecha:dd/MM/yyyy}").FontSize(8);
+                            column.Item().Text($"Hora: {venta.Fecha:HH:mm:ss}").FontSize(8);
+
+                            column.Item().PaddingVertical(3).AlignCenter()
+                                .Text(new string('─', GetLineLength(anchoMm))).FontSize(7);
+
+                            // Items agrupados por categoría
                             var itemsAgrupados = AgruparPorCategoria(itemsConCategoria);
 
                             foreach (var categoria in itemsAgrupados)
                             {
                                 column.Item().PaddingTop(4).AlignCenter()
-                                    .Text($"─── {categoria.Key.ToUpper()} ───")
-                                    .FontSize(10).Bold();
+                                    .Text($"╔═══ {categoria.Key.ToUpper()} ═══╗")
+                                    .FontSize(9).Bold();
 
                                 foreach (var item in categoria.Value)
                                 {
-                                    column.Item().PaddingTop(1).Row(row =>
+                                    column.Item().PaddingTop(3).Row(row =>
                                     {
-                                        row.ConstantItem(30).AlignCenter()
-                                            .Text($"{item.Cantidad}x").FontSize(8).Bold();
+                                        row.ConstantItem(35).AlignCenter()
+                                            .Text($"[ {item.Cantidad}x ]").FontSize(9).Bold();
 
                                         row.RelativeItem()
-                                            .Text(TruncateText(item.Nombre.ToUpper(), GetMaxChars(anchoMm)))
-                                            .FontSize(8);
+                                            .Text(TruncateText(item.Nombre.ToUpper(), GetMaxChars(anchoMm) - 5))
+                                            .FontSize(9);
                                     });
 
                                     if (item.EsCombo && item.DetallesCombo != null && item.DetallesCombo.Any())
                                     {
+                                        column.Item().PaddingTop(1).PaddingLeft(40)
+                                            .Text("Incluye:").FontSize(7).Italic();
+
                                         foreach (var detalle in item.DetallesCombo)
                                         {
-                                            column.Item().PaddingLeft(35)
-                                                .Text($"• {TruncateText(detalle, GetMaxChars(anchoMm))}")
+                                            column.Item().PaddingLeft(45)
+                                                .Text($"▸ {TruncateText(detalle, GetMaxChars(anchoMm) - 6)}")
                                                 .FontSize(7).Italic();
                                         }
                                     }
                                 }
+
+                                // Separador entre categorías
+                                column.Item().PaddingTop(2).AlignCenter()
+                                    .Text(new string('·', GetLineLength(anchoMm) / 2)).FontSize(6);
                             }
 
-                            column.Item().PaddingTop(3).AlignCenter()
-                                .Text(new string('=', GetLineLength(anchoMm))).FontSize(7);
+                            column.Item().PaddingTop(4).AlignCenter()
+                                .Text(new string('═', GetLineLength(anchoMm))).FontSize(7);
 
+                            // Información del cliente
                             if (!string.IsNullOrEmpty(venta.NombreCliente))
                             {
-                                column.Item().PaddingTop(2)
-                                    .Text($"Cliente: {TruncateText(venta.NombreCliente, GetMaxChars(anchoMm))}")
-                                    .FontSize(8);
+                                column.Item().PaddingTop(3).AlignCenter()
+                                    .Text("CLIENTE").FontSize(8).Bold();
+                                column.Item().AlignCenter()
+                                    .Text(TruncateText(venta.NombreCliente.ToUpper(), GetMaxChars(anchoMm)))
+                                    .FontSize(9);
                             }
 
+                            // Resumen
                             var totalItems = items.Sum(i => i.Cantidad);
-                            column.Item().PaddingTop(2).AlignCenter()
-                                .Text($"Total: {totalItems}").FontSize(8).Bold();
+                            column.Item().PaddingTop(4).AlignCenter()
+                                .Text($"═══════════════════").FontSize(8);
 
-                            column.Item().PaddingBottom(5);
+                            column.Item().PaddingTop(2).AlignCenter()
+                                .Text($"TOTAL DE ITEMS: {totalItems}").FontSize(11).Bold();
+
+                            column.Item().PaddingTop(1).AlignCenter()
+                                .Text($"═══════════════════").FontSize(8);
+
+                            // Información adicional del pedido
+                            column.Item().PaddingTop(4).AlignCenter()
+                                .Text("TICKET DE PEDIDO").FontSize(9).Bold();
+
+                            column.Item().PaddingTop(2).AlignCenter()
+                                .Text("Para: Cocina / Barra").FontSize(8);
+
+                            column.Item().PaddingTop(2).AlignCenter()
+                                .Text($"Impreso: {DateTime.Now:dd/MM/yyyy HH:mm:ss}").FontSize(7);
+
+                          
+
+                            // Pie de página
+                            column.Item().PaddingTop(5).AlignCenter()
+                                .Text("¡Buen servicio!").FontSize(8).Italic();
+
+                            // Espacio final
+                            column.Item().PaddingBottom(10);
                         });
                 });
             });
@@ -205,26 +248,33 @@ namespace POS.Helpers
             return resultado;
         }
 
-        // FUNCIONES PARA EL TAMAÑO DEL TICKET
-        private static int GetLineLength(int anchoMm) => anchoMm switch
+        private static int GetLineLength(int anchoMm)
         {
-            50 => 24,
-            58 => 32,
-            80 => 48,
-            _ => 48
-        };
+            return anchoMm switch
+            {
+                50 => 24,
+                58 => 32,
+                80 => 48,
+                _ => 48
+            };
+        }
 
-        private static int GetMaxChars(int anchoMm) => anchoMm switch
+        private static int GetMaxChars(int anchoMm)
         {
-            50 => 15,
-            58 => 20,
-            80 => 30,
-            _ => 30
-        };
+            return anchoMm switch
+            {
+                50 => 15,
+                58 => 20,
+                80 => 30,
+                _ => 30
+            };
+        }
 
         private static string TruncateText(string text, int maxLength)
         {
-            if (string.IsNullOrEmpty(text) || text.Length <= maxLength) return text;
+            if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
+                return text;
+
             return text.Substring(0, maxLength - 3) + "...";
         }
 

@@ -1,7 +1,8 @@
-﻿using System;
-using System.Windows;
+﻿using POS.Models;
 using POS.Services;
-using POS.Models;
+using System;
+using System.Windows;
+using System.Windows.Media.Animation;
 
 namespace POS.ventanas
 {
@@ -35,6 +36,33 @@ namespace POS.ventanas
             }
             // Calcular diferencia inicial (será 0 - esperado = negativo)
             CalcularDiferencia();
+        }
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Animación de entrada
+            var fadeIn = new DoubleAnimation
+            {
+                From = 0,
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(200),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            this.BeginAnimation(Window.OpacityProperty, fadeIn);
+
+            // Establecer el efectivo esperado
+            if (txtEfectivoEsperado != null)
+            {
+                txtEfectivoEsperado.Text = _efectivoEsperado.ToString("C2");
+            }
+
+            CalcularDiferencia();
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                txtEfectivoFinal.Focus();
+                txtEfectivoFinal.SelectAll();
+            }), System.Windows.Threading.DispatcherPriority.Render);
         }
 
         private void TxtEfectivoFinal_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)

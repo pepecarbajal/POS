@@ -1,6 +1,7 @@
-﻿using System;
+﻿using POS.Models;
+using System;
 using System.Windows;
-using POS.Models;
+using System.Windows.Media.Animation;
 
 namespace POS.ventanas
 {
@@ -19,7 +20,26 @@ namespace POS.ventanas
             _tipoMovimiento = tipoMovimiento;
 
             Title = tipoMovimiento == TipoMovimiento.Deposito ? "Registrar Depósito" : "Registrar Retiro";
-            lblTitulo.Content = tipoMovimiento == TipoMovimiento.Deposito ? "Depósito a Caja" : "Retiro de Caja";
+            lblTitulo.Text = tipoMovimiento == TipoMovimiento.Deposito ? "Depósito a Caja" : "Retiro de Caja";
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var fadeIn = new DoubleAnimation
+            {
+                From = 0,
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(200),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            this.BeginAnimation(Window.OpacityProperty, fadeIn);
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                txtMonto.Focus();
+                txtMonto.SelectAll();
+            }), System.Windows.Threading.DispatcherPriority.Render);
         }
 
         private void BtnAceptar_Click(object sender, RoutedEventArgs e)
