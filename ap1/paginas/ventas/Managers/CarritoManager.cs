@@ -23,14 +23,29 @@ namespace POS.paginas.ventas.Managers
         // Referencias al carrito compartido
         public ObservableCollection<ItemCarrito> Items => CarritoService.Instance.Items;
 
-        // Control de combos con tiempo
-        private bool _carritoTieneComboConTiempo;
-        private int? _comboConTiempoId;
-        private int _minutosComboTiempo;
+        // Control de combos con tiempo - AHORA PERMITE MÚLTIPLES
+        private List<int> _combosConTiempoIds = new List<int>();
+        private Dictionary<int, int> _minutosCombosPorId = new Dictionary<int, int>();
 
-        public bool TieneComboConTiempo => _carritoTieneComboConTiempo;
-        public int? ComboConTiempoId => _comboConTiempoId;
-        public int MinutosComboTiempo => _minutosComboTiempo;
+        public bool TieneComboConTiempo => _combosConTiempoIds.Any();
+        public List<int> CombosConTiempoIds => _combosConTiempoIds;
+
+        /// <summary>
+        /// Obtiene los minutos totales de todos los combos con tiempo en el carrito
+        /// Suma los minutos de todos los combos para dar el tiempo total disponible
+        /// </summary>
+        public int MinutosComboTiempo
+        {
+            get
+            {
+                // Si no hay combos con tiempo, retornar 0
+                if (!_combosConTiempoIds.Any())
+                    return 0;
+
+                // Sumar los minutos de todos los combos con tiempo
+                return _minutosCombosPorId.Values.Sum();
+            }
+        }
 
         // Items recuperables (para cancelación)
         private readonly List<VentaTiempoRecuperable> _itemsRecuperables = new List<VentaTiempoRecuperable>();
@@ -103,19 +118,14 @@ namespace POS.paginas.ventas.Managers
                     return false;
                 }
 
-                // Si es combo con tiempo
+                // Si es combo con tiempo - AHORA PERMITE MÚLTIPLES
                 if (combo.PrecioTiempoId.HasValue)
                 {
-                    if (_carritoTieneComboConTiempo)
+                    if (!_combosConTiempoIds.Contains(comboId))
                     {
-                        MessageBox.Show("Solo puedes tener un combo con tiempo en el carrito a la vez.",
-                            "Restricción", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return false;
+                        _combosConTiempoIds.Add(comboId);
+                        _minutosCombosPorId[comboId] = combo.PrecioTiempo?.Minutos ?? 0;
                     }
-
-                    _carritoTieneComboConTiempo = true;
-                    _comboConTiempoId = comboId;
-                    _minutosComboTiempo = combo.PrecioTiempo?.Minutos ?? 0;
                 }
 
                 // Construir nombre completo
@@ -135,18 +145,18 @@ namespace POS.paginas.ventas.Managers
 
                 if (itemExistente != null)
                 {
-                    if (combo.PrecioTiempoId.HasValue)
-                    {
-                        MessageBox.Show("Solo puedes tener una unidad de un combo con tiempo en el carrito.",
-                            "Restricción", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return false;
-                    }
-
                     // Validar stock para cantidad adicional
                     if (ValidarStockParaCantidad(combo, itemExistente.Cantidad + 1))
                     {
                         itemExistente.Cantidad++;
                         itemExistente.Total = itemExistente.Cantidad * itemExistente.PrecioUnitario;
+
+                        // Si es combo con tiempo, actualizar minutos por la nueva cantidad
+                        if (combo.PrecioTiempoId.HasValue && _minutosCombosPorId.ContainsKey(comboId))
+                        {
+                            int minutosPorUnidad = combo.PrecioTiempo?.Minutos ?? 0;
+                            _minutosCombosPorId[comboId] = minutosPorUnidad * itemExistente.Cantidad;
+                        }
                     }
                     else
                     {
@@ -183,12 +193,12 @@ namespace POS.paginas.ventas.Managers
         {
             Items.Remove(item);
 
-            // Si era el combo con tiempo, resetear flags
-            if (_carritoTieneComboConTiempo && _comboConTiempoId.HasValue && item.ProductoId == -_comboConTiempoId.Value)
+            // Si era un combo con tiempo, removerlo de la lista
+            if (item.ProductoId < 0)
             {
-                _carritoTieneComboConTiempo = false;
-                _comboConTiempoId = null;
-                _minutosComboTiempo = 0;
+                int comboId = -item.ProductoId;
+                _combosConTiempoIds.Remove(comboId);
+                _minutosCombosPorId.Remove(comboId);
             }
 
             return true;
@@ -200,9 +210,8 @@ namespace POS.paginas.ventas.Managers
         public void Limpiar()
         {
             Items.Clear();
-            _carritoTieneComboConTiempo = false;
-            _comboConTiempoId = null;
-            _minutosComboTiempo = 0;
+            _combosConTiempoIds.Clear();
+            _minutosCombosPorId.Clear();
             _itemsRecuperables.Clear();
         }
 
