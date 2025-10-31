@@ -251,17 +251,17 @@ namespace POS.ventanas
 
                 if (tipoSeleccionado == VentanaImprimir.TipoTicket.Venta)
                 {
-                    // Imprimir solo ticket de venta
+                    // Imprimir ticket de venta DOS VECES
                     await SumatraPrintService.ImprimirPdfAsync(_pdfVentaBytes, config.ImpresoraNombre, _anchoTicket);
-
+                    await System.Threading.Tasks.Task.Delay(1000); // Esperar 1 segundo entre impresiones
+                    await SumatraPrintService.ImprimirPdfAsync(_pdfVentaBytes, config.ImpresoraNombre, _anchoTicket);
                 }
                 else if (tipoSeleccionado == VentanaImprimir.TipoTicket.Pedido)
                 {
-                    // Imprimir solo ticket de pedido
+                    // Imprimir solo ticket de pedido UNA VEZ
                     if (_pdfPedidoBytes != null && _pdfPedidoBytes.Length > 0)
                     {
                         await SumatraPrintService.ImprimirPdfAsync(_pdfPedidoBytes, config.ImpresoraNombre, _anchoTicket);
-
                     }
                     else
                     {
@@ -271,15 +271,17 @@ namespace POS.ventanas
                 }
                 else if (tipoSeleccionado == VentanaImprimir.TipoTicket.Ambos)
                 {
-                    // Imprimir ambos tickets
+                    // Imprimir ticket de venta DOS VECES
+                    await SumatraPrintService.ImprimirPdfAsync(_pdfVentaBytes, config.ImpresoraNombre, _anchoTicket);
+                    await System.Threading.Tasks.Task.Delay(1000);
                     await SumatraPrintService.ImprimirPdfAsync(_pdfVentaBytes, config.ImpresoraNombre, _anchoTicket);
 
+                    // Imprimir ticket de pedido UNA VEZ
                     if (_pdfPedidoBytes != null && _pdfPedidoBytes.Length > 0)
                     {
-                        await System.Threading.Tasks.Task.Delay(1000); // Esperar 1 segundo entre impresiones
+                        await System.Threading.Tasks.Task.Delay(1000);
                         await SumatraPrintService.ImprimirPdfAsync(_pdfPedidoBytes, config.ImpresoraNombre, _anchoTicket);
                     }
-
                 }
 
                 // Restaurar botón
