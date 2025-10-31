@@ -165,7 +165,7 @@
                 Click="CombosButton_Click"/>
 
                     <Button Grid.Column="3"
-                Content="Tiempo"
+                Content="Pendientes"
                 Style="{StaticResource CategoryButtonStyle}"
                 Margin="0"
                 Click="TiempoButton_Click"/>
@@ -405,7 +405,7 @@
 
                                                     <!-- Tiempo transcurrido / restante -->
                                                     <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
-                                                        
+
 
                                                         <!-- Badge de ACTIVO -->
                                                         <Border Background="{StaticResource SuccessGreen}"
@@ -516,7 +516,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Header del carrito con botón Cancelar -->
+                <!-- Header del carrito con botones -->
                 <Border Grid.Row="0"
                         Background="{StaticResource PrimaryPurple}"
                         CornerRadius="8,8,0,0"
@@ -529,42 +529,81 @@
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"/>
 
-                        <!-- Botón Cancelar en el header -->
-                        <Button x:Name="CancelarButton"
-                                Content="✕"
-                                FontSize="20"
-                                FontWeight="Bold"
-                                Width="40"
-                                Height="40"
-                                Background="#ef4444"
-                                Foreground="White"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                Click="CancelarVenta_Click"
-                                ToolTip="Cancelar venta">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}"
-                                            CornerRadius="6"
-                                            Padding="0">
-                                        <ContentPresenter HorizontalAlignment="Center"
-                                                        VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="Background" Value="#ef4444"/>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#dc2626"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
+                        <!-- Botones en el header -->
+                        <StackPanel Orientation="Horizontal" 
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center">
+                            <!-- Botón Imprimir -->
+                            <Button x:Name="ImprimirButton"
+                                    Content="🖨️"
+                                    FontSize="18"
+                                    FontWeight="Bold"
+                                    Width="40"
+                                    Height="40"
+                                    Background="#3b82f6"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Margin="0,0,8,0"
+                                    Click="ImprimirButton_Click"
+                                    ToolTip="Imprimir">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="6"
+                                                Padding="0">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="#3b82f6"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#2563eb"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <!-- Botón Cancelar -->
+                            <Button x:Name="CancelarButton"
+                                    Content="✕"
+                                    FontSize="20"
+                                    FontWeight="Bold"
+                                    Width="40"
+                                    Height="40"
+                                    Background="#ef4444"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"
+                                    Click="CancelarVenta_Click"
+                                    ToolTip="Cancelar venta">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="6"
+                                                Padding="0">
+                                            <ContentPresenter HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="#ef4444"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#dc2626"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
                     </Grid>
                 </Border>
 

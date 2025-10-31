@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using POS.Data;
+using POS.Helpers;
 using POS.Interfaces;
 using POS.Models;
 using POS.paginas.ventas.Managers;
@@ -916,6 +917,113 @@ namespace POS.paginas.ventas
             {
                 _cambio = Math.Max(0, _montoRecibido - total);
                 CambioTextBlock.Text = $"${_cambio:N2}";
+            }
+        }
+
+        #endregion
+
+        #region Imprimir
+
+        private async void ImprimirButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_carritoManager.Items.Any())
+            {
+                MessageBox.Show("El carrito está vacío. Agregue productos antes de imprimir.",
+                    "Carrito Vacío", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Preguntar confirmación antes de imprimir
+            var resultado = MessageBox.Show(
+                "¿Desea imprimir el ticket para cafetería/cocina?",
+                "Confirmar Impresión",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (resultado != MessageBoxResult.Yes)
+            {
+                return; // Usuario canceló
+            }
+
+            try
+            {
+                var config = ConfiguracionService.CargarConfiguracion();
+
+                // Verificar impresora configurada
+                if (string.IsNullOrEmpty(config.ImpresoraNombre))
+                {
+                    MessageBox.Show("No hay una impresora configurada.\n\n" +
+                        "Por favor, configure la impresora en Administración > Ajustes",
+                        "Impresora no configurada",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Verificar SumatraPDF
+                var rutaSumatra = SumatraPrintService.EncontrarSumatra();
+                if (string.IsNullOrEmpty(rutaSumatra))
+                {
+                    MessageBox.Show("SumatraPDF no está instalado o no se puede encontrar.\n\n" +
+                        "Por favor, descargue e instale SumatraPDF desde:\n" +
+                        "https://www.sumatrapdfreader.org/download-free-pdf-viewer",
+                        "SumatraPDF no encontrado",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Crear una venta temporal para generar el ticket de pedido
+                var ventaTemporal = new Venta
+                {
+                    Id = 0, // ID temporal
+                    Fecha = DateTime.Now,
+                    Total = _carritoManager.ObtenerTotal(),
+                    Estado = (int)EstadoVenta.Finalizada,
+                    TipoPago = (int)_tipoPagoSeleccionado,
+                    NombreCliente = "Pre-venta"
+                };
+
+                // Deshabilitar botón mientras genera e imprime
+                ImprimirButton.IsEnabled = false;
+                ImprimirButton.Content = "⏳";
+
+                // Generar ticket de pedido
+                var ticketPedidoGenerator = new TicketPedidoPdfGenerator(_context);
+                var pdfPedidoBytes = await ticketPedidoGenerator.GenerarTicketPedidoAsync(
+                    venta: ventaTemporal,
+                    items: _carritoManager.Items.ToList(),
+                    nombreMesero: "Cajero",
+                    numeroMesa: "Venta Directa",
+                    anchoMm: config.AnchoTicket
+                );
+
+                if (pdfPedidoBytes != null && pdfPedidoBytes.Length > 0)
+                {
+                    // Imprimir directamente
+                    await SumatraPrintService.ImprimirPdfAsync(pdfPedidoBytes, config.ImpresoraNombre, config.AnchoTicket);
+
+                }
+                else
+                {
+                    MessageBox.Show("❌ No se pudo generar el ticket de pedido",
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+
+                // Restaurar botón
+                ImprimirButton.IsEnabled = true;
+                ImprimirButton.Content = "🖨️";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al imprimir ticket de pedido: {ex.Message}\n\n" +
+                    "Verifique que:\n" +
+                    "• La impresora esté encendida y conectada\n" +
+                    "• SumatraPDF esté correctamente instalado",
+                    "Error de impresión",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+
+                // Restaurar botón en caso de error
+                ImprimirButton.IsEnabled = true;
+                ImprimirButton.Content = "🖨️";
             }
         }
 

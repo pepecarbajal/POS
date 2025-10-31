@@ -60,13 +60,9 @@ namespace POS.Helpers
                                 .Text(new string('=', GetLineLength(anchoMm))).FontSize(7);
 
                             // Información de la comanda
-                            column.Item().PaddingTop(2).AlignCenter()
-                                .Text($"COMANDA #{venta.Id:D4}").FontSize(10).Bold();
-
                             column.Item().PaddingTop(3).Row(row =>
                             {
-                                row.RelativeItem().Text($"Mesa: {numeroMesa}").FontSize(8);
-                                row.RelativeItem().AlignRight().Text($"Mesero: {nombreMesero}").FontSize(8);
+                                row.RelativeItem().AlignRight().Text($"{nombreMesero}").FontSize(8);
                             });
 
                             column.Item().PaddingTop(2).Text($"Fecha: {venta.Fecha:dd/MM/yyyy}").FontSize(8);
@@ -149,7 +145,7 @@ namespace POS.Helpers
                             column.Item().PaddingTop(2).AlignCenter()
                                 .Text($"Impreso: {DateTime.Now:dd/MM/yyyy HH:mm:ss}").FontSize(7);
 
-                          
+
 
                             // Pie de página
                             column.Item().PaddingTop(5).AlignCenter()
