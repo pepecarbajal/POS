@@ -349,8 +349,22 @@ namespace POS.paginas.ventas
                 _carritoManager.Limpiar();
             }
 
-            // Guardar el IdNfc para poder finalizar la venta después
+            // ✅ CORRECCIÓN CRÍTICA: Obtener el objeto Venta completo de la BD
+            var ventaPendiente = await _context.Ventas
+                .Include(v => v.DetallesVenta)
+                .ThenInclude(d => d.Producto)
+                .FirstOrDefaultAsync(v => v.IdNfc == idNfc && v.Estado == (int)EstadoVenta.Pendiente);
+
+            if (ventaPendiente == null)
+            {
+                MessageBox.Show("No se pudo cargar la venta pendiente completa.",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // ✅ Establecer AMBAS variables necesarias
             _idNfcVentaRecuperada = idNfc;
+            _ventaPendienteRecuperada = ventaPendiente;  // ⭐ ESTA ERA LA LÍNEA FALTANTE
 
             // Agregar todos los items recuperados al carrito
             foreach (var item in itemsRecuperados)
@@ -396,16 +410,9 @@ namespace POS.paginas.ventas
 
             bool agregado = false;
 
-            // Combo con tiempo
+            // Combo con tiempo - AHORA PERMITE MÚLTIPLES
             if (producto.EsCombo && producto.TieneTiempo)
             {
-                if (_carritoManager.TieneComboConTiempo)
-                {
-                    MessageBox.Show("Solo puedes tener un combo con tiempo en el carrito a la vez.",
-                        "Restricción", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
                 agregado = await _carritoManager.AgregarComboAsync(producto.ComboId);
 
                 if (agregado)
@@ -610,24 +617,32 @@ namespace POS.paginas.ventas
 
                 if (exitoso)
                 {
-                    // Buscar la venta actualizada
+                    // Buscar la venta FINALIZADA (ya no está pendiente)
                     var ventaCompleta = await _context.Ventas
                         .Include(v => v.DetallesVenta)
                             .ThenInclude(d => d.Producto)
-                        .FirstOrDefaultAsync(v => v.IdNfc == _idNfcVentaRecuperada && v.Estado == (int)EstadoVenta.Pendiente);
+                        .FirstOrDefaultAsync(v => v.IdNfc == _idNfcVentaRecuperada && v.Estado == (int)EstadoVenta.Finalizada);
 
                     if (ventaCompleta != null)
                     {
-                        // Imprimir ticket si tienes ese método implementado
-                        // await ImprimirTicketAsync(ventaCompleta);
+                        // Preparar items para el ticket
+                        var itemsParaTicket = ventaCompleta.DetallesVenta.Select(detalle => new ItemCarrito
+                        {
+                            ProductoId = detalle.ProductoId ?? 0,
+                            Nombre = detalle.NombreParaMostrar,
+                            PrecioUnitario = detalle.PrecioUnitario,
+                            Cantidad = detalle.Cantidad,
+                            Total = detalle.Subtotal
+                        }).ToList();
+
+                        // Mostrar ticket de venta
+                        var ticketWindow = new VentaTicketWindow(ventaCompleta, itemsParaTicket, 0, 0);
+                        ticketWindow.ShowDialog();
                     }
 
                     _carritoManager.Limpiar();
                     _idNfcVentaRecuperada = null;
                     _ventaPendienteRecuperada = null;
-
-                    MessageBox.Show("Venta pendiente actualizada correctamente",
-                        "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
 
                     await LoadTiemposActivosAsync();
                 }

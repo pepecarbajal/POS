@@ -34,7 +34,7 @@ namespace POS.paginas.ventas.Managers
         }
 
         /// <summary>
-        /// Mueve una venta pendiente al carrito (cuando se cancela por tarjeta perdida)
+        /// Mueve una venta pendiente al carrito (recuperación normal - SIN cargo de tarjeta)
         /// </summary>
         public async Task<VentaTiempoRecuperable?> MoverVentaPendienteACarritoAsync(TiempoActivo tiempo)
         {
@@ -103,7 +103,35 @@ namespace POS.paginas.ventas.Managers
                     recuperable.Items.Add(itemCarrito);
                 }
 
-                // Agregar tarjeta perdida
+                // NO SE AGREGA CARGO DE TARJETA EXTRAVIADA EN RECUPERACIÓN NORMAL
+                // Solo se agrega cuando se cancela específicamente por tarjeta perdida
+
+                return recuperable;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al mover venta al carrito: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Mueve una venta pendiente al carrito CON CARGO de tarjeta extraviada
+        /// (Solo se usa cuando explícitamente se cancela por tarjeta perdida)
+        /// </summary>
+        public async Task<VentaTiempoRecuperable?> MoverVentaPendienteConCargoTarjetaAsync(TiempoActivo tiempo)
+        {
+            try
+            {
+                // Primero obtener la venta normal
+                var recuperable = await MoverVentaPendienteACarritoAsync(tiempo);
+
+                if (recuperable == null)
+                {
+                    return null;
+                }
+
+                // Agregar cargo de tarjeta perdida
                 var itemTarjetaPerdida = new ItemCarrito
                 {
                     ProductoId = -998,
@@ -119,7 +147,7 @@ namespace POS.paginas.ventas.Managers
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al mover venta al carrito: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error al mover venta con cargo de tarjeta: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return null;
             }
         }
@@ -195,7 +223,7 @@ namespace POS.paginas.ventas.Managers
 
                     if (venta != null)
                     {
-                        // Eliminar el detalle de tarjeta extraviada
+                        // Eliminar el detalle de tarjeta extraviada si existe
                         var detalleTarjeta = venta.DetallesVenta
                             .FirstOrDefault(d => d.NombreItem == "Tarjeta extraviada/dañada");
 

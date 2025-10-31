@@ -299,15 +299,8 @@ namespace POS.paginas.ventas.Managers
                     });
                 }
 
-                // Agregar cargo por tarjeta perdida
-                itemsRecuperados.Add(new ItemCarrito
-                {
-                    ProductoId = -998,
-                    Nombre = "Tarjeta extraviada/dañada",
-                    PrecioUnitario = 50,
-                    Cantidad = 1,
-                    Total = 50
-                });
+                // NO se agrega cargo por tarjeta extraviada en recuperación normal
+                // El cargo solo se debe agregar en casos específicos de tarjeta perdida
 
                 return itemsRecuperados;
             }
@@ -360,8 +353,7 @@ namespace POS.paginas.ventas.Managers
                             {
                                 if (comboProducto.Producto != null)
                                 {
-                                    int cantidadTotal = comboProducto.Cantidad * detalle.Cantidad;
-                                    comboProducto.Producto.Stock += cantidadTotal;
+                                    comboProducto.Producto.Stock += comboProducto.Cantidad * detalle.Cantidad;
                                     _context.Entry(comboProducto.Producto).State = EntityState.Modified;
                                 }
                             }
@@ -369,13 +361,12 @@ namespace POS.paginas.ventas.Managers
                     }
                 }
 
-                // Eliminar la venta
+                // Eliminar la venta y sus detalles
                 _context.DetallesVenta.RemoveRange(detalles);
                 _context.Ventas.Remove(ventaPendiente);
-
                 await _context.SaveChangesAsync();
 
-                MessageBox.Show("Venta pendiente cancelada correctamente. El stock ha sido restaurado.",
+                MessageBox.Show("Venta cancelada y stock restaurado correctamente",
                     "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 return true;
@@ -392,13 +383,17 @@ namespace POS.paginas.ventas.Managers
         #region Actualización de Ventas Pendientes
 
         /// <summary>
-        /// Actualiza una venta pendiente con items adicionales
+        /// Actualiza una venta pendiente con items adicionales y la finaliza
+        /// ✅ CORRECCIÓN: Asegura que el cambio de estado se propaga correctamente
         /// </summary>
         public async Task<bool> ActualizarVentaPendienteAsync(string idNfc, List<ItemCarrito> nuevosItems)
         {
             try
             {
-                var ventaPendiente = await _ventaService.GetVentaPendienteByIdNfcAsync(idNfc);
+                // ✅ Usar AsNoTracking() para evitar problemas de caché
+                var ventaPendiente = await _context.Ventas
+                    .Include(v => v.DetallesVenta)
+                    .FirstOrDefaultAsync(v => v.IdNfc == idNfc && v.Estado == (int)EstadoVenta.Pendiente);
 
                 if (ventaPendiente == null)
                 {
@@ -406,11 +401,6 @@ namespace POS.paginas.ventas.Managers
                         "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return false;
                 }
-
-                // Cargar detalles actuales
-                await _context.Entry(ventaPendiente)
-                    .Collection(v => v.DetallesVenta)
-                    .LoadAsync();
 
                 // Procesar cada item
                 foreach (var item in nuevosItems)
@@ -428,17 +418,29 @@ namespace POS.paginas.ventas.Managers
                 // Recalcular total
                 ventaPendiente.Total = ventaPendiente.DetallesVenta.Sum(d => d.Subtotal);
 
+                // ✅ CRÍTICO: Marcar la venta como FINALIZADA
+                ventaPendiente.Estado = (int)EstadoVenta.Finalizada;
+                ventaPendiente.Fecha = DateTime.Now; // Actualizar fecha de finalización
+
+                // ✅ Marcar explícitamente la entidad como modificada
                 _context.Entry(ventaPendiente).State = EntityState.Modified;
+
+                // ✅ Guardar cambios
                 await _context.SaveChangesAsync();
 
-                MessageBox.Show("Venta actualizada correctamente",
+                // ✅ NUEVO: Limpiar el tracking del contexto para asegurar que la próxima consulta 
+                // traiga el estado actualizado desde la BD
+                _context.ChangeTracker.Clear();
+
+                MessageBox.Show("Venta finalizada correctamente",
                     "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al actualizar venta: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error al actualizar venta: {ex.Message}\n\nDetalles: {ex.InnerException?.Message}",
+                    "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
         }
@@ -555,31 +557,28 @@ namespace POS.paginas.ventas.Managers
                     return null;
                 }
 
-                // Convertir DetalleVenta a ItemCarrito
-                var itemsCarrito = venta.DetallesVenta
-                    .Where(d => d.TipoItem != (int)TipoItemVenta.Tiempo) // Excluir tiempos
-                    .Select(d => new ItemCarrito
-                    {
-                        ProductoId = d.ProductoId ?? (d.TipoItem == (int)TipoItemVenta.Combo ? -d.ItemReferenciaId ?? 0 : 0),
-                        Nombre = d.NombreParaMostrar,
-                        PrecioUnitario = d.PrecioUnitario,
-                        Cantidad = d.Cantidad,
-                        Total = d.Subtotal
-                    })
-                    .ToList();
+                // Convertir detalles a ItemCarrito
+                var itemsCarrito = venta.DetallesVenta.Select(d => new ItemCarrito
+                {
+                    ProductoId = d.ProductoId ?? 0,
+                    Nombre = d.NombreParaMostrar,
+                    PrecioUnitario = d.PrecioUnitario,
+                    Cantidad = d.Cantidad,
+                    Total = d.Subtotal
+                }).ToList();
 
-                // Generar el ticket
+                // Regenerar el ticket
                 return await GenerarTicketPedidoAsync(
-                    venta: venta,
-                    itemsCarrito: itemsCarrito,
-                    numeroMesa: numeroMesa,
-                    nombreMesero: nombreMesero,
+                    venta,
+                    itemsCarrito,
+                    numeroMesa,
+                    nombreMesero,
                     generarAutomaticamente: true
                 );
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al regenerar ticket de pedido: {ex.Message}",
+                MessageBox.Show($"Error al regenerar ticket: {ex.Message}",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return null;
             }
@@ -587,15 +586,16 @@ namespace POS.paginas.ventas.Managers
 
         #endregion
 
-        #region Métodos Privados de Procesamiento
+        #region Métodos Auxiliares Privados
 
         private async Task ProcesarItemParaVenta(Venta venta, ItemCarrito item)
         {
-            if (item.ProductoId == -999)
+            // Items especiales (excedente de tiempo, tarjeta perdida)
+            if (item.ProductoId == -999 || item.ProductoId == -998)
             {
                 venta.DetallesVenta.Add(new DetalleVenta
                 {
-                    TipoItem = (int)TipoItemVenta.Tiempo,
+                    TipoItem = item.ProductoId == -999 ? (int)TipoItemVenta.Tiempo : (int)TipoItemVenta.Producto,
                     ProductoId = null,
                     ItemReferenciaId = null,
                     NombreItem = item.Nombre,
@@ -603,27 +603,21 @@ namespace POS.paginas.ventas.Managers
                     PrecioUnitario = item.PrecioUnitario,
                     Subtotal = item.Total
                 });
+                return;
             }
-            else if (item.ProductoId == -998)
-            {
-                venta.DetallesVenta.Add(new DetalleVenta
-                {
-                    TipoItem = (int)TipoItemVenta.Producto,
-                    ProductoId = null,
-                    ItemReferenciaId = null,
-                    NombreItem = "Tarjeta extraviada/dañada",
-                    Cantidad = 1,
-                    PrecioUnitario = 50,
-                    Subtotal = 50
-                });
-            }
-            else if (item.ProductoId > 0)
+
+            // Producto individual
+            if (item.ProductoId > 0)
             {
                 await ProcesarProducto(venta, item);
+                return;
             }
-            else
+
+            // Combo
+            if (item.ProductoId < 0)
             {
                 await ProcesarCombo(venta, item);
+                return;
             }
         }
 
@@ -642,7 +636,6 @@ namespace POS.paginas.ventas.Managers
             }
 
             producto.Stock -= item.Cantidad;
-
             venta.DetallesVenta.Add(new DetalleVenta
             {
                 TipoItem = (int)TipoItemVenta.Producto,
