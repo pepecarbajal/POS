@@ -384,13 +384,13 @@ namespace POS.paginas.ventas.Managers
 
         /// <summary>
         /// Actualiza una venta pendiente con items adicionales y la finaliza
-        /// ✅ CORRECCIÓN: Asegura que el cambio de estado se propaga correctamente
+        /// ✅ CORRECCIÓN DEFINITIVA: Usa el servicio para finalizar correctamente
         /// </summary>
         public async Task<bool> ActualizarVentaPendienteAsync(string idNfc, List<ItemCarrito> nuevosItems)
         {
             try
             {
-                // ✅ Usar AsNoTracking() para evitar problemas de caché
+                // 1. Obtener la venta pendiente
                 var ventaPendiente = await _context.Ventas
                     .Include(v => v.DetallesVenta)
                     .FirstOrDefaultAsync(v => v.IdNfc == idNfc && v.Estado == (int)EstadoVenta.Pendiente);
@@ -402,7 +402,7 @@ namespace POS.paginas.ventas.Managers
                     return false;
                 }
 
-                // Procesar cada item
+                // 2. Procesar cada item nuevo
                 foreach (var item in nuevosItems)
                 {
                     if (VerificarSiEsNuevoItem(ventaPendiente, item))
@@ -415,21 +415,19 @@ namespace POS.paginas.ventas.Managers
                     }
                 }
 
-                // Recalcular total
-                ventaPendiente.Total = ventaPendiente.DetallesVenta.Sum(d => d.Subtotal);
+                // 3. Recalcular total con los nuevos items
+                decimal nuevoTotal = ventaPendiente.DetallesVenta.Sum(d => d.Subtotal);
+                ventaPendiente.Total = nuevoTotal;
 
-                // ✅ CRÍTICO: Marcar la venta como FINALIZADA
-                ventaPendiente.Estado = (int)EstadoVenta.Finalizada;
-                ventaPendiente.Fecha = DateTime.Now; // Actualizar fecha de finalización
-
-                // ✅ Marcar explícitamente la entidad como modificada
+                // 4. Guardar los cambios de detalles e items PRIMERO
                 _context.Entry(ventaPendiente).State = EntityState.Modified;
-
-                // ✅ Guardar cambios
                 await _context.SaveChangesAsync();
 
-                // ✅ NUEVO: Limpiar el tracking del contexto para asegurar que la próxima consulta 
-                // traiga el estado actualizado desde la BD
+                // 5. ✅ SOLUCIÓN CRÍTICA: Usar el servicio para finalizar la venta
+                // Esto asegura que se usa _context.Ventas.Update() correctamente
+                await _ventaService.FinalizarVentaPendienteAsync(idNfc, 0);
+
+                // 6. Limpiar el tracking del contexto
                 _context.ChangeTracker.Clear();
 
                 MessageBox.Show("Venta finalizada correctamente",
