@@ -1,64 +1,354 @@
 ﻿<Window x:Class="POS.ventanas.MovimientoCajaWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Movimiento de Caja" Height="400" Width="450"
+        Title="Movimiento de Caja"
+        Height="530"
+        Width="500"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize">
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        ResizeMode="NoResize"
+        Background="Transparent"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        ShowInTaskbar="False"
+        Opacity="0"
+        Loaded="Window_Loaded">
 
-        <Label x:Name="lblTitulo" 
-               Content="Movimiento de Caja" 
-               FontSize="20" 
-               FontWeight="Bold" 
-               Margin="0,0,0,20"/>
+    <Border Background="#1a0b2e"
+            CornerRadius="16"
+            BorderBrush="#8b5cf6"
+            BorderThickness="2">
+        <Border.Effect>
+            <DropShadowEffect Color="#8b5cf6" 
+                              Direction="0" 
+                              ShadowDepth="0" 
+                              BlurRadius="30" 
+                              Opacity="0.4"/>
+        </Border.Effect>
 
-        <StackPanel Grid.Row="1" Margin="0,0,0,10">
-            <TextBlock Text="Monto:" Margin="0,0,0,5"/>
-            <TextBox x:Name="txtMonto" 
-                     FontSize="16" 
-                     Padding="5"
-                     Text="0.00"/>
-        </StackPanel>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="2" Margin="0,0,0,10">
-            <TextBlock Text="Concepto:" Margin="0,0,0,5"/>
-            <TextBox x:Name="txtConcepto" Padding="5"/>
-        </StackPanel>
+            <!-- Header con gradiente dinámico -->
+            <Border x:Name="headerBorder"
+                    Grid.Row="0"
+                    Height="110"
+                    CornerRadius="16,16,0,0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#7c3aed" Offset="0"/>
+                        <GradientStop Color="#8b5cf6" Offset="0.5"/>
+                        <GradientStop Color="#a78bfa" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
 
-        <StackPanel Grid.Row="3" Margin="0,0,0,10">
-            <TextBlock Text="Usuario:" Margin="0,0,0,5"/>
-            <TextBox x:Name="txtUsuario" Padding="5"/>
-        </StackPanel>
+                <Grid>
+                    <Ellipse Width="80" Height="80"
+                             Fill="#ffffff"
+                             Opacity="0.1"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Top"
+                             Margin="-20,-20,0,0"/>
 
-        <StackPanel Grid.Row="4" Margin="0,0,0,10">
-            <TextBlock Text="Observaciones:" Margin="0,0,0,5"/>
-            <TextBox x:Name="txtObservaciones" 
-                     Height="80" 
-                     TextWrapping="Wrap" 
-                     AcceptsReturn="True"
-                     VerticalScrollBarVisibility="Auto"/>
-        </StackPanel>
+                    <Ellipse Width="60" Height="60"
+                             Fill="#ffffff"
+                             Opacity="0.1"
+                             HorizontalAlignment="Right"
+                             VerticalAlignment="Bottom"
+                             Margin="0,0,-15,-15"/>
 
-        <StackPanel Grid.Row="5" 
-                    Orientation="Horizontal" 
-                    HorizontalAlignment="Right">
-            <Button Content="Aceptar" 
-                    Width="100" 
-                    Margin="0,0,10,0"
-                    Click="BtnAceptar_Click"
-                    IsDefault="True"/>
-            <Button Content="Cancelar" 
-                    Width="100"
-                    Click="BtnCancelar_Click"
-                    IsCancel="True"/>
-        </StackPanel>
-    </Grid>
+                    <StackPanel VerticalAlignment="Center"
+                                HorizontalAlignment="Center">
+                        <Border x:Name="iconBorder"
+                                Width="45" Height="45"
+                                Background="White"
+                                CornerRadius="23"
+                                Margin="0,0,0,10">
+                            <TextBlock x:Name="iconText"
+                                       Text="💸"
+                                       FontSize="24"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+
+                        <TextBlock x:Name="lblTitulo"
+                                   Text="Movimiento de Caja"
+                                   FontSize="19"
+                                   FontWeight="Bold"
+                                   Foreground="White"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Contenido -->
+            <StackPanel Grid.Row="1"
+                        Margin="40,25,40,25">
+
+                <TextBlock x:Name="txtSubtitulo"
+                           Text="Registre el movimiento de caja"
+                           FontSize="12"
+                           Foreground="#b8b8b8"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,20"
+                           TextAlignment="Center"/>
+
+                <!-- Monto -->
+                <TextBlock Text="Monto"
+                           FontSize="12"
+                           Foreground="#8b5cf6"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8"/>
+
+                <Border Background="#0d0520"
+                        CornerRadius="10"
+                        BorderBrush="#8b5cf6"
+                        BorderThickness="1.5"
+                        Margin="0,0,0,18">
+                    <Grid>
+                        <TextBlock Text="💵"
+                                   FontSize="18"
+                                   VerticalAlignment="Center"
+                                   Margin="15,0,0,0"
+                                   Foreground="#8b5cf6"/>
+
+                        <TextBox x:Name="txtMonto"
+                                 Text="0.00"
+                                 FontSize="15"
+                                 Padding="45,14,15,14"
+                                 Height="50"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 Foreground="White"
+                                 CaretBrush="White">
+                            <TextBox.Resources>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="CornerRadius" Value="10"/>
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+                    </Grid>
+                </Border>
+
+                <!-- Concepto -->
+                <TextBlock Text="Concepto"
+                           FontSize="12"
+                           Foreground="#8b5cf6"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8"/>
+
+                <Border Background="#0d0520"
+                        CornerRadius="10"
+                        BorderBrush="#8b5cf6"
+                        BorderThickness="1.5"
+                        Margin="0,0,0,18">
+                    <Grid>
+                        <TextBlock Text="📝"
+                                   FontSize="18"
+                                   VerticalAlignment="Center"
+                                   Margin="15,0,0,0"
+                                   Foreground="#8b5cf6"/>
+
+                        <TextBox x:Name="txtConcepto"
+                                 FontSize="15"
+                                 Padding="45,14,15,14"
+                                 Height="50"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 Foreground="White"
+                                 CaretBrush="White">
+                            <TextBox.Resources>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="CornerRadius" Value="10"/>
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+                    </Grid>
+                </Border>
+
+                <!-- Usuario -->
+                <TextBlock Text="Usuario"
+                           FontSize="12"
+                           Foreground="#8b5cf6"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8"/>
+
+                <Border Background="#0d0520"
+                        CornerRadius="10"
+                        BorderBrush="#8b5cf6"
+                        BorderThickness="1.5"
+                        Margin="0,0,0,18">
+                    <Grid>
+                        <TextBlock Text="👤"
+                                   FontSize="18"
+                                   VerticalAlignment="Center"
+                                   Margin="15,0,0,0"
+                                   Foreground="#8b5cf6"/>
+
+                        <TextBox x:Name="txtUsuario"
+                                 FontSize="15"
+                                 Padding="45,14,15,14"
+                                 Height="50"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 Foreground="White"
+                                 CaretBrush="White">
+                            <TextBox.Resources>
+                                <Style TargetType="{x:Type Border}">
+                                    <Setter Property="CornerRadius" Value="10"/>
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+                    </Grid>
+                </Border>
+
+                <!-- Observaciones -->
+                <TextBlock Text="Observaciones"
+                           FontSize="12"
+                           Foreground="#8b5cf6"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,8"/>
+
+                <Border Background="#0d0520"
+                        CornerRadius="10"
+                        BorderBrush="#8b5cf6"
+                        BorderThickness="1.5"
+                        Margin="0,0,0,25"
+                        Height="70">
+                    <TextBox x:Name="txtObservaciones"
+                             FontSize="14"
+                             Padding="15,12"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             Foreground="White"
+                             CaretBrush="White"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto">
+                        <TextBox.Resources>
+                            <Style TargetType="{x:Type Border}">
+                                <Setter Property="CornerRadius" Value="10"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+                </Border>
+
+                <!-- Botones -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Botón Cancelar -->
+                    <Button Grid.Column="0"
+                            Content="Cancelar"
+                            Height="48"
+                            FontSize="14"
+                            FontWeight="Medium"
+                            Foreground="#e0e0e0"
+                            BorderThickness="1.5"
+                            BorderBrush="#4c2f7a"
+                            Cursor="Hand"
+                            Click="BtnCancelar_Click"
+                            IsCancel="True">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="border"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="10">
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="border" Property="Background" Value="#0d0520"/>
+                                                    <Setter TargetName="border" Property="BorderBrush" Value="#8b5cf6"/>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="border" Property="Background" Value="#1a0b2e"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <!-- Botón Aceptar -->
+                    <Button Grid.Column="2"
+                            Content="Aceptar"
+                            Height="48"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Click="BtnAceptar_Click"
+                            IsDefault="True">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#7c3aed" Offset="0"/>
+                                            <GradientStop Color="#8b5cf6" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="border"
+                                                    Background="{TemplateBinding Background}"
+                                                    CornerRadius="10">
+                                                <Border.Effect>
+                                                    <DropShadowEffect Color="#8b5cf6" 
+                                                                      Direction="270" 
+                                                                      ShadowDepth="2" 
+                                                                      BlurRadius="10" 
+                                                                      Opacity="0.5"/>
+                                                </Border.Effect>
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="border" Property="Background">
+                                                        <Setter.Value>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                <GradientStop Color="#6d28d9" Offset="0"/>
+                                                                <GradientStop Color="#7c3aed" Offset="1"/>
+                                                            </LinearGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="border" Property="Background">
+                                                        <Setter.Value>
+                                                            <SolidColorBrush Color="#5b21b6"/>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

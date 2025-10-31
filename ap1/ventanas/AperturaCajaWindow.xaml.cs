@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Media.Animation;
 
 namespace POS.ventanas
 {
@@ -27,6 +28,25 @@ namespace POS.ventanas
                 MessageBox.Show("Ingrese un monto válido.",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            var fadeIn = new DoubleAnimation
+            {
+                From = 0,
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(200),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            this.BeginAnimation(Window.OpacityProperty, fadeIn);
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                txtEfectivoInicial.Focus();
+                txtEfectivoInicial.SelectAll();
+            }), System.Windows.Threading.DispatcherPriority.Render);
         }
 
         private void BtnCancelar_Click(object sender, RoutedEventArgs e)
