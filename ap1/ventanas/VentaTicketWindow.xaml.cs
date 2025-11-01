@@ -15,18 +15,17 @@ using POS.ventanas;
 namespace POS.ventanas
 {
     /// <summary>
-    /// Ventana que muestra el ticket de venta y genera automáticamente el ticket de pedido
+    /// Ventana que muestra el ticket de venta y puede imprimir tickets de venta y pedido
     /// </summary>
     public partial class VentaTicketWindow : Window
     {
         private readonly Venta _venta;
         private readonly List<ItemCarrito> _items;
-        private byte[] _pdfVentaBytes = Array.Empty<byte>();
-        private byte[] _pdfPedidoBytes = Array.Empty<byte>();
         private readonly decimal _montoRecibido;
         private readonly decimal _cambio;
         private readonly int _anchoTicket;
         private readonly AppDbContext _context;
+        private readonly TicketImpresionService _ticketImpresionService;
 
         public VentaTicketWindow(Venta venta, List<ItemCarrito> items, decimal montoRecibido, decimal cambio)
         {
@@ -36,15 +35,15 @@ namespace POS.ventanas
             _montoRecibido = montoRecibido;
             _cambio = cambio;
 
-            // Inicializar contexto para ticket de pedido
+            // Inicializar contexto y servicio de impresión
             _context = new AppDbContext();
+            _ticketImpresionService = new TicketImpresionService(_context);
 
             // Cargar configuración de ancho de ticket
             var config = ConfiguracionService.CargarConfiguracion();
             _anchoTicket = config.AnchoTicket;
 
             CargarDatos();
-            GenerarPdfs();
         }
 
         private void CargarDatos()
@@ -57,146 +56,27 @@ namespace POS.ventanas
             CambioTextBlock.Text = $"${_cambio:F2}";
         }
 
-        /// <summary>
-        /// Genera ambos PDFs: ticket de venta y ticket de pedido
-        /// </summary>
-        private async void GenerarPdfs()
-        {
-            try
-            {
-                // 1. Generar ticket de VENTA (para el cliente)
-                _pdfVentaBytes = TicketPdfGenerator.GenerarTicket(_venta, _items, _montoRecibido, _cambio, _anchoTicket);
-
-                // 2. Generar ticket de PEDIDO (para cocina/barra)
-                try
-                {
-                    var ticketPedidoGenerator = new TicketPedidoPdfGenerator(_context);
-                    _pdfPedidoBytes = await ticketPedidoGenerator.GenerarTicketPedidoAsync(
-                        venta: _venta,
-                        items: _items,
-                        nombreMesero: "Cajero",
-                        numeroMesa: "Venta", // Puedes personalizarlo
-                        anchoMm: _anchoTicket
-                    );
-
-                    // El ticket de pedido se genera pero NO se abre automáticamente
-                    // El usuario puede abrirlo/imprimirlo desde los botones
-                }
-                catch (Exception pedidoEx)
-                {
-                    // Si falla el ticket de pedido, no afecta la venta
-                    System.Diagnostics.Debug.WriteLine($"Error generando ticket de pedido: {pedidoEx.Message}");
-                    MessageBox.Show(
-                        "Se generó el ticket de venta pero hubo un problema con el ticket de pedido.\n\n" +
-                        $"Error: {pedidoEx.Message}",
-                        "Advertencia",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al generar los PDFs: {ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        /// <summary>
-        /// Abre el ticket de pedido automáticamente en el visor PDF predeterminado
-        /// </summary>
-        private void AbrirTicketPedido()
-        {
-            try
-            {
-                if (_pdfPedidoBytes == null || _pdfPedidoBytes.Length == 0)
-                    return;
-
-                // Guardar ticket de pedido en carpeta temporal
-                var carpetaTemp = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "POS",
-                    "tickets_pedidos"
-                );
-
-                if (!Directory.Exists(carpetaTemp))
-                {
-                    Directory.CreateDirectory(carpetaTemp);
-                }
-
-                var nombreArchivo = $"Pedido_{_venta.Id:D4}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
-                var rutaCompleta = Path.Combine(carpetaTemp, nombreArchivo);
-
-                File.WriteAllBytes(rutaCompleta, _pdfPedidoBytes);
-
-                // Abrir el PDF
-                Process.Start(new ProcessStartInfo(rutaCompleta) { UseShellExecute = true });
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error abriendo ticket de pedido: {ex.Message}");
-            }
-        }
-
         private void GuardarPdf_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                var saveFileDialog = new SaveFileDialog
+                // El sistema ahora usa impresión directa, no genera PDFs para guardar
+                var resultado = MessageBox.Show(
+                    "El sistema ahora usa impresión directa.\n\n" +
+                    "¿Desea imprimir el ticket en lugar de guardarlo?",
+                    "Impresión Directa",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (resultado == MessageBoxResult.Yes)
                 {
-                    Filter = "PDF files (*.pdf)|*.pdf",
-                    FileName = $"Ticket_Venta_{_venta.Id}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf",
-                    DefaultExt = ".pdf"
-                };
-
-                if (saveFileDialog.ShowDialog() == true)
-                {
-                    // Guardar ticket de venta
-                    File.WriteAllBytes(saveFileDialog.FileName, _pdfVentaBytes);
-
-                    // Preguntar si también quiere guardar el ticket de pedido
-                    if (_pdfPedidoBytes != null && _pdfPedidoBytes.Length > 0)
-                    {
-                        var result = MessageBox.Show(
-                            "Ticket de venta guardado.\n\n¿Desea guardar también el ticket de pedido?",
-                            "Guardar Ticket de Pedido",
-                            MessageBoxButton.YesNo,
-                            MessageBoxImage.Question);
-
-                        if (result == MessageBoxResult.Yes)
-                        {
-                            var savePedidoDialog = new SaveFileDialog
-                            {
-                                Filter = "PDF files (*.pdf)|*.pdf",
-                                FileName = $"Ticket_Pedido_{_venta.Id}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf",
-                                DefaultExt = ".pdf"
-                            };
-
-                            if (savePedidoDialog.ShowDialog() == true)
-                            {
-                                File.WriteAllBytes(savePedidoDialog.FileName, _pdfPedidoBytes);
-                                MessageBox.Show("Ambos tickets guardados exitosamente.", "Éxito",
-                                    MessageBoxButton.OK, MessageBoxImage.Information);
-                            }
-                        }
-                        else
-                        {
-                            MessageBox.Show("Ticket de venta guardado exitosamente.", "Éxito",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("Ticket de venta guardado exitosamente.", "Éxito",
-                            MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-
-                    // Abrir el ticket de venta guardado
-                    Process.Start(new ProcessStartInfo(saveFileDialog.FileName) { UseShellExecute = true });
+                    // Llamar al método de impresión
+                    Imprimir_Click(sender, e);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al guardar el PDF: {ex.Message}", "Error",
+                MessageBox.Show($"Error: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -216,19 +96,7 @@ namespace POS.ventanas
                     return;
                 }
 
-                var rutaSumatra = SumatraPrintService.EncontrarSumatra();
-                if (string.IsNullOrEmpty(rutaSumatra))
-                {
-                    MessageBox.Show("SumatraPDF no está instalado o no se puede encontrar.\n\n" +
-                        "Por favor, descargue e instale SumatraPDF desde:\n" +
-                        "https://www.sumatrapdfreader.org/download-free-pdf-viewer\n\n" +
-                        "O configure la ruta en Administración > Ajustes",
-                        "SumatraPDF no encontrado",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                // Abrir tu ventana personalizada VentanaImprimir
+                // Abrir ventana de selección de tipo de ticket
                 var ventanaImprimir = new VentanaImprimir
                 {
                     Owner = this
@@ -249,39 +117,74 @@ namespace POS.ventanas
 
                 var tipoSeleccionado = ventanaImprimir.TicketSeleccionado;
 
-                if (tipoSeleccionado == VentanaImprimir.TipoTicket.Venta)
+                try
                 {
-                    // Imprimir ticket de venta DOS VECES
-                    await SumatraPrintService.ImprimirPdfAsync(_pdfVentaBytes, config.ImpresoraNombre, _anchoTicket);
-                    await System.Threading.Tasks.Task.Delay(1000); // Esperar 1 segundo entre impresiones
-                    await SumatraPrintService.ImprimirPdfAsync(_pdfVentaBytes, config.ImpresoraNombre, _anchoTicket);
-                }
-                else if (tipoSeleccionado == VentanaImprimir.TipoTicket.Pedido)
-                {
-                    // Imprimir solo ticket de pedido UNA VEZ
-                    if (_pdfPedidoBytes != null && _pdfPedidoBytes.Length > 0)
+                    if (tipoSeleccionado == VentanaImprimir.TipoTicket.Venta)
                     {
-                        await SumatraPrintService.ImprimirPdfAsync(_pdfPedidoBytes, config.ImpresoraNombre, _anchoTicket);
-                    }
-                    else
-                    {
-                        MessageBox.Show("❌ No hay ticket de pedido disponible", "Error",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
-                else if (tipoSeleccionado == VentanaImprimir.TipoTicket.Ambos)
-                {
-                    // Imprimir ticket de venta DOS VECES
-                    await SumatraPrintService.ImprimirPdfAsync(_pdfVentaBytes, config.ImpresoraNombre, _anchoTicket);
-                    await System.Threading.Tasks.Task.Delay(1000);
-                    await SumatraPrintService.ImprimirPdfAsync(_pdfVentaBytes, config.ImpresoraNombre, _anchoTicket);
+                        // Imprimir ticket de venta DOS VECES usando impresión directa
+                        _ticketImpresionService.ImprimirTicketVenta(_venta, _items, _montoRecibido, _cambio);
+                        await System.Threading.Tasks.Task.Delay(500); // Pequeña pausa entre impresiones
+                        _ticketImpresionService.ImprimirTicketVenta(_venta, _items, _montoRecibido, _cambio);
 
-                    // Imprimir ticket de pedido UNA VEZ
-                    if (_pdfPedidoBytes != null && _pdfPedidoBytes.Length > 0)
-                    {
-                        await System.Threading.Tasks.Task.Delay(1000);
-                        await SumatraPrintService.ImprimirPdfAsync(_pdfPedidoBytes, config.ImpresoraNombre, _anchoTicket);
+                        MessageBox.Show("Ticket de venta impreso correctamente (2 copias).", "Éxito",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
                     }
+                    else if (tipoSeleccionado == VentanaImprimir.TipoTicket.Pedido)
+                    {
+                        // Imprimir solo ticket de pedido UNA VEZ
+                        var itemsParaPedido = _items.Where(i => i.ProductoId != -998 && i.ProductoId != -999).ToList();
+
+                        if (itemsParaPedido.Any())
+                        {
+                            await _ticketImpresionService.ImprimirTicketPedidoAsync(
+                                venta: _venta,
+                                items: itemsParaPedido,
+                                nombreMesero: "Cajero",
+                                numeroMesa: "Venta"
+                            );
+
+                            MessageBox.Show("Ticket de pedido impreso correctamente.", "Éxito",
+                                MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show("No hay items para imprimir en el ticket de pedido.", "Información",
+                                MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                    }
+                    else if (tipoSeleccionado == VentanaImprimir.TipoTicket.Ambos)
+                    {
+                        // Imprimir ticket de venta DOS VECES
+                        _ticketImpresionService.ImprimirTicketVenta(_venta, _items, _montoRecibido, _cambio);
+                        await System.Threading.Tasks.Task.Delay(500);
+                        _ticketImpresionService.ImprimirTicketVenta(_venta, _items, _montoRecibido, _cambio);
+
+                        // Imprimir ticket de pedido UNA VEZ
+                        var itemsParaPedido = _items.Where(i => i.ProductoId != -998 && i.ProductoId != -999).ToList();
+
+                        if (itemsParaPedido.Any())
+                        {
+                            await System.Threading.Tasks.Task.Delay(500);
+                            await _ticketImpresionService.ImprimirTicketPedidoAsync(
+                                venta: _venta,
+                                items: itemsParaPedido,
+                                nombreMesero: "Cajero",
+                                numeroMesa: "Venta"
+                            );
+                        }
+
+                        MessageBox.Show("Tickets impresos correctamente (2 copias de venta + 1 de pedido).", "Éxito",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                catch (Exception printEx)
+                {
+                    MessageBox.Show($"Error al imprimir: {printEx.Message}\n\n" +
+                        "Verifique que:\n" +
+                        "• La impresora esté encendida y conectada\n" +
+                        "• La impresora esté configurada correctamente en Ajustes",
+                        "Error de impresión",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
 
                 // Restaurar botón
@@ -296,7 +199,6 @@ namespace POS.ventanas
                 MessageBox.Show($"Error al imprimir: {ex.Message}\n\n" +
                     "Verifique que:\n" +
                     "• La impresora esté encendida y conectada\n" +
-                    "• SumatraPDF esté correctamente instalado\n" +
                     "• La impresora esté configurada en Ajustes",
                     "Error de impresión",
                     MessageBoxButton.OK, MessageBoxImage.Error);

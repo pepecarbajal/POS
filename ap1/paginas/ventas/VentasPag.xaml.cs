@@ -35,14 +35,16 @@ namespace POS.paginas.ventas
         private readonly ProductoManager _productoManager;
         private readonly RecuperacionManager _recuperacionManager;
 
+        // Servicio de impresión directa
+        private readonly TicketImpresionService _ticketImpresionService;
+
         // Colecciones observables para UI
         public ObservableCollection<CategoriaItem> Categorias { get; set; }
         public ObservableCollection<TiempoActivo> TiemposActivos { get; set; }
 
         // Estado de venta recuperada
-        // Estado de venta recuperada
         private Venta? _ventaPendienteRecuperada = null;
-        private string? _idNfcVentaRecuperada = null;  // ← AGREGAR ESTA LÍNEA
+        private string? _idNfcVentaRecuperada = null;
 
         // Control de pagos
         private decimal _montoRecibido = 0;
@@ -75,6 +77,9 @@ namespace POS.paginas.ventas
             _nfcManager = new NFCManager(_nfcReaderService);
             _productoManager = new ProductoManager(_context);
             _recuperacionManager = new RecuperacionManager(_context, tiempoService, ventaService, precioTiempoService);
+
+            // Inicializar servicio de impresión directa
+            _ticketImpresionService = new TicketImpresionService(_context);
 
             // Suscribirse a eventos
             _nfcManager.TarjetaEscaneada += OnTarjetaEscaneada;
@@ -365,7 +370,7 @@ namespace POS.paginas.ventas
 
             // ✅ Establecer AMBAS variables necesarias
             _idNfcVentaRecuperada = idNfc;
-            _ventaPendienteRecuperada = ventaPendiente;  // ⭐ ESTA ERA LA LÍNEA FALTANTE
+            _ventaPendienteRecuperada = ventaPendiente;
 
             // Agregar todos los items recuperados al carrito
             foreach (var item in itemsRecuperados)
@@ -922,7 +927,7 @@ namespace POS.paginas.ventas
 
         #endregion
 
-        #region Imprimir
+        #region Imprimir Ticket de Pedido
 
         private async void ImprimirButton_Click(object sender, RoutedEventArgs e)
         {
@@ -959,18 +964,6 @@ namespace POS.paginas.ventas
                     return;
                 }
 
-                // Verificar SumatraPDF
-                var rutaSumatra = SumatraPrintService.EncontrarSumatra();
-                if (string.IsNullOrEmpty(rutaSumatra))
-                {
-                    MessageBox.Show("SumatraPDF no está instalado o no se puede encontrar.\n\n" +
-                        "Por favor, descargue e instale SumatraPDF desde:\n" +
-                        "https://www.sumatrapdfreader.org/download-free-pdf-viewer",
-                        "SumatraPDF no encontrado",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
                 // Crear una venta temporal para generar el ticket de pedido
                 var ventaTemporal = new Venta
                 {
@@ -982,30 +975,32 @@ namespace POS.paginas.ventas
                     NombreCliente = "Pre-venta"
                 };
 
-                // Deshabilitar botón mientras genera e imprime
+                // Deshabilitar botón mientras imprime
                 ImprimirButton.IsEnabled = false;
                 ImprimirButton.Content = "⏳";
 
-                // Generar ticket de pedido
-                var ticketPedidoGenerator = new TicketPedidoPdfGenerator(_context);
-                var pdfPedidoBytes = await ticketPedidoGenerator.GenerarTicketPedidoAsync(
-                    venta: ventaTemporal,
-                    items: _carritoManager.Items.ToList(),
-                    nombreMesero: "Cajero",
-                    numeroMesa: "Venta Directa",
-                    anchoMm: config.AnchoTicket
-                );
+                // Filtrar items para el ticket de pedido (excluir items especiales)
+                var itemsParaPedido = _carritoManager.Items
+                    .Where(i => i.ProductoId != -998 && i.ProductoId != -999)
+                    .ToList();
 
-                if (pdfPedidoBytes != null && pdfPedidoBytes.Length > 0)
+                if (itemsParaPedido.Any())
                 {
-                    // Imprimir directamente
-                    await SumatraPrintService.ImprimirPdfAsync(pdfPedidoBytes, config.ImpresoraNombre, config.AnchoTicket);
+                    // Imprimir directamente usando el servicio de impresión
+                    await _ticketImpresionService.ImprimirTicketPedidoAsync(
+                        venta: ventaTemporal,
+                        items: itemsParaPedido,
+                        nombreMesero: "Cajero",
+                        numeroMesa: "Venta Directa"
+                    );
 
+                    MessageBox.Show("✅ Ticket de pedido impreso correctamente",
+                        "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
-                    MessageBox.Show("❌ No se pudo generar el ticket de pedido",
-                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("No hay items para imprimir en el ticket de pedido.",
+                        "Información", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
                 // Restaurar botón
@@ -1017,7 +1012,7 @@ namespace POS.paginas.ventas
                 MessageBox.Show($"Error al imprimir ticket de pedido: {ex.Message}\n\n" +
                     "Verifique que:\n" +
                     "• La impresora esté encendida y conectada\n" +
-                    "• SumatraPDF esté correctamente instalado",
+                    "• La impresora esté configurada correctamente en Ajustes",
                     "Error de impresión",
                     MessageBoxButton.OK, MessageBoxImage.Error);
 

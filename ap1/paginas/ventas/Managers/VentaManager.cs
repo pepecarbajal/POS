@@ -14,14 +14,14 @@ namespace POS.paginas.ventas.Managers
 {
     /// <summary>
     /// Manager para gestionar operaciones de ventas
-    /// Incluye funcionalidad de tickets de pedido agrupados por categoría
+    /// Incluye funcionalidad de tickets de pedido mediante impresión directa
     /// </summary>
     public class VentaManager
     {
         private readonly AppDbContext _context;
         private readonly VentaService _ventaService;
         private readonly PrecioTiempoService _precioTiempoService;
-        private TicketPedidoPdfGenerator? _ticketPedidoGenerator;
+        private TicketImpresionService? _ticketImpresionService;
 
         public VentaManager(
             AppDbContext context,
@@ -445,31 +445,31 @@ namespace POS.paginas.ventas.Managers
 
         #endregion
 
-        #region Tickets de Pedido (NUEVO)
+        #region Tickets de Pedido (Impresión Directa)
 
         /// <summary>
-        /// Genera un ticket de pedido para la cocina/barra
-        /// Este ticket agrupa los productos por categoría para facilitar la preparación
+        /// Imprime un ticket de pedido directamente a la impresora configurada
+        /// Este ticket agrupa los productos por categoría para facilitar la preparación en cocina/barra
         /// </summary>
         /// <param name="venta">Venta registrada</param>
         /// <param name="itemsCarrito">Items del carrito</param>
         /// <param name="numeroMesa">Número de mesa o identificador</param>
         /// <param name="nombreMesero">Nombre del mesero o cajero</param>
-        /// <param name="generarAutomaticamente">Si es true, genera y abre el ticket automáticamente</param>
-        /// <returns>Ruta del archivo generado o null si falló</returns>
-        public async Task<string?> GenerarTicketPedidoAsync(
+        /// <param name="imprimirAutomaticamente">Si es true, imprime automáticamente</param>
+        /// <returns>True si se imprimió correctamente, false si falló</returns>
+        public async Task<bool> ImprimirTicketPedidoAsync(
             Venta venta,
             List<ItemCarrito> itemsCarrito,
             string numeroMesa = "01",
             string nombreMesero = "Cajero",
-            bool generarAutomaticamente = true)
+            bool imprimirAutomaticamente = true)
         {
             try
             {
-                // Inicializar el generador si no existe
-                if (_ticketPedidoGenerator == null)
+                // Inicializar el servicio de impresión si no existe
+                if (_ticketImpresionService == null)
                 {
-                    _ticketPedidoGenerator = new TicketPedidoPdfGenerator(_context);
+                    _ticketImpresionService = new TicketImpresionService(_context);
                 }
 
                 // Filtrar items que deben aparecer en el ticket de pedido
@@ -481,61 +481,50 @@ namespace POS.paginas.ventas.Managers
                 if (!itemsParaTicket.Any())
                 {
                     // No hay items para mostrar en el ticket de pedido
-                    return null;
+                    MessageBox.Show("No hay items para imprimir en el ticket de pedido.",
+                        "Información", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return false;
                 }
 
-                // Generar el PDF
-                byte[] pdfBytes = await _ticketPedidoGenerator.GenerarTicketPedidoAsync(
+                if (!imprimirAutomaticamente)
+                {
+                    var resultado = MessageBox.Show(
+                        "¿Desea imprimir el ticket de pedido para cocina/barra?",
+                        "Confirmar impresión",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (resultado != MessageBoxResult.Yes)
+                        return false;
+                }
+
+                // Imprimir el ticket directamente
+                await _ticketImpresionService.ImprimirTicketPedidoAsync(
                     venta: venta,
                     items: itemsParaTicket,
                     nombreMesero: nombreMesero,
-                    numeroMesa: numeroMesa,
-                    anchoMm: 80  // Puedes hacer esto configurable
+                    numeroMesa: numeroMesa
                 );
 
-                if (generarAutomaticamente)
-                {
-                    // Guardar y abrir automáticamente
-                    string rutaArchivo = TicketPedidoPdfGenerator.GuardarYAbrirTicketPedido(
-                        pdfBytes,
-                        venta.Id,
-                        numeroMesa
-                    );
-
-                    return rutaArchivo;
-                }
-                else
-                {
-                    // Solo guardar sin abrir
-                    var nombreArchivo = $"Pedido_Mesa{numeroMesa}_{venta.Id}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
-                    TicketPedidoPdfGenerator.GuardarTicketPedido(pdfBytes, nombreArchivo);
-
-                    var carpetaTickets = System.IO.Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                        "POS",
-                        "tickets_pedidos"
-                    );
-
-                    return System.IO.Path.Combine(carpetaTickets, nombreArchivo);
-                }
+                return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al generar ticket de pedido: {ex.Message}",
+                MessageBox.Show($"Error al imprimir ticket de pedido: {ex.Message}",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
-                // Log del error (puedes implementar un logger aquí)
-                System.Diagnostics.Debug.WriteLine($"Error generando ticket de pedido: {ex}");
+                // Log del error
+                System.Diagnostics.Debug.WriteLine($"Error imprimiendo ticket de pedido: {ex}");
 
-                return null;
+                return false;
             }
         }
 
         /// <summary>
-        /// Regenera un ticket de pedido para una venta existente
-        /// Útil si se perdió el ticket original
+        /// Reimprimir un ticket de pedido para una venta existente
+        /// Útil si se necesita reenviar el pedido a cocina/barra
         /// </summary>
-        public async Task<string?> RegenerarTicketPedidoAsync(
+        public async Task<bool> ReimprimirTicketPedidoAsync(
             int ventaId,
             string numeroMesa = "01",
             string nombreMesero = "Cajero")
@@ -552,33 +541,34 @@ namespace POS.paginas.ventas.Managers
                 {
                     MessageBox.Show("No se encontró la venta especificada.",
                         "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return null;
+                    return false;
                 }
 
                 // Convertir detalles a ItemCarrito
-                var itemsCarrito = venta.DetallesVenta.Select(d => new ItemCarrito
-                {
-                    ProductoId = d.ProductoId ?? 0,
-                    Nombre = d.NombreParaMostrar,
-                    PrecioUnitario = d.PrecioUnitario,
-                    Cantidad = d.Cantidad,
-                    Total = d.Subtotal
-                }).ToList();
+                var itemsCarrito = venta.DetallesVenta
+                    .Select(d => new ItemCarrito
+                    {
+                        ProductoId = d.ProductoId ?? 0,
+                        Nombre = d.NombreParaMostrar,
+                        PrecioUnitario = d.PrecioUnitario,
+                        Cantidad = d.Cantidad,
+                        Total = d.Subtotal
+                    }).ToList();
 
-                // Regenerar el ticket
-                return await GenerarTicketPedidoAsync(
+                // Reimprimir el ticket
+                return await ImprimirTicketPedidoAsync(
                     venta,
                     itemsCarrito,
                     numeroMesa,
                     nombreMesero,
-                    generarAutomaticamente: true
+                    imprimirAutomaticamente: false // Preguntar antes de reimprimir
                 );
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al regenerar ticket: {ex.Message}",
+                MessageBox.Show($"Error al reimprimir ticket: {ex.Message}",
                     "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return null;
+                return false;
             }
         }
 

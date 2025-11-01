@@ -2,6 +2,7 @@
 using POS.Models;
 using POS.paginas.ventas;
 using POS.Services;
+using POS.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,12 +16,17 @@ namespace POS.paginas.ajustes
     public partial class AjustesPag : Page
     {
         private int _anchoSeleccionado = 80;
+        private readonly TicketImpresionService _ticketImpresionService;
 
         public AjustesPag()
         {
             InitializeComponent();
+
+            // Inicializar servicio de impresión
+            var context = new AppDbContext();
+            _ticketImpresionService = new TicketImpresionService(context);
+
             CargarConfiguracion();
-            VerificarSumatra();
         }
 
         private void CargarConfiguracion()
@@ -64,27 +70,7 @@ namespace POS.paginas.ajustes
             }
         }
 
-        private void VerificarSumatra()
-        {
-            var rutaSumatra = SumatraPrintService.EncontrarSumatra();
-
-            if (!string.IsNullOrEmpty(rutaSumatra))
-            {
-                SumatraEstadoBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#d1fae5"));
-                SumatraIcono.Text = "✓";
-                SumatraIcono.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#059669"));
-                SumatraTexto.Text = $"SumatraPDF detectado: {rutaSumatra}";
-                SumatraTexto.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#059669"));
-            }
-            else
-            {
-                SumatraEstadoBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#fecaca"));
-                SumatraIcono.Text = "⚠";
-                SumatraIcono.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#dc2626"));
-                SumatraTexto.Text = "SumatraPDF no detectado. Por favor, instale SumatraPDF para habilitar la impresión directa.";
-                SumatraTexto.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#dc2626"));
-            }
-        }
+       
 
         private void ActualizarSeleccionAncho(int ancho)
         {
@@ -173,7 +159,7 @@ namespace POS.paginas.ajustes
             }
         }
 
-        private async void ProbarImpresion_Click(object sender, RoutedEventArgs e)
+        private void ProbarImpresion_Click(object sender, RoutedEventArgs e)
         {
             try
             {
@@ -184,24 +170,34 @@ namespace POS.paginas.ajustes
                     return;
                 }
 
-                var rutaSumatra = SumatraPrintService.EncontrarSumatra();
-                if (string.IsNullOrEmpty(rutaSumatra))
+                // Verificar que la configuración esté guardada
+                var config = ConfiguracionService.CargarConfiguracion();
+                if (string.IsNullOrEmpty(config.ImpresoraNombre))
                 {
-                    MessageBox.Show("SumatraPDF no está instalado o no se puede encontrar.\n\n" +
-                        "Por favor, descargue e instale SumatraPDF desde:\n" +
-                        "https://www.sumatrapdfreader.org/download-free-pdf-viewer",
-                        "SumatraPDF no encontrado",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
+                    var resultado = MessageBox.Show(
+                        "La configuración no está guardada. ¿Desea guardarla antes de probar?",
+                        "Configuración no guardada",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (resultado == MessageBoxResult.Yes)
+                    {
+                        GuardarConfiguracion_Click(sender, e);
+                    }
+                    else
+                    {
+                        return;
+                    }
                 }
 
                 // Crear un ticket de prueba
                 var ventaPrueba = new Venta
                 {
-                    Id = 0,
+                    Id = 999,
                     Fecha = DateTime.Now,
                     Total = 100.00m,
-                    Estado = (int)EstadoVenta.Finalizada
+                    Estado = (int)EstadoVenta.Finalizada,
+                    TipoPago = (int)TipoPago.Efectivo
                 };
 
                 var itemsPrueba = new List<ItemCarrito>
@@ -209,27 +205,84 @@ namespace POS.paginas.ajustes
                     new ItemCarrito
                     {
                         ProductoId = 1,
-                        Nombre = "Producto de Prueba",
-                        PrecioUnitario = 50.00m,
+                        Nombre = "Producto de Prueba 1",
+                        PrecioUnitario = 30.00m,
                         Cantidad = 2,
-                        Total = 100.00m
+                        Total = 60.00m
+                    },
+                    new ItemCarrito
+                    {
+                        ProductoId = 2,
+                        Nombre = "Producto de Prueba 2",
+                        PrecioUnitario = 40.00m,
+                        Cantidad = 1,
+                        Total = 40.00m
                     }
                 };
 
-                // Generar PDF con el ancho seleccionado
-                var pdfBytes = TicketPdfGenerator.GenerarTicket(ventaPrueba, itemsPrueba, 100.00m, 0m, _anchoSeleccionado);
+                // Deshabilitar botón mientras imprime
+                var button = sender as Button;
+                if (button != null)
+                {
+                    button.IsEnabled = false;
+                    button.Content = "⏳ Imprimiendo...";
+                }
 
-                // Imprimir
-                var nombreImpresora = ImpresoraComboBox.SelectedItem.ToString() ?? "";
-                await SumatraPrintService.ImprimirPdfAsync(pdfBytes, nombreImpresora, _anchoSeleccionado);
+                try
+                {
+                    // Imprimir ticket de venta de prueba usando impresión directa
+                    _ticketImpresionService.ImprimirTicketVenta(
+                        venta: ventaPrueba,
+                        items: itemsPrueba,
+                        montoRecibido: 100.00m,
+                        cambio: 0m
+                    );
 
-                MessageBox.Show("Ticket de prueba enviado a impresión", "Éxito",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show(
+                        "✅ Ticket de prueba enviado a impresión correctamente.\n\n" +
+                        $"Impresora: {config.ImpresoraNombre}\n" +
+                        $"Ancho del ticket: {_anchoSeleccionado}mm\n\n" +
+                        "Si no se imprimió, verifique:\n" +
+                        "• Que la impresora esté encendida\n" +
+                        "• Que tenga papel\n" +
+                        "• Que esté conectada correctamente",
+                        "Prueba de Impresión",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                catch (Exception impEx)
+                {
+                    MessageBox.Show(
+                        $"❌ Error al imprimir el ticket de prueba:\n\n{impEx.Message}\n\n" +
+                        "Verifique que:\n" +
+                        "• La impresora esté encendida y conectada\n" +
+                        "• La impresora tenga papel\n" +
+                        "• El nombre de la impresora sea correcto\n" +
+                        "• No haya trabajos de impresión atascados",
+                        "Error de Impresión",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+
+                // Restaurar botón
+                if (button != null)
+                {
+                    button.IsEnabled = true;
+                    button.Content = "🖨️ Probar Impresión";
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error al probar impresión: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
+
+                // Restaurar botón en caso de error
+                var button = sender as Button;
+                if (button != null)
+                {
+                    button.IsEnabled = true;
+                    button.Content = "🖨️ Probar Impresión";
+                }
             }
         }
     }

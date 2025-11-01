@@ -124,7 +124,7 @@ namespace POS.ventanas
                 // Intentar imprimir el ticket automáticamente
                 try
                 {
-                    var ticketService = new TicketService();
+                    var ticketService = new TicketImpresionService();
                     ticketService.ImprimirCorteCaja(_corteCaja, _resumenCorteCaja);
 
                     MessageBox.Show("Cierre de caja completado.\nTicket enviado a impresión.",
