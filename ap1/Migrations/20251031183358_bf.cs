@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace POS.Migrations
 {
     /// <inheritdoc />
-    public partial class db : Migration
+    public partial class bf : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

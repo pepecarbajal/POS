@@ -66,26 +66,26 @@ namespace POS.paginas.caja
                 var resumen = await _service.CalcularResumenCorte();
 
                 // Actualizar UI con los datos
-                txtEfectivoInicial.Text = _corteActual.EfectivoInicial.ToString("C2");
-                txtEfectivoEsperado.Text = resumen.EfectivoEsperado.ToString("C2");
+                txtEfectivoInicial.Text = _corteActual.EfectivoInicial.ToString("N2");
+                txtEfectivoEsperado.Text = resumen.EfectivoEsperado.ToString("N2");
 
                 // Ventas
-                txtTotalVentasEfectivo.Text = resumen.TotalVentasEfectivo.ToString("C2");
+                txtTotalVentasEfectivo.Text = resumen.TotalVentasEfectivo.ToString("N2");
                 txtCantidadVentasEfectivo.Text = $"({resumen.CantidadVentasEfectivo})";
 
-                txtTotalVentasTarjeta.Text = resumen.TotalVentasTarjeta.ToString("C2");
+                txtTotalVentasTarjeta.Text = resumen.TotalVentasTarjeta.ToString("N2");
                 txtCantidadVentasTarjeta.Text = $"({resumen.CantidadVentasTarjeta})";
 
-                txtTotalVentas.Text = resumen.TotalVentas.ToString("C2");
+                txtTotalVentas.Text = resumen.TotalVentas.ToString("N2");
 
                 // Movimientos
-                txtTotalDepositos.Text = resumen.TotalDepositos.ToString("C2");
-                txtTotalRetiros.Text = resumen.TotalRetiros.ToString("C2");
+                txtTotalDepositos.Text = resumen.TotalDepositos.ToString("N2");
+                txtTotalRetiros.Text = resumen.TotalRetiros.ToString("N2");
 
                 // Diferencia (solo si el corte está cerrado)
                 if (_corteActual.EstaCerrado)
                 {
-                    txtDiferencia.Text = _corteActual.Diferencia.ToString("C2");
+                    txtDiferencia.Text = _corteActual.Diferencia.ToString("N2");
                     MostrarTipoDiferencia(_corteActual.Diferencia);
                 }
                 else
@@ -320,9 +320,9 @@ namespace POS.paginas.caja
 
                     var resultado = MessageBox.Show(
                         $"¿Está seguro de cerrar el corte de caja?\n\n" +
-                        $"Efectivo esperado: {resumen.EfectivoEsperado:C2}\n" +
-                        $"Efectivo contado: {cierreWindow.EfectivoFinal:C2}\n" +
-                        $"Diferencia: {diferencia:C2}\n\n" +
+                        $"Efectivo esperado: {resumen.EfectivoEsperado:N2}\n" +
+                        $"Efectivo contado: {cierreWindow.EfectivoFinal:N2}\n" +
+                        $"Diferencia: {diferencia:N2}\n\n" +
                         $"{(diferencia == 0 ? "✓ Sin diferencia" : diferencia > 0 ? "⚠️ Sobrante" : "⚠️ Faltante")}",
                         "Confirmar Cierre",
                         MessageBoxButton.YesNo,

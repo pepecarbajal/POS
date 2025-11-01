@@ -32,7 +32,7 @@ namespace POS.ventanas
             // Establecer el efectivo esperado después de que la ventana esté completamente cargada
             if (txtEfectivoEsperado != null)
             {
-                txtEfectivoEsperado.Text = _efectivoEsperado.ToString("C2");
+                txtEfectivoEsperado.Text = _efectivoEsperado.ToString("N2");
             }
             // Calcular diferencia inicial (será 0 - esperado = negativo)
             CalcularDiferencia();
@@ -53,7 +53,7 @@ namespace POS.ventanas
             // Establecer el efectivo esperado
             if (txtEfectivoEsperado != null)
             {
-                txtEfectivoEsperado.Text = _efectivoEsperado.ToString("C2");
+                txtEfectivoEsperado.Text = _efectivoEsperado.ToString("N2");
             }
 
             CalcularDiferencia();
@@ -79,7 +79,7 @@ namespace POS.ventanas
             if (decimal.TryParse(txtEfectivoFinal.Text, out decimal monto))
             {
                 var diferencia = monto - _efectivoEsperado;
-                txtDiferencia.Text = diferencia.ToString("C2");
+                txtDiferencia.Text = diferencia.ToString("N2");
 
                 if (Math.Abs(diferencia) < 0.01m)
                 {
@@ -98,7 +98,7 @@ namespace POS.ventanas
             {
                 // Si el texto no es un número válido, mostrar 0 - esperado
                 var diferencia = 0 - _efectivoEsperado;
-                txtDiferencia.Text = diferencia.ToString("C2");
+                txtDiferencia.Text = diferencia.ToString("N2");
                 txtDiferencia.Foreground = System.Windows.Media.Brushes.Red;
             }
         }

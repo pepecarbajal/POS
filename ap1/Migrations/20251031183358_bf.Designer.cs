@@ -11,8 +11,8 @@ using POS.Data;
 namespace POS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251030220257_db")]
-    partial class db
+    [Migration("20251031183358_bf")]
+    partial class bf
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
